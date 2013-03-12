@@ -1,0 +1,126 @@
+div {
+  padding: 4px 4px 4px 4px;
+}
+h1 {
+  margin-top: 8px;
+  margin-bottom:8px;
+  font-size:25px;
+}
+p{
+  margin-top: 4px;
+  margin-bottom:4px;
+}
+footer {
+  color: #888888;
+  font-size:13px;
+}
+ul {
+  padding-left: 4px;
+}
+li {
+  list-style-type:none;
+  margin-top: 1px;
+  margin-bottom:1px;
+}
+
+#comment {
+  font-size:13px;
+}
+#wml_flame {
+  border: solid 1px #aaaadd;
+}
+
+
+.track{
+  border: solid 1px #666666;
+  height:128px;
+  margin-right: 10px;
+  overflow: hidden;
+  max-width: 1340px;
+}
+.track.selected{
+  border: solid 1px #666699;
+}
+
+.track_def{
+  padding: 2px 2px 2px 2px;
+  background: -moz-linear-gradient(top, #cccccc, #888888);
+  background: -webkit-gradient(linear, left top, left bottom, from(#cccccc), to(#888888));
+  width:300px;
+  height:128px;
+  float: left;
+  border-right: solid 1px #666699;
+}
+.track.selected .track_def{
+  background: -moz-linear-gradient(top, #ccccee, #8888cc);
+  background: -webkit-gradient(linear, left top, left bottom, from(#ccccee), to(#8888cc));
+}
+.pianoroll_summary{
+  padding: 0px 0px 0px 0px;
+  background: -moz-linear-gradient(top, #eeeeee, #cccccc);
+  background: -webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#cccccc));
+  overflow: hidden;
+  height:128px;
+}
+.track.selected .pianoroll_summary{
+  background: -moz-linear-gradient(top, #eeeeff, #ccccee);
+  background: -webkit-gradient(linear, left top, left bottom, from(#eeeeff), to(#ccccee));
+}
+.canvas_container{
+  padding: 0px 0px 0px 0px;
+  position: relative;
+}
+.pianoroll_summary canvas{
+  position: absolute;
+}
+
+.keyboard{
+  margin-left: 2px;
+  margin-right: 2px;
+  border:solid 1px #111111;
+  color: #113311;
+  background-color: #113311;
+}
+.keyboard.pressed{
+  color: #99ff99;
+  background-color: #99ff99;
+}
+
+
+.messages pre{
+  margin-top:0px;
+  margin-bottom:0px;
+  color:#aaaaaa;
+}
+.messages pre:first-child{
+  color:#444444;
+}
+
+.demo_track{
+  height:25px;
+}
+.demo_location{
+  border: solid 1px #ccccee;
+  font-size:9px;
+  display:block;
+  float:left;
+  width:20px;
+  height:20px;
+}
+.demo_location.selected{
+  background-color: #99ff99;
+}
+
+/* Jazz-Plugin*/
+.hidden {
+ visibility:hidden;
+ width:0px;
+ height:0px;
+ margin:0px;
+ padding:0px;
+ border-style:none;
+ border-width:0px;
+ max-width:0px;
+ max-height:0px;
+}
+

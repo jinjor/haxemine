@@ -1,0 +1,3 @@
+-cp src/haxe
+-js public/js/webmidi.js
+-main org.jinjor.webmidi.All
