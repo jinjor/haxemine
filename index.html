@@ -3,8 +3,12 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   <title>Haxemine</title>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+  <script src="js/jquery-1.9.1.js"></script>
+  <script src="js/jquery-ui-1.10.1.custom.min.js"></script>
+  <script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+  
   <!--<script type="text/javascript" src="/js/angular.min.js"></script>-->
+  <link rel="stylesheet" type="text/css" href="css/base.css">
   
   <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
@@ -12,29 +16,44 @@
     socket.on('connect', function(msg) {
       console.log("connect");
     });
-    socket.on('test', function(msg) {
+    $(document).ready(function(){
+      
+      var fileName = './sampleProject/src/sample.txt';
+      $.ajax({
+        url: 'src',
+        data: {fileName: fileName},
+        type: 'GET',
+        success: function(file){
+          var text = file.text;
+          console.log(text);
+          var editor = ace.edit("editor");
+          editor.setTheme("ace/theme/eclipse");
+          editor.getSession().setValue(text);
+          editor.getSession().setMode("ace/mode/" + file.mode);
+          editor.commands.addCommand({
+            Name : "savefile",
+            bindKey: {
+              win : "Ctrl-S",
+              mac : "Command-S"
+            },
+            exec: function(editor) {
+              socket.emit('save', {
+                fileName : fileName,
+                text: editor.getSession().getValue()
+              });
+            }
+            
+            
+          });
+        }
+      });
+      
     });
+    
     </script>
-  <style type="text/css" media="screen">
-    #editor { 
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-    }
-  </style>
 </head>
 <body>
-<div id="editor">function foo(items) {
-    var x = "All this is syntax highlighted";
-    return x;
-}</div>
-<script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-<script>
-    var editor = ace.edit("editor");
-    editor.setTheme("ace/theme/eclipse");
-    editor.getSession().setMode("ace/mode/haxe");
-</script>
+<div id="file-selector"></div>
+<div id="editor"></div>
 </body>
 </html>

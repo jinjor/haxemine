@@ -25,6 +25,10 @@ app.get('/', function(req, res){
   var rs = fs.createReadStream('index.html');
   sys.pump(rs, res);
 });
+app.get('/src', function(req, res){
+  res.contentType('application/json');
+  res.send(JSON.stringify(findFromSrc(req.query.fileName)));
+});
 
 server = http.createServer(app);
 server.listen(app.get('port'), function(){
@@ -35,10 +39,31 @@ var io = socketio.listen(server);
 
 io.sockets.on('connection', function(socket) {
   console.log("connection");
-  socket.on('message', function(data) {
+  socket.on('save', function(data) {
+    saveToSrc(data.fileName, data.text);
   });
   
   socket.on('disconnect', function(){
     console.log("disconnect");
   });
 });
+
+//logics---------------------------
+
+var findFromSrc = function(fileName){
+  return {
+    text: fs.readFileSync(fileName, "utf8"),
+    mode: 'haxe'
+  };
+};
+var saveToSrc = function(fileName, text){
+  console.log(fs.writeFileSync(fileName, text, "utf8"));
+};
+
+
+
+
+
+
+
+

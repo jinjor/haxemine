@@ -1,0 +1,7 @@
+function foo(items) {
+ var y = "All this is syntax highlighted";
+ return y;
+
+
+
+}
