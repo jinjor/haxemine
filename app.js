@@ -5,6 +5,8 @@ var http = require('http');
 var path = require('path');
 var socketio = require('socket.io');
 var watch = require('./watch.js');
+var childProcess = require('child_process');
+var async = require('async');
 
 var app = express();
 
@@ -26,8 +28,10 @@ app.get('/', function(req, res){
   sys.pump(rs, res);
 });
 app.get('/src', function(req, res){
+  var projectRoot = './sampleProject/';
+  
   res.contentType('application/json');
-  res.send(JSON.stringify(findFromSrc(req.query.fileName)));
+  res.send(JSON.stringify(findFromSrc(projectRoot+ req.query.fileName)));
 });
 
 server = http.createServer(app);
@@ -35,14 +39,28 @@ server.listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
 
-var io = socketio.listen(server);
+var io = socketio.listen(server, {'log level': 1});
 
 io.sockets.on('connection', function(socket) {
   console.log("connection");
-  socket.on('save', function(data) {
-    saveToSrc(data.fileName, data.text);
+  var projectRoot = './sampleProject/';
+  
+  getAllHaxeFiles('./sampleProject', function(err, files){
+    socket.emit('all-haxe-files', files);
   });
   
+  socket.on('save', function(data) {
+    saveToSrc(projectRoot + data.fileName, data.text);
+    socket.emit('stdout', 'saved');
+    childProcess.exec('haxe compile.hxml', {
+      cwd: projectRoot
+    },function(err, stdout, stderr){
+      socket.emit('stdout', stdout);
+      if(err){
+        socket.emit('haxe-compile-err', stderr);
+      }
+    });
+  });
   socket.on('disconnect', function(){
     console.log("disconnect");
   });
@@ -51,19 +69,68 @@ io.sockets.on('connection', function(socket) {
 //logics---------------------------
 
 var findFromSrc = function(fileName){
+  console.log(fileName);
   return {
     text: fs.readFileSync(fileName, "utf8"),
     mode: 'haxe'
   };
 };
 var saveToSrc = function(fileName, text){
-  console.log(fs.writeFileSync(fileName, text, "utf8"));
+  fs.writeFileSync(fileName, text, "utf8");
 };
 
 
 
+//---------------------------
 
 
+
+
+var walk = function(dir, done) {
+  var results = [];
+  fs.readdir(dir, function(err, list) {
+    if (err) return done(err);
+    var pending = list.length;
+    if (!pending) return done(null, results);
+    list.forEach(function(file) {
+      file = dir + '/' + file;
+      fs.stat(file, function(err, stat) {
+        if (stat && stat.isDirectory()) {
+          walk(file, function(err, res) {
+            results = results.concat(res);
+            if (!--pending) done(null, results);
+          });
+        } else {
+          results.push(file);
+          if (!--pending) done(null, results);
+        }
+      });
+    });
+  });
+};
+
+var getAllHaxeFiles = function(projectRoot, _callback){
+  
+  walk(projectRoot, function(err, results) {
+    if (err) throw err;
+    var all = [];
+    async.map(results, function(item, callback) {
+      if(item.indexOf('.hx') == (item.length - '.hx'.length)){
+        callback(null, item);
+      }else{
+        callback();
+      }
+    },
+    function(err, items) {
+      items.forEach(function(item){
+        if(item){
+          all.push(item);
+        }
+      });
+    });
+    _callback(null, all);
+  });
+};
 
 
 

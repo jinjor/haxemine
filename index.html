@@ -4,29 +4,119 @@
   <title>Haxemine</title>
   <script src="/socket.io/socket.io.js"></script>
   <script src="js/jquery-1.9.1.js"></script>
+  <script src="js/jstree-v.pre1.0/jquery.jstree.js"></script>
   <script src="js/jquery-ui-1.10.1.custom.min.js"></script>
+  
+  
   <script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
   
   <!--<script type="text/javascript" src="/js/angular.min.js"></script>-->
   <link rel="stylesheet" type="text/css" href="css/base.css">
   
   <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript">
+  <script type="text/javascript">
+    var PathUtil = {
+      join: function(a, b){
+        if(a[a.length-1]=='/' && b[0]=='/'){
+          return a + b.substring[1];
+        }else if(a[a.length-1]!='/' && b[0]!='/'){
+          return a + '/' + b;
+        }else{
+          return a + b;
+        }
+      }
+    }
+    var Session = {
+      projectRoot: './sampleProject',
+      filePath: 'src/haxe/org/jinjor/haxeminesample/Main.hx'
+    };
+    var getSession = function(){
+      return Session;
+    };
+    
     var socket = io.connect('http://localhost:8765');
-    socket.on('connect', function(msg) {
-      console.log("connect");
-    });
     $(document).ready(function(){
+      var session = getSession();
+      var editor = ace.edit("editor");
+      var compileErrors = [];
+      var filePath = session.filePath;
       
-      var fileName = './sampleProject/src/sample.txt';
-      $.ajax({
-        url: 'src',
-        data: {fileName: fileName},
-        type: 'GET',
-        success: function(file){
+      var parseCompileErrorMessage = function(message){
+        var elms = message.split(':');
+        //console.log(elms);        
+        return {
+          path: elms[0],
+          row: parseInt(elms[1]),
+          message: elms[elms.length-1]
+        };//TODO
+      }
+      var setCompileErrors = function(){
+        var Range = ace.require('ace/range').Range;
+        //source側
+        var annotations = compileErrors.filter(function(message){
+          return message.indexOf(filePath) == 0;
+        }).map(function(message){
+          var parsed = parseCompileErrorMessage(message);
+          return {row:parsed.row-1, text: parsed.message,type:"error"};
+        });
+        editor.getSession().setAnnotations(annotations);
+        
+        //status側
+        var container = $('#compile-errors').empty();
+        compileErrors.forEach(function(message){
+          container.append($('<a/>').text(message).click(function(){
+            var path = parseCompileErrorMessage(message).path;
+            loadFile(path);
+          }));
+        });
+        
+      };
+      var saveFile = function(editor){
+        socket.emit('save', {
+          fileName : filePath,
+          text: editor.getSession().getValue()
+        });
+        editor.getSession().clearAnnotations();
+        $('#compile-errors').empty();
+      };
+      var changeFile = function(file){
+        loadFile(file);
+      };
+    
+      socket.on('connect', function(msg) {
+        console.log("connected.");
+      });
+      socket.on('stdout', function(msg) {
+        console.log(msg);
+      });
+      socket.on('all-haxe-files', function(files) {
+        var container = $('#all-haxe-files').empty();
+        files.forEach(function(f){
+          var splitted = f.split('/');//TODO 縦に並べるときはrootから
+          $('<a/>').text(splitted[splitted.length-1]).click(function(){
+            changeFile(f.split('sampleProject/')[1]);
+          }).appendTo(container);
+        });
+      });
+      socket.on('haxe-compile-err', function(msg) {
+        compileErrors = msg.split('\n');
+        setCompileErrors();
+      });
+      
+      var getFile = function(filePath, callBack){
+        $.ajax({
+          url: 'src',
+          data: {fileName: filePath},
+          type: 'GET',
+          success: function(file){
+            callBack(file);
+          }
+        });
+      };
+      var loadFile = function(_filePath){
+        filePath = _filePath;
+        getFile(_filePath, function(file){
           var text = file.text;
-          console.log(text);
-          var editor = ace.edit("editor");
           editor.setTheme("ace/theme/eclipse");
           editor.getSession().setValue(text);
           editor.getSession().setMode("ace/mode/" + file.mode);
@@ -37,23 +127,25 @@
               mac : "Command-S"
             },
             exec: function(editor) {
-              socket.emit('save', {
-                fileName : fileName,
-                text: editor.getSession().getValue()
-              });
+              saveFile(editor);
             }
-            
-            
           });
-        }
-      });
+        });
       
+      };
+      
+      loadFile(filePath);
     });
     
     </script>
 </head>
 <body>
-<div id="file-selector"></div>
+<div id="all-haxe-files">
+</div>
+<hr/>
 <div id="editor"></div>
 </body>
+<hr/>
+<div id="compile-errors">
+</div>
 </html>

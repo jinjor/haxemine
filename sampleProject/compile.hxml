@@ -1,0 +1,3 @@
+-cp src/haxe
+-js out/js/sample.js
+-main org.jinjor.haxeminesample.Main

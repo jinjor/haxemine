@@ -1,7 +1,14 @@
+body {
+  margin: 0px 0px 0px 0px;
+} 
+hr {
+  margin: 0px;
+} 
 #editor { 
-    /*position: absolute;*/
-    top: 0;
-    right: 0;
-    bottom: 200;
-    left: 0;
+    position: relative;
+    height: 80%;
+}
+#compile-errors { 
+    position: relative;
+    height: 20%;
 }

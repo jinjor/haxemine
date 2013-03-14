@@ -1,3 +1,0 @@
--cp src/haxe
--js public/js/haxemine.js
--main org.jinjor.haxemine.Main
