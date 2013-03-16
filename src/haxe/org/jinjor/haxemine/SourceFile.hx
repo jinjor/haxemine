@@ -6,6 +6,9 @@ class SourceFile {
     public var shortName : String;
     
     public static function equals(o1 : SourceFile, o2 : SourceFile){
+        if(o1 == null || o2 == null){
+            return false;
+        }
         return o1.pathFromProjectRoot == o2.pathFromProjectRoot;
     }
     
