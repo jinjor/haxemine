@@ -1,0 +1,178 @@
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Haxemine</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/jquery-1.9.1.js"></script>
+  <script src="js/jstree-v.pre1.0/jquery.jstree.js"></script>
+  <script src="js/jquery-ui-1.10.1.custom.min.js"></script>
+  
+  
+  <!--<script src="js/underscore.js"></script>
+  <script src="js/backbone.js"></script>
+  <script src="js/namespace.js"></script>
+  <script src="js/haxemine-file-selector.js"></script>-->
+  <!--<script type="text/javascript" src="/js/angular.min.js"></script>-->
+  
+  
+  <script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+  
+  
+  <link rel="stylesheet" type="text/css" href="css/base.css">
+  
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script type="text/javascript">
+    var PathUtil = {
+      join: function(a, b){
+        if(a[a.length-1]=='/' && b[0]=='/'){
+          return a + b.substring[1];
+        }else if(a[a.length-1]!='/' && b[0]!='/'){
+          return a + '/' + b;
+        }else{
+          return a + b;
+        }
+      }
+    }
+    var Session = {
+    };
+    var getSession = function(){
+      return Session;
+    };
+    var saveFile = function(editor, filePath){
+      socket.emit('save', {
+        fileName : filePath,
+        text: editor.getSession().getValue()
+      });
+      editor.getSession().clearAnnotations();
+      $('#compile-errors').empty();
+    };
+    var createEditor = function(getCurrentFilePath){
+      var editor = ace.edit("editor");
+      editor.setTheme("ace/theme/eclipse");
+      editor.commands.addCommand({
+        Name : "savefile",
+        bindKey: {
+          win : "Ctrl-S",
+          mac : "Command-S"
+        },
+        exec: function(editor) {
+          saveFile(editor, getCurrentFilePath());
+        }
+      });
+      return editor;
+    };
+    
+    var socket = io.connect('http://localhost:8764');
+    $(document).ready(function(){
+      var session = getSession();
+      var compileErrors = [];
+      var filePath = '';//TODO
+      var editor = createEditor(function(){
+        return filePath;
+      });
+      
+      var parseCompileErrorMessage = function(message){
+        var elms = message.split(':');
+        //console.log(elms);        
+        return {
+          path: elms[0],
+          row: parseInt(elms[1]),
+          message: elms[elms.length-1]
+        };//TODO
+      }
+      var setCompileErrors = function(){
+        var Range = ace.require('ace/range').Range;
+        //source側
+        var annotations = compileErrors.filter(function(message){
+          console.log(filePath);
+          return message.indexOf(filePath) == 0;
+        }).map(function(message){
+          var parsed = parseCompileErrorMessage(message);
+          return {row:parsed.row-1, text: parsed.message,type:"error"};
+        });
+        editor.getSession().setAnnotations(annotations);
+        
+        //status側
+        var container = $('#compile-errors').empty();
+        compileErrors.forEach(function(message){
+          container.append($('<a/>').text(message).click(function(){
+            var path = parseCompileErrorMessage(message).path;
+            loadFile(path);
+          }));
+        });
+      };
+      
+      var changeFile = function(file){
+        loadFile(file);
+      };
+    
+      socket.on('connect', function(msg) {
+        console.log("connected.");
+      });
+      socket.on('stdout', function(msg) {
+        console.log(msg);
+      });
+      socket.on('all-haxe-files', function(files) {
+        var container = $('#all-haxe-files').empty();
+        files.forEach(function(f){
+          var splitted = f.split('/');//TODO rootから
+          $('<li>').append($('<a/>').text(splitted[splitted.length-1]).click(function(){
+            changeFile(f);
+          })).appendTo(container);
+        });
+      });
+      socket.on('haxe-compile-err', function(msg) {
+        console.log('error found: ' + msg);
+        compileErrors = msg.split('\n');
+        setCompileErrors();
+      });
+      
+      var getFile = function(filePath, callBack){
+        $.ajax({
+          url: 'src',
+          data: {fileName: filePath},
+          type: 'GET',
+          success: function(file){
+            callBack(file);
+          }
+        });
+      };
+      var loadFile = function(_filePath){
+        filePath = _filePath;
+        getFile(_filePath, function(file){
+          if(!file){
+            return;
+          }
+          var text = file.text;
+          
+          //editor.setTheme("ace/theme/tomorrow_night");
+          editor.getSession().setValue(text);
+          editor.getSession().setMode("ace/mode/" + file.mode);
+          
+        });
+      
+      };
+      
+      loadFile(filePath);
+    });
+    
+    </script>
+    
+</head>
+<body>
+  
+<div id="all-haxe-files">
+</div>
+
+<div id="all-tests">
+</div>
+<div id="editor"></div>
+<hr/>
+<div id="compile-errors">
+</div>
+</body>
+
+<!--
+-->
+</html>
