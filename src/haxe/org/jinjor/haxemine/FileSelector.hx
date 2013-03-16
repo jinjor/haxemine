@@ -8,13 +8,11 @@ class FileSelector {
     private static inline function JQ(s: String){ return untyped $(s);}
     
     private static var template = new HoganTemplate<Dynamic>('
-    <div id="all-haxe-files">
         <ul>
             {{#files}}
             <li><a data-filePath="{{pathFromProjectRoot}}">{{shortName}}</a></li>
             {{/files}}
         </ul>
-    </div>
     ');
     
     public var container : JQuery;
@@ -22,7 +20,7 @@ class FileSelector {
     public function new(session : Session){
         var that = this;
         
-        this.container = JQ('<div/>').on('click', 'a', function(){
+        this.container = JQ('<div id="all-haxe-files"/>').on('click', 'a', function(){
             var file = session.getAllFiles().get(JQuery.cur.attr('data-filePath'));
             session.selectNextFile(file);
         });

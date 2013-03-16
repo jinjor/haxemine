@@ -8,8 +8,11 @@ import org.jinjor.haxemine.FileSelector;
 class Main {
     
     public static function main(){
+        
         var socket = untyped io.connect('http://localhost:8765');
-        new Controller(socket);
+        var ace = untyped js.Lib.window.ace;
+        
+        new Controller(socket, ace);
     }
     
 }

@@ -12,7 +12,7 @@ class Controller {
     public function new(socket : Dynamic, ace : Dynamic){
         var session = new Session(new HistoryArray<SourceFile>(10, SourceFile.equals));
         var fileSelector = new FileSelector(session);
-        
+        var compileErrorPanel = new CompileErrorPanel(session);
         
         socket.on('connect', function(msg) {
             trace("connected.");
@@ -35,27 +35,18 @@ class Controller {
         });
         
         new JQuery(js.Lib.document).ready(function(e){
+            
             JQ('body')
             .append(fileSelector.container)
             .append(JQ('<div id="all-tests"></div>'))
             .append(JQ('<div id="editor"></div>'))
             .append(JQ('<hr/>'))
-            .append(JQ('<div id="compile-errors"></div>'));
-            fileSelector.render(session);
-            
+            .append(compileErrorPanel.container);
+
             var aceEditor = new AceEditor(ace, session, socket);
             
-            var setCompileErrors = function(){
-        
-        //status側
-        var container = $('#compile-errors').empty();
-        session.getCompileErrors().forEach(function(error){
-          container.append($('<a/>').text(error.originalMessage).click(function(){
-            var path = parseCompileErrorMessage(error.originalMessage).path;
-            loadFile(path);
-          }));
-        });
-      };
+            fileSelector.render(session);
+            compileErrorPanel.render(session);
       
         });
     }
