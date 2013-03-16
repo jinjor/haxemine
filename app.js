@@ -7,14 +7,18 @@ var socketio = require('socket.io');
 //var watch = require('./lib/watch.js');
 var childProcess = require('child_process');
 var async = require('async');
-var conf = require('./conf.js');
+
+var projectRoot = '.';
+var conf = JSON.parse(fs.readFileSync(projectRoot + '/conf.json', "utf8"));
+var port = conf && conf.port || 8765;
+console.log('projectRoot:' + projectRoot);
+console.log('port:' + port);
+
 
 var app = express();
 
 app.configure(function(){
-  app.set('port', conf.port);
-  //app.set('views', __dirname + '/views');
-  //app.set('view engine', 'ejs');
+  app.set('port', port);
   app.use(express.favicon());
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
@@ -25,7 +29,7 @@ app.configure(function(){
 
 app.get('/', function(req, res){
   res.writeHead(200, {'Content-Type': 'text/html'});
-  var rs = fs.createReadStream('index.html');
+  var rs = fs.createReadStream(__dirname + '/index.html');
   sys.pump(rs, res);
 });
 app.get('/test', function(req, res){
@@ -35,7 +39,6 @@ app.get('/test', function(req, res){
 });
 app.get('/src', function(req, res){
   var fileName = req.query.fileName;
-  var projectRoot = conf.project.path;
   if(!fileName){
     res.send();
   }else{
@@ -54,9 +57,12 @@ var io = socketio.listen(server, {'log level': 1});
 
 io.sockets.on('connection', function(socket) {
   console.log("connection");
-  var projectRoot = conf.project.path;
-  
   getAllHaxeFiles(projectRoot, function(err, files){
+    if(err){
+      console.log(err);
+      throw err;
+    }
+    
     socket.emit('all-haxe-files', files);
   });
   

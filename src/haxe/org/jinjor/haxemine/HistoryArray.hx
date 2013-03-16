@@ -28,7 +28,4 @@ class HistoryArray<T> {
         }
     }
     
-    
-    
-    
 }
