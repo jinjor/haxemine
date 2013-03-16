@@ -7,9 +7,6 @@ class AceEditor {
     private static var template = new HoganTemplate<Dynamic>('
     <div id="editor"></div>
     ');
-
-    public var pathFromProjectRoot : String;
-    public var shortName : String;
     
     private var editor : Dynamic;
     
@@ -33,7 +30,7 @@ class AceEditor {
                 mac : "Command-S"
             },
             exec: function(editor) {
-                saveFile(editor, '');//TODO currentFilePath
+                saveFile(editor, session.getCurrentFile().pathFromProjectRoot);
             }
         });
         this.editor = editor;
@@ -42,30 +39,37 @@ class AceEditor {
         session.onEditingFileChanged(function(){
             that.render(session);
         });
+        session.onCompileErrorsChanged(function(){
+            that.renderCompileErrors(session);
+        });
         
         session.selectNextFile(session.getCurrentFile());
     }
     
-    public function render(session : Session){
-        var file = session.getCurrentFile();
-         if(file == null){
+    private function renderCompileErrors(session : Session){
+        var currentFile = session.getCurrentFile();
+        var annotations = session.getCompileErrors().filter(function(error){
+            return error.originalMessage.indexOf(currentFile.pathFromProjectRoot) == 0;
+        }).map(function(error){
+            return {row:error.row-1, text: error.message, type:"error"};
+        }).array();
+        
+        editor.getSession().setAnnotations(annotations);
+    }
+    
+    private function render(session : Session){
+        var currentFile = session.getCurrentFile();
+         if(currentFile == null){
             return;
         }
-        new SourceFileDao().getFile(file.pathFromProjectRoot, function(file){
+        new SourceFileDao().getFile(currentFile.pathFromProjectRoot, function(file){
             if(file == null){
                 return;
             }
             var text = file.text;
             editor.getSession().setValue(text);
             editor.getSession().setMode("ace/mode/" + file.mode);
-            
-            var annotations = session.getCompileErrors().filter(function(error){
-            untyped console.log(file);
-                return error.originalMessage.indexOf(file.pathFromProjectRoot) == 0;
-            }).map(function(error){
-                return {row:error.row-1, text: error.message, type:"error"};
-            });
-            editor.getSession().setAnnotations(annotations);
+            renderCompileErrors(session);
         });
     }
     

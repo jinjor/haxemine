@@ -591,12 +591,15 @@ org.jinjor.haxemine.AceEditor = function(ace,session,socket) {
 	var editor = ace.edit("editor");
 	editor.setTheme("ace/theme/eclipse");
 	editor.commands.addCommand({ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor1) {
-		saveFile(editor1,"");
+		saveFile(editor1,session.getCurrentFile().pathFromProjectRoot);
 	}});
 	this.editor = editor;
 	var that = this;
 	session.onEditingFileChanged(function() {
 		that.render(session);
+	});
+	session.onCompileErrorsChanged(function() {
+		that.renderCompileErrors(session);
 	});
 	session.selectNextFile(session.getCurrentFile());
 };
@@ -604,21 +607,24 @@ org.jinjor.haxemine.AceEditor.__name__ = true;
 org.jinjor.haxemine.AceEditor.prototype = {
 	render: function(session) {
 		var _g = this;
-		var file = session.getCurrentFile();
-		if(file == null) return;
-		new org.jinjor.haxemine.SourceFileDao().getFile(file.pathFromProjectRoot,function(file1) {
-			if(file1 == null) return;
-			var text = file1.text;
+		var currentFile = session.getCurrentFile();
+		if(currentFile == null) return;
+		new org.jinjor.haxemine.SourceFileDao().getFile(currentFile.pathFromProjectRoot,function(file) {
+			if(file == null) return;
+			var text = file.text;
 			_g.editor.getSession().setValue(text);
-			_g.editor.getSession().setMode("ace/mode/" + file1.mode);
-			var annotations = Lambda.filter(session.getCompileErrors(),function(error) {
-				console.log(file1);
-				return error.originalMessage.indexOf(file1.pathFromProjectRoot) == 0;
-			}).map(function(error) {
-				return { row : error.row - 1, text : error.message, type : "error"};
-			});
-			_g.editor.getSession().setAnnotations(annotations);
+			_g.editor.getSession().setMode("ace/mode/" + file.mode);
+			_g.renderCompileErrors(session);
 		});
+	}
+	,renderCompileErrors: function(session) {
+		var currentFile = session.getCurrentFile();
+		var annotations = Lambda.array(Lambda.filter(session.getCompileErrors(),function(error) {
+			return error.originalMessage.indexOf(currentFile.pathFromProjectRoot) == 0;
+		}).map(function(error) {
+			return { row : error.row - 1, text : error.message, type : "error"};
+		}));
+		this.editor.getSession().setAnnotations(annotations);
 	}
 	,__class__: org.jinjor.haxemine.AceEditor
 }
@@ -639,9 +645,13 @@ org.jinjor.haxemine.CompileError.prototype = {
 	__class__: org.jinjor.haxemine.CompileError
 }
 org.jinjor.haxemine.CompileErrorPanel = function(session) {
+	var _g = this;
 	this.container = $("<div id=\"compile-errors\"/>").on("click","a",function() {
 		var file = session.getAllFiles().get($(this).attr("data-filePath"));
 		session.selectNextFile(file);
+	});
+	session.onCompileErrorsChanged(function() {
+		_g.render(session);
 	});
 };
 org.jinjor.haxemine.CompileErrorPanel.__name__ = true;
@@ -696,7 +706,7 @@ org.jinjor.haxemine.FileSelector = function(session) {
 		var file = session.getAllFiles().get($(this).attr("data-filePath"));
 		session.selectNextFile(file);
 	});
-	session.onCompileErrorChanged(function() {
+	session.onCompileErrorsChanged(function() {
 		that.render(session);
 	});
 	session.onAllFilesChanged(function() {
@@ -768,7 +778,7 @@ org.jinjor.haxemine.Session = function(editingFiles) {
 	this.editingFiles = editingFiles;
 	this.allFiles = new Hash();
 	this._onAllFilesChanged = [];
-	this._onCompileErrorChanged = [];
+	this._onCompileErrorsChanged = [];
 	this._onEditingFileChanged = [];
 };
 org.jinjor.haxemine.Session.__name__ = true;
@@ -800,8 +810,8 @@ org.jinjor.haxemine.Session.prototype = {
 			return true;
 		});
 	}
-	,onCompileErrorChanged: function(f) {
-		this._onCompileErrorChanged.push(f);
+	,onCompileErrorsChanged: function(f) {
+		this._onCompileErrorsChanged.push(f);
 	}
 	,getCompileErrors: function() {
 		return this.compileErrors;
@@ -812,7 +822,7 @@ org.jinjor.haxemine.Session.prototype = {
 		this.compileErrors = Lambda.array(Lambda.map(messages,function(message) {
 			return new org.jinjor.haxemine.CompileError(message,($_=_g.allFiles,$bind($_,$_.get)));
 		}));
-		Lambda.foreach(this._onCompileErrorChanged,function(f) {
+		Lambda.foreach(this._onCompileErrorsChanged,function(f) {
 			f();
 			return true;
 		});

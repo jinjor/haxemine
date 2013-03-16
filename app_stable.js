@@ -7,12 +7,12 @@ var socketio = require('socket.io');
 //var watch = require('./lib/watch.js');
 var childProcess = require('child_process');
 var async = require('async');
-var conf = require('./conf.js');
+var conf = require('./develop/conf.js');
 
 var app = express();
 
 app.configure(function(){
-  app.set('port', 8764);
+  app.set('port', conf.port);
   //app.set('views', __dirname + '/views');
   //app.set('view engine', 'ejs');
   app.use(express.favicon());

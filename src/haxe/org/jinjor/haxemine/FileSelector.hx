@@ -25,7 +25,7 @@ class FileSelector {
             session.selectNextFile(file);
         });
         
-        session.onCompileErrorChanged(function(){
+        session.onCompileErrorsChanged(function(){
             that.render(session);
         });
         session.onAllFilesChanged(function(){

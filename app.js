@@ -61,13 +61,20 @@ io.sockets.on('connection', function(socket) {
   });
   
   socket.on('save', function(data) {
+    if(!data.fileName){
+      console.log(data);
+      throw "bad request."
+    }
+    
     saveToSrc(projectRoot + '/'+ data.fileName, data.text);
     socket.emit('stdout', 'saved');
     childProcess.exec('haxe compile.hxml', {
       cwd: projectRoot
     },function(err, stdout, stderr){
+      console.log(stdout);
       socket.emit('stdout', stdout);
       if(err){
+        console.log(stderr);
         socket.emit('haxe-compile-err', stderr);
       }
     });
@@ -124,7 +131,7 @@ var getAllHaxeFiles = function(projectRoot, _callback){
   
   walk(projectRoot, function(err, results) {
     if (err) {
-      callback(err);
+      _callback(err);
     }else{
       var all = [];
       async.map(results, function(item, callback) {

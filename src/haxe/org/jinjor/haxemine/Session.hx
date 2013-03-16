@@ -10,7 +10,7 @@ class Session {
     private var fileToLoad : SourceFile;
     
     private var _onAllFilesChanged : Array<Void -> Void>;
-    private var _onCompileErrorChanged : Array<Void -> Void>;
+    private var _onCompileErrorsChanged : Array<Void -> Void>;
     private var _onEditingFileChanged : Array<Void -> Void>;
     
     public function new(editingFiles){
@@ -19,7 +19,7 @@ class Session {
         this.allFiles = new Hash();
         
         this._onAllFilesChanged = [];
-        this._onCompileErrorChanged = [];
+        this._onCompileErrorsChanged = [];
         this._onEditingFileChanged = [];
     }
     
@@ -29,7 +29,7 @@ class Session {
         this.compileErrors = messages.map(function(message){
             return new CompileError(message, allFiles.get);
         }).array();
-        this._onCompileErrorChanged.foreach(function(f){
+        this._onCompileErrorsChanged.foreach(function(f){
             f();
             return true;
         });
@@ -37,8 +37,8 @@ class Session {
     public function getCompileErrors() : Array<CompileError> {
         return compileErrors;
     }
-    public function onCompileErrorChanged(f: Void -> Void){
-        _onCompileErrorChanged.push(f);
+    public function onCompileErrorsChanged(f: Void -> Void){
+        _onCompileErrorsChanged.push(f);
     }
 
     //-> Backbone#get/set/onChange

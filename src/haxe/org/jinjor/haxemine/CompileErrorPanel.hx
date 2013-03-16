@@ -23,6 +23,9 @@ class CompileErrorPanel {
             var file = session.getAllFiles().get(JQuery.cur.attr('data-filePath'));
             session.selectNextFile(file);
         });
+        session.onCompileErrorsChanged(function(){
+            render(session);
+        });
     }
     
     public function render(session : Session){
