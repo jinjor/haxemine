@@ -1,0 +1,3 @@
+-cp haxe
+-js ../out/js/haxemine.js
+-main org.jinjor.haxemine.Main

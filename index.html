@@ -8,12 +8,20 @@
   <script src="js/jquery-ui-1.10.1.custom.min.js"></script>
   
   
+  <!--<script src="js/underscore.js"></script>
+  <script src="js/backbone.js"></script>
+  <script src="js/namespace.js"></script>
+  <script src="js/haxemine-file-selector.js"></script>-->
+  <!--<script type="text/javascript" src="/js/angular.min.js"></script>-->
+  
+  
   <script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
   
-  <!--<script type="text/javascript" src="/js/angular.min.js"></script>-->
+  
   <link rel="stylesheet" type="text/css" href="css/base.css">
   
   <script src="/socket.io/socket.io.js"></script>
+
   <script type="text/javascript">
     var PathUtil = {
       join: function(a, b){
@@ -27,19 +35,42 @@
       }
     }
     var Session = {
-      projectRoot: './sampleProject',
-      filePath: 'src/haxe/org/jinjor/haxeminesample/Main.hx'
     };
     var getSession = function(){
       return Session;
+    };
+    var saveFile = function(editor, filePath){
+      socket.emit('save', {
+        fileName : filePath,
+        text: editor.getSession().getValue()
+      });
+      editor.getSession().clearAnnotations();
+      $('#compile-errors').empty();
+    };
+    var createEditor = function(getCurrentFilePath){
+      var editor = ace.edit("editor");
+      editor.setTheme("ace/theme/eclipse");
+      editor.commands.addCommand({
+        Name : "savefile",
+        bindKey: {
+          win : "Ctrl-S",
+          mac : "Command-S"
+        },
+        exec: function(editor) {
+          saveFile(editor, getCurrentFilePath());
+        }
+      });
+      return editor;
     };
     
     var socket = io.connect('http://localhost:8765');
     $(document).ready(function(){
       var session = getSession();
-      var editor = ace.edit("editor");
       var compileErrors = [];
-      var filePath = session.filePath;
+      var filePath = '';//TODO
+      var editor = createEditor(function(){
+        return filePath;
+      });
       
       var parseCompileErrorMessage = function(message){
         var elms = message.split(':');
@@ -54,6 +85,7 @@
         var Range = ace.require('ace/range').Range;
         //source側
         var annotations = compileErrors.filter(function(message){
+          console.log(filePath);
           return message.indexOf(filePath) == 0;
         }).map(function(message){
           var parsed = parseCompileErrorMessage(message);
@@ -69,16 +101,8 @@
             loadFile(path);
           }));
         });
-        
       };
-      var saveFile = function(editor){
-        socket.emit('save', {
-          fileName : filePath,
-          text: editor.getSession().getValue()
-        });
-        editor.getSession().clearAnnotations();
-        $('#compile-errors').empty();
-      };
+      
       var changeFile = function(file){
         loadFile(file);
       };
@@ -92,13 +116,14 @@
       socket.on('all-haxe-files', function(files) {
         var container = $('#all-haxe-files').empty();
         files.forEach(function(f){
-          var splitted = f.split('/');//TODO 縦に並べるときはrootから
-          $('<a/>').text(splitted[splitted.length-1]).click(function(){
-            changeFile(f.split('sampleProject/')[1]);
-          }).appendTo(container);
+          var splitted = f.split('/');//TODO rootから
+          $('<li>').append($('<a/>').text(splitted[splitted.length-1]).click(function(){
+            changeFile(f);
+          })).appendTo(container);
         });
       });
       socket.on('haxe-compile-err', function(msg) {
+        console.log('error found: ' + msg);
         compileErrors = msg.split('\n');
         setCompileErrors();
       });
@@ -116,20 +141,15 @@
       var loadFile = function(_filePath){
         filePath = _filePath;
         getFile(_filePath, function(file){
+          if(!file){
+            return;
+          }
           var text = file.text;
-          editor.setTheme("ace/theme/eclipse");
+          
+          //editor.setTheme("ace/theme/tomorrow_night");
           editor.getSession().setValue(text);
           editor.getSession().setMode("ace/mode/" + file.mode);
-          editor.commands.addCommand({
-            Name : "savefile",
-            bindKey: {
-              win : "Ctrl-S",
-              mac : "Command-S"
-            },
-            exec: function(editor) {
-              saveFile(editor);
-            }
-          });
+          
         });
       
       };
@@ -138,14 +158,21 @@
     });
     
     </script>
+    
 </head>
 <body>
+  
 <div id="all-haxe-files">
 </div>
-<hr/>
+
+<div id="all-tests">
+</div>
 <div id="editor"></div>
-</body>
 <hr/>
 <div id="compile-errors">
 </div>
+</body>
+
+<!--
+-->
 </html>

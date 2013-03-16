@@ -3,7 +3,21 @@ body {
 } 
 hr {
   margin: 0px;
-} 
+}
+a {
+  cursor: pointer;
+}
+li {
+  list-style-type: none;
+}
+#all-haxe-files {
+  float:left;
+  width:20%;
+  height: 100%;
+  border-right: solid 1px rgb(159, 159, 159);
+  font-size:small;
+  font-family: arial,sans-serif;
+}
 #editor { 
     position: relative;
     height: 80%;
@@ -11,4 +25,6 @@ hr {
 #compile-errors { 
     position: relative;
     height: 20%;
+    font-size:small;
+    font-family: arial,sans-serif;
 }
