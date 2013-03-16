@@ -1,1 +1,0 @@
-node ../../haxemine-stable/node_modules/haxemine/app

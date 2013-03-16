@@ -16,5 +16,8 @@
   "subdomain": "jinjor.haxemine",
   "scripts": {
     "start": "app.js"
+  },
+  "bin" : {
+    "haxemine" : "./haxemine"
   }
 }
