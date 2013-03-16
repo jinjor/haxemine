@@ -28,7 +28,8 @@ class CompileErrorPanel {
         });
     }
     
-    public function render(session : Session){
+    private function render(session : Session){
+        untyped console.log('4');
         container.html(template.render({
             errors : session.getCompileErrors()
         }));

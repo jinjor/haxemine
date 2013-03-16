@@ -572,38 +572,33 @@ js.Lib.setErrorHandler = function(f) {
 var org = org || {}
 if(!org.jinjor) org.jinjor = {}
 if(!org.jinjor.haxemine) org.jinjor.haxemine = {}
-org.jinjor.haxemine.HoganTemplate = function(s) {
-	this.template = Hogan.compile(s);
-};
-org.jinjor.haxemine.HoganTemplate.__name__ = true;
-org.jinjor.haxemine.HoganTemplate.prototype = {
-	render: function(data) {
-		return this.template.render(data);
-	}
-	,__class__: org.jinjor.haxemine.HoganTemplate
-}
 org.jinjor.haxemine.AceEditor = function(ace,session,socket) {
-	var saveFile = function(editor,filePath) {
-		socket.emit("save",{ fileName : filePath, text : editor.getSession().getValue()});
-		editor.getSession().clearAnnotations();
-		session.setCompileErrors("");
-	};
-	var editor = ace.edit("editor");
-	editor.setTheme("ace/theme/eclipse");
-	editor.commands.addCommand({ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor1) {
-		saveFile(editor1,session.getCurrentFile().pathFromProjectRoot);
-	}});
-	this.editor = editor;
-	var that = this;
+	var _g = this;
+	this.container = $("<div id=\"editor\"/>");
 	session.onEditingFileChanged(function() {
-		that.render(session);
+		_g.render(session);
 	});
 	session.onCompileErrorsChanged(function() {
-		that.renderCompileErrors(session);
+		_g.renderCompileErrors(session);
 	});
-	session.selectNextFile(session.getCurrentFile());
+	session.onDocumentReady(function() {
+		_g.editor = ace.edit("editor");
+		var saveFile = function(editor,filePath) {
+			socket.emit("save",{ fileName : filePath, text : editor.getSession().getValue()});
+			editor.getSession().clearAnnotations();
+			session.setCompileErrors("");
+		};
+		_g.editor.commands.addCommand({ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor) {
+			saveFile(editor,session.getCurrentFile().pathFromProjectRoot);
+		}});
+		_g.editor.setTheme("ace/theme/eclipse");
+	});
+	this.ace = ace;
 };
 org.jinjor.haxemine.AceEditor.__name__ = true;
+org.jinjor.haxemine.AceEditor.JQ = function(s) {
+	return $(s);
+}
 org.jinjor.haxemine.AceEditor.prototype = {
 	render: function(session) {
 		var _g = this;
@@ -644,6 +639,16 @@ org.jinjor.haxemine.CompileError.parseCompileErrorMessage = function(message) {
 org.jinjor.haxemine.CompileError.prototype = {
 	__class__: org.jinjor.haxemine.CompileError
 }
+org.jinjor.haxemine.HoganTemplate = function(s) {
+	this.template = Hogan.compile(s);
+};
+org.jinjor.haxemine.HoganTemplate.__name__ = true;
+org.jinjor.haxemine.HoganTemplate.prototype = {
+	render: function(data) {
+		return this.template.render(data);
+	}
+	,__class__: org.jinjor.haxemine.HoganTemplate
+}
 org.jinjor.haxemine.CompileErrorPanel = function(session) {
 	var _g = this;
 	this.container = $("<div id=\"compile-errors\"/>").on("click","a",function() {
@@ -660,6 +665,7 @@ org.jinjor.haxemine.CompileErrorPanel.JQ = function(s) {
 }
 org.jinjor.haxemine.CompileErrorPanel.prototype = {
 	render: function(session) {
+		console.log("4");
 		this.container.html(org.jinjor.haxemine.CompileErrorPanel.template.render({ errors : session.getCompileErrors()}));
 	}
 	,__class__: org.jinjor.haxemine.CompileErrorPanel
@@ -687,10 +693,10 @@ org.jinjor.haxemine.Controller = function(socket,ace) {
 		session.setCompileErrors(msg);
 	});
 	new js.JQuery(js.Lib.document).ready(function(e) {
-		$("body").append(fileSelector.container).append($("<div id=\"all-tests\"></div>")).append($("<div id=\"editor\"></div>")).append($("<hr/>")).append(compileErrorPanel.container);
 		var aceEditor = new org.jinjor.haxemine.AceEditor(ace,session,socket);
-		fileSelector.render(session);
-		compileErrorPanel.render(session);
+		$("body").append(fileSelector.container).append(aceEditor.container).append($("<hr/>")).append(compileErrorPanel.container);
+		session.setDocumentReady();
+		session.selectNextFile(session.getCurrentFile());
 	});
 };
 org.jinjor.haxemine.Controller.__name__ = true;
@@ -730,7 +736,6 @@ org.jinjor.haxemine.FileSelector.hasCompileError = function(session,file) {
 }
 org.jinjor.haxemine.FileSelector.prototype = {
 	render: function(session) {
-		console.log(session);
 		var fs = [];
 		var $it0 = session.getAllFiles().iterator();
 		while( $it0.hasNext() ) {
@@ -769,7 +774,7 @@ org.jinjor.haxemine.HistoryArray.prototype = {
 org.jinjor.haxemine.Main = function() { }
 org.jinjor.haxemine.Main.__name__ = true;
 org.jinjor.haxemine.Main.main = function() {
-	var socket = io.connect("http://localhost:8765");
+	var socket = io.connect("/");
 	var ace = js.Lib.window.ace;
 	new org.jinjor.haxemine.Controller(socket,ace);
 }
@@ -780,10 +785,20 @@ org.jinjor.haxemine.Session = function(editingFiles) {
 	this._onAllFilesChanged = [];
 	this._onCompileErrorsChanged = [];
 	this._onEditingFileChanged = [];
+	this._onDocumentReady = [];
 };
 org.jinjor.haxemine.Session.__name__ = true;
 org.jinjor.haxemine.Session.prototype = {
-	onEditingFileChanged: function(f) {
+	onDocumentReady: function(f) {
+		this._onDocumentReady.push(f);
+	}
+	,setDocumentReady: function() {
+		Lambda.foreach(this._onDocumentReady,function(f) {
+			f();
+			return true;
+		});
+	}
+	,onEditingFileChanged: function(f) {
 		this._onEditingFileChanged.push(f);
 	}
 	,selectNextFile: function(file) {
@@ -911,7 +926,6 @@ if(typeof window != "undefined") {
 		return f(msg,[url + ":" + line]);
 	};
 }
-org.jinjor.haxemine.AceEditor.template = new org.jinjor.haxemine.HoganTemplate("\n    <div id=\"editor\"></div>\n    ");
 org.jinjor.haxemine.CompileErrorPanel.template = new org.jinjor.haxemine.HoganTemplate("\n        <ul>\n            {{#errors}}\n            <li><a data-filePath=\"{{file.pathFromProjectRoot}}\">{{originalMessage}}</a></li>\n            {{/errors}}\n        </ul>\n    ");
 org.jinjor.haxemine.FileSelector.template = new org.jinjor.haxemine.HoganTemplate("\n        <ul>\n            {{#files}}\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\n            {{/files}}\n        </ul>\n    ");
 org.jinjor.haxemine.Main.main();

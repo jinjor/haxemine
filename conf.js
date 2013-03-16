@@ -1,4 +1,4 @@
-exports.port = 8765;//TODO いまは固定
+exports.port = 8735;
 exports.project = {
   path: './develop/sampleProject'
 }

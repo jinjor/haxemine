@@ -14,6 +14,7 @@ class Controller {
         var fileSelector = new FileSelector(session);
         var compileErrorPanel = new CompileErrorPanel(session);
         
+        
         socket.on('connect', function(msg) {
             trace("connected.");
         });
@@ -36,18 +37,19 @@ class Controller {
         
         new JQuery(js.Lib.document).ready(function(e){
             
-            JQ('body')
-            .append(fileSelector.container)
-            .append(JQ('<div id="all-tests"></div>'))
-            .append(JQ('<div id="editor"></div>'))
-            .append(JQ('<hr/>'))
-            .append(compileErrorPanel.container);
-
             var aceEditor = new AceEditor(ace, session, socket);
             
-            fileSelector.render(session);
-            compileErrorPanel.render(session);
-      
+            JQ('body')
+            .append(fileSelector.container)
+            //.append(JQ('<div id="all-tests"><a>hoge</a></div>'))
+            //.append(JQ('<div id="all-tests"></div>'))
+            .append(aceEditor.container)
+            .append(JQ('<hr/>'))
+            .append(compileErrorPanel.container);
+            
+            session.setDocumentReady();
+            
+            session.selectNextFile(session.getCurrentFile());
         });
     }
     

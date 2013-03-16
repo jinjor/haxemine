@@ -6,6 +6,15 @@ hr {
 }
 a {
   cursor: pointer;
+  color:#444499;
+}
+a:hover {
+  text-decoration: underline;
+}
+ul {
+  margin-top:1px;
+  margin-bottom:1px;
+  padding-left:2px;
 }
 li {
   list-style-type: none;

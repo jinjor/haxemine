@@ -30,9 +30,7 @@ class FileSelector {
         });
         session.onAllFilesChanged(function(){
             that.render(session);
-        });
-        
-        
+        });  
     }
     
     private static function hasCompileError(session : Session, file : SourceFile) : Bool{
@@ -48,7 +46,6 @@ class FileSelector {
     }
     
     public function render(session : Session){
-        untyped console.log(session);
         var fs : Array<Dynamic> = [];
         for(f in session.getAllFiles()){
             fs.push(f);

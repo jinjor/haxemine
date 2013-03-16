@@ -1,49 +1,49 @@
 package org.jinjor.haxemine;
 
 using Lambda;
+import js.JQuery;
 
 class AceEditor {
     
-    private static var template = new HoganTemplate<Dynamic>('
-    <div id="editor"></div>
-    ');
-    
+    private static inline function JQ(s: String){ return untyped $(s);}
+        
+    private var ace : Dynamic;
     private var editor : Dynamic;
     
+    public var container: JQuery;
+    
     public function new(ace : Dynamic, session : Session, socket : Dynamic){
-        
-        var saveFile = function(editor, filePath){
-            socket.emit('save', {
-                fileName : filePath,
-                text: editor.getSession().getValue()
-            });
-            editor.getSession().clearAnnotations();
-            session.setCompileErrors('');
-        };
-        
-        var editor = ace.edit("editor");
-        editor.setTheme("ace/theme/eclipse");
-        editor.commands.addCommand({
-            Name : "savefile",
-            bindKey: {
-                win : "Ctrl-S",
-                mac : "Command-S"
-            },
-            exec: function(editor) {
-                saveFile(editor, session.getCurrentFile().pathFromProjectRoot);
-            }
-        });
-        this.editor = editor;
-        
-        var that = this;
+        this.container = JQ('<div id="editor"/>');
+
         session.onEditingFileChanged(function(){
-            that.render(session);
+            render(session);
         });
         session.onCompileErrorsChanged(function(){
-            that.renderCompileErrors(session);
+            renderCompileErrors(session);
         });
-        
-        session.selectNextFile(session.getCurrentFile());
+        session.onDocumentReady(function(){
+            editor = ace.edit("editor");
+            var saveFile = function(editor, filePath){
+                socket.emit('save', {
+                    fileName : filePath,
+                    text: editor.getSession().getValue()
+                });
+                editor.getSession().clearAnnotations();
+                session.setCompileErrors('');
+            };
+            editor.commands.addCommand({
+                Name : "savefile",
+                bindKey: {
+                    win : "Ctrl-S",
+                    mac : "Command-S"
+                },
+                exec: function(editor) {
+                    saveFile(editor, session.getCurrentFile().pathFromProjectRoot);
+                }
+            });
+            editor.setTheme("ace/theme/eclipse");
+        });
+        this.ace = ace;
     }
     
     private function renderCompileErrors(session : Session){

@@ -9,7 +9,7 @@ class Main {
     
     public static function main(){
         
-        var socket = untyped io.connect('http://localhost:8765');
+        var socket = untyped io.connect('/');
         var ace = untyped js.Lib.window.ace;
         
         new Controller(socket, ace);

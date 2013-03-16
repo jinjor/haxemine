@@ -12,6 +12,7 @@ class Session {
     private var _onAllFilesChanged : Array<Void -> Void>;
     private var _onCompileErrorsChanged : Array<Void -> Void>;
     private var _onEditingFileChanged : Array<Void -> Void>;
+    private var _onDocumentReady : Array<Void -> Void>;
     
     public function new(editingFiles){
         this.compileErrors = [];
@@ -21,6 +22,7 @@ class Session {
         this._onAllFilesChanged = [];
         this._onCompileErrorsChanged = [];
         this._onEditingFileChanged = [];
+        this._onDocumentReady = [];
     }
     
     //-> Backbone#get/set/onChange
@@ -73,6 +75,18 @@ class Session {
     }
     public function onEditingFileChanged(f: Void -> Void){
         _onEditingFileChanged.push(f);
+    }
+    
+    
+    
+    public function setDocumentReady(){
+        this._onDocumentReady.foreach(function(f){
+            f();
+            return true;
+        });
+    }
+    public function onDocumentReady(f: Void -> Void){
+        _onDocumentReady.push(f);
     }
     
 
