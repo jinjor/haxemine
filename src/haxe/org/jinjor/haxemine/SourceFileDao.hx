@@ -13,7 +13,7 @@ class SourceFileDao {
             success: function(file){
                 callBack(file);
             }
-        })
+        });
     }
 }
 //testtest
