@@ -45,9 +45,11 @@ class AceEditor {
     }
     
     private function renderCompileErrors(session : Session){
+        
         var currentFile = session.getCurrentFile();
         var annotations = session.getCompileErrors().filter(function(error){
-            return error.originalMessage.indexOf(currentFile.pathFromProjectRoot) == 0;
+            return error.originalMessage.indexOf(currentFile.pathFromProjectRoot) == 0
+            || error.originalMessage.indexOf('./' + currentFile.pathFromProjectRoot) == 0;
         }).map(function(error){
             return {row:error.row-1, text: error.message, type:"error"};
         }).array();

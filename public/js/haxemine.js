@@ -613,7 +613,9 @@ org.jinjor.haxemine.AceEditor.prototype = {
 	,renderCompileErrors: function(session) {
 		var currentFile = session.getCurrentFile();
 		var annotations = Lambda.array(Lambda.filter(session.getCompileErrors(),function(error) {
-			return error.originalMessage.indexOf(currentFile.pathFromProjectRoot) == 0;
+			console.log(error.originalMessage);
+			console.log(currentFile.pathFromProjectRoot);
+			return error.originalMessage.indexOf(currentFile.pathFromProjectRoot) == 0 || error.originalMessage.indexOf("./" + currentFile.pathFromProjectRoot) == 0;
 		}).map(function(error) {
 			return { row : error.row - 1, text : error.message, type : "error"};
 		}));
@@ -924,8 +926,8 @@ if(typeof window != "undefined") {
 		return f(msg,[url + ":" + line]);
 	};
 }
-org.jinjor.haxemine.CompileErrorPanel.template = new org.jinjor.haxemine.HoganTemplate("\n        <ul>\n            {{#errors}}\n            <li><a data-filePath=\"{{file.pathFromProjectRoot}}\">{{originalMessage}}</a></li>\n            {{/errors}}\n        </ul>\n    ");
-org.jinjor.haxemine.FileSelector.template = new org.jinjor.haxemine.HoganTemplate("\n        <ul>\n            {{#files}}\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\n            {{/files}}\n        </ul>\n    ");
+org.jinjor.haxemine.CompileErrorPanel.template = new org.jinjor.haxemine.HoganTemplate("\r\n        <ul>\r\n            {{#errors}}\r\n            <li><a data-filePath=\"{{file.pathFromProjectRoot}}\">{{originalMessage}}</a></li>\r\n            {{/errors}}\r\n        </ul>\r\n    ");
+org.jinjor.haxemine.FileSelector.template = new org.jinjor.haxemine.HoganTemplate("\r\n        <ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>\r\n    ");
 org.jinjor.haxemine.Main.main();
 
 //@ sourceMappingURL=haxemine.js.map
