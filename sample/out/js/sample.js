@@ -285,3 +285,5 @@ var Class = { __name__ : ["Class"]};
 var Enum = { };
 var Void = { __ename__ : ["Void"]};
 org.jinjor.haxeminesample.Main.main();
+
+//@ sourceMappingURL=sample.js.map

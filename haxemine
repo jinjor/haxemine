@@ -10,11 +10,24 @@ var socketio = require('socket.io');
 var childProcess = require('child_process');
 var async = require('async');
 
+
+var CONF_FILE = 'haxemine.json';
+var print = function(s, author){
+  console.log((author || 'haxemine') + ' > ' + s);
+}
+
+if(!path.existsSync('haxemine.json')){
+  print('haxemine > haxemine.json is required in current directory.');
+  process.exit(1);
+}
+
+
 var projectRoot = '.';
-var conf = JSON.parse(fs.readFileSync(projectRoot + '/conf.json', "utf8"));
+var conf = JSON.parse(fs.readFileSync(projectRoot + '/' + CONF_FILE, 'utf8'));
 var port = conf && conf.port || 8765;
-console.log('projectRoot:' + projectRoot);
-console.log('port:' + port);
+print('projectRoot:' + projectRoot);
+print('port:' + port);
+
 
 var app = express();
 
@@ -44,14 +57,14 @@ app.get('/src', function(req, res){
     res.send();
   }else{
     res.contentType('application/json');
-    console.log(req.query.fileName);
+    //console.log(req.query.fileName);
     res.send(JSON.stringify(findFromSrc(projectRoot + '/' + fileName)));
   }
 });
 
 server = http.createServer(app);
 server.listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
+  console.log("haxemine listening on port " + app.get('port'));
 });
 
 var io = socketio.listen(server, {'log level': 1});
@@ -75,16 +88,13 @@ io.sockets.on('connection', function(socket) {
     
     saveToSrc(projectRoot + '/'+ data.fileName, data.text);
     socket.emit('stdout', 'saved');
-    childProcess.exec('haxe compile.hxml', {
-      cwd: projectRoot
-    },function(err, stdout, stderr){
-      console.log(stdout);
-      socket.emit('stdout', stdout);
-      if(err){
-        console.log(stderr);
-        socket.emit('haxe-compile-err', stderr);
-      }
+    
+    var tasks = conf.hxml.map(function(hxml){
+      var task = createCompileHaxeTask(socket, projectRoot, hxml.path);
+      return task;
     });
+    async.series(tasks, function(){});
+    
   });
   socket.on('disconnect', function(){
     console.log("disconnect");
@@ -104,7 +114,25 @@ var saveToSrc = function(fileName, text){
   fs.writeFileSync(fileName, text, "utf8");
 };
 
+var createCompileHaxeTask = function(socket, projectRoot, hxmlPath){
+  return function(callBack){
+    compileHaxe(socket, projectRoot, hxmlPath, callBack);
+  };
+}
 
+var compileHaxe = function(socket, projectRoot, hxmlPath, callBack){
+  childProcess.exec('haxe ' + hxmlPath, {
+    cwd: projectRoot
+  },function(err, stdout, stderr){
+    err || print(stdout, hxmlPath);
+    err && print(stderr, hxmlPath);
+    socket.emit('stdout', stdout);
+    
+    var compileError = err ? stderr : '';
+    socket.emit('haxe-compile-err', compileError);
+    callBack(err);
+  });
+};
 
 //---------------------------
 

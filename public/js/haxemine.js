@@ -585,8 +585,6 @@ org.jinjor.haxemine.AceEditor = function(ace,session,socket) {
 		_g.editor = ace.edit("editor");
 		var saveFile = function(editor,filePath) {
 			socket.emit("save",{ fileName : filePath, text : editor.getSession().getValue()});
-			editor.getSession().clearAnnotations();
-			session.setCompileErrors("");
 		};
 		_g.editor.commands.addCommand({ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor) {
 			saveFile(editor,session.getCurrentFile().pathFromProjectRoot);

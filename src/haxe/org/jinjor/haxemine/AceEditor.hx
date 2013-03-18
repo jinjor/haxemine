@@ -28,8 +28,8 @@ class AceEditor {
                     fileName : filePath,
                     text: editor.getSession().getValue()
                 });
-                editor.getSession().clearAnnotations();
-                session.setCompileErrors('');
+                //editor.getSession().clearAnnotations();//TODO これはrenderCompileErrorsに
+                //session.setCompileErrors('');//TODO これはサーバーから返る
             };
             editor.commands.addCommand({
                 Name : "savefile",

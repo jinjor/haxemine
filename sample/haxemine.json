@@ -1,0 +1,12 @@
+{
+  "port": 8764,
+  "hxml": [
+    {
+      "path": "compile.hxml",
+      "auto": true
+    },{
+      "path": "build.hxml",
+      "auto": true
+    }
+  ]
+}
