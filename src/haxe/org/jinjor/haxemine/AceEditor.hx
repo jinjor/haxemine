@@ -28,8 +28,6 @@ class AceEditor {
                     fileName : filePath,
                     text: editor.getSession().getValue()
                 });
-                //editor.getSession().clearAnnotations();//TODO これはrenderCompileErrorsに
-                //session.setCompileErrors('');//TODO これはサーバーから返る
             };
             editor.commands.addCommand({
                 Name : "savefile",
@@ -59,7 +57,7 @@ class AceEditor {
     
     private function render(session : Session){
         var currentFile = session.getCurrentFile();
-         if(currentFile == null){
+        if(currentFile == null){
             return;
         }
         new SourceFileDao().getFile(currentFile.pathFromProjectRoot, function(file){

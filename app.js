@@ -15,7 +15,7 @@ var print = function(s, author){
 }
 
 if(!path.existsSync('haxemine.json')){
-  print('haxemine > haxemine.json is required in current directory.');
+  print('haxemine.json is required in current directory.');
   process.exit(1);
 }
 
