@@ -682,6 +682,7 @@ org.jinjor.haxemine.EditingFile.prototype = {
 	}
 	,getCompileErrors: function() {
 		var file = this.session.getCurrentFile();
+		if(file == null) return new List();
 		return Lambda.filter(this.session.getCompileErrors(),function(error) {
 			return error.originalMessage.indexOf(file.pathFromProjectRoot) == 0 || error.originalMessage.indexOf("./" + file.pathFromProjectRoot) == 0;
 		});
@@ -695,6 +696,10 @@ org.jinjor.haxemine.EditingFile.prototype = {
 			that.text = _file.text;
 			that.mode = _file.mode;
 			Lambda.foreach(that._onChange,function(f) {
+				f();
+				return true;
+			});
+			Lambda.foreach(that._onCompileErrorsChanged,function(f) {
 				f();
 				return true;
 			});
@@ -800,19 +805,21 @@ org.jinjor.haxemine.Main.JQ = function(s) {
 }
 org.jinjor.haxemine.Main.main = function() {
 	var socket = io.connect("/");
+	var session = new org.jinjor.haxemine.Session(socket,new org.jinjor.haxemine.HistoryArray(10,org.jinjor.haxemine.SourceFile.equals));
 	var ace = js.Lib.window.ace;
-	var view = new org.jinjor.haxemine.View(socket,ace);
+	var view = new org.jinjor.haxemine.View(session,ace);
 	new js.JQuery(js.Lib.document).ready(function(e) {
 		view.render($("body"));
+	});
+	socket.on("connect",function(msg) {
+		console.log("connected.");
+		session.compile();
 	});
 }
 org.jinjor.haxemine.Session = function(socket,editingFiles) {
 	var _g = this;
 	var that = this;
 	this.socket = socket;
-	socket.on("connect",function(msg) {
-		console.log("connected.");
-	});
 	socket.on("stdout",function(msg) {
 		console.log(msg);
 	});
@@ -839,6 +846,10 @@ org.jinjor.haxemine.Session.__name__ = true;
 org.jinjor.haxemine.Session.prototype = {
 	saveFile: function(text) {
 		this.socket.emit("save",{ fileName : this.getCurrentFile().pathFromProjectRoot, text : text});
+	}
+	,compile: function() {
+		console.log(this.socket);
+		this.socket.emit("doTasks",{ });
 	}
 	,onEditingFileChanged: function(f) {
 		this._onEditingFileChanged.push(f);
@@ -910,9 +921,9 @@ org.jinjor.haxemine.SourceFileDao.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.SourceFileDao
 }
-org.jinjor.haxemine.View = function(socket,ace) {
+org.jinjor.haxemine.View = function(session,ace) {
 	this.ace = ace;
-	this.session = new org.jinjor.haxemine.Session(socket,new org.jinjor.haxemine.HistoryArray(10,org.jinjor.haxemine.SourceFile.equals));
+	this.session = session;
 };
 org.jinjor.haxemine.View.__name__ = true;
 org.jinjor.haxemine.View.JQ = function(s) {
@@ -999,7 +1010,7 @@ if(typeof window != "undefined") {
 	};
 }
 org.jinjor.haxemine.CompileErrorPanel.template = new org.jinjor.haxemine.HoganTemplate("\n        <ul>\n            {{#errors}}\n            <li><a data-filePath=\"{{file.pathFromProjectRoot}}\">{{originalMessage}}</a></li>\n            {{/errors}}\n        </ul>\n    ");
-org.jinjor.haxemine.FileSelector.template = new org.jinjor.haxemine.HoganTemplate("\n        {{#dirs}}\n        <label class=\"file_selector_flat_dir\">{{name}}</label>\n        <ul>\n            {{#files}}\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\n            {{/files}}\n        </ul>\n        {{/dirs}}\n    ");
+org.jinjor.haxemine.FileSelector.template = new org.jinjor.haxemine.HoganTemplate("\r\n        {{#dirs}}\r\n        <label class=\"file_selector_flat_dir\">{{name}}</label>\r\n        <ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>\r\n        {{/dirs}}\r\n    ");
 org.jinjor.haxemine.Main.main();
 
 //@ sourceMappingURL=haxemine.js.map

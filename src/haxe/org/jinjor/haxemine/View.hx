@@ -10,9 +10,9 @@ class View {
     private var ace : Dynamic;
     private var session : Session;
     
-    public function new(socket : Dynamic, ace : Dynamic){
+    public function new(session : Session, ace : Dynamic){
         this.ace = ace;
-        this.session = new Session(socket, new HistoryArray<SourceFile>(10, SourceFile.equals));
+        this.session = session;
         //session.selectNextFile(session.getCurrentFile());
     }
     

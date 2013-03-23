@@ -78,21 +78,25 @@ io.sockets.on('connection', function(socket) {
     socket.emit('all-haxe-files', files);
   });
   
-  socket.on('save', function(data) {
-    if(!data.fileName){
-      console.log(data);
-      throw "bad request."
-    }
-    
-    saveToSrc(projectRoot + '/'+ data.fileName, data.text);
-    socket.emit('stdout', 'saved');
-    
+  var doTasks = function(){
     var tasks = conf.hxml.map(function(hxml){
       var task = createCompileHaxeTask(socket, projectRoot, hxml.path);
       return task;
     });
     async.series(tasks, function(){});
-    
+  };
+  
+  socket.on('save', function(data) {
+    if(!data.fileName){
+      console.log(data);
+      throw "bad request."
+    }
+    saveToSrc(projectRoot + '/'+ data.fileName, data.text);
+    socket.emit('stdout', 'saved');
+    doTasks();
+  });
+  socket.on('doTasks', function() {
+    doTasks();
   });
   socket.on('disconnect', function(){
     console.log("disconnect");

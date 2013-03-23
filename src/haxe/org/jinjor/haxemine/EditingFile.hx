@@ -46,12 +46,18 @@ class EditingFile {
                 f();
                 return true;
             });
-            
+            that._onCompileErrorsChanged.foreach(function(f){
+                f();
+                return true;
+            });
         });
     }
     
     public function getCompileErrors() : List<CompileError> {
         var file = session.getCurrentFile();
+        if(file == null){
+            return new List();
+        }
         return session.getCompileErrors().filter(function(error){
             return error.originalMessage.indexOf(file.pathFromProjectRoot) == 0
             || error.originalMessage.indexOf('./' + file.pathFromProjectRoot) == 0;

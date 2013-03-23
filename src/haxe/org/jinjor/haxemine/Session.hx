@@ -17,9 +17,6 @@ class Session {
     public function new(socket, editingFiles){
         var that = this;
         this.socket = socket;
-        socket.on('connect', function(msg) {
-            trace("connected.");//View
-        });
         socket.on('stdout', function(msg) {
             trace(msg);//View
         });
@@ -96,8 +93,12 @@ class Session {
         _onEditingFileChanged.push(f);
     }
     
+    public function compile(){
+        untyped console.log(socket);
+        socket.emit('doTasks', {});
+    }
     
-    public function saveFile (text){//ここの引数が必要なのは大人の事情
+    public function saveFile(text){
         socket.emit('save', {
             fileName : getCurrentFile().pathFromProjectRoot,
             text: text
