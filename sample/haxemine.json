@@ -1,5 +1,5 @@
 {
-  "port": 8764,
+  "port": 8787,
   "hxml": [
     {
       "path": "compile.hxml",

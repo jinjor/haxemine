@@ -4,6 +4,7 @@ using Lambda;
 
 class Session {
 
+    private var socket : Dynamic;
     private var compileErrors : Array<CompileError>;
     private var editingFiles : HistoryArray<SourceFile>;
     private var allFiles : Hash<SourceFile>;
@@ -12,9 +13,28 @@ class Session {
     private var _onAllFilesChanged : Array<Void -> Void>;
     private var _onCompileErrorsChanged : Array<Void -> Void>;
     private var _onEditingFileChanged : Array<Void -> Void>;
-    private var _onDocumentReady : Array<Void -> Void>;
     
-    public function new(editingFiles){
+    public function new(socket, editingFiles){
+        var that = this;
+        this.socket = socket;
+        socket.on('connect', function(msg) {
+            trace("connected.");//View
+        });
+        socket.on('stdout', function(msg) {
+            trace(msg);//View
+        });
+        socket.on('all-haxe-files', function(filesPaths : Array<String>) {
+            var files = new Hash<SourceFile>();
+            filesPaths.foreach(function(f){
+                files.set(f, new SourceFile(f));
+                return true;
+            });
+            setAllFiles(files);
+        });
+        socket.on('haxe-compile-err', function(msg : Dynamic) {
+            trace('error found: ' + msg);
+            that.setCompileErrors(msg);
+        });
         this.compileErrors = [];
         this.editingFiles = editingFiles;
         this.allFiles = new Hash();
@@ -22,11 +42,10 @@ class Session {
         this._onAllFilesChanged = [];
         this._onCompileErrorsChanged = [];
         this._onEditingFileChanged = [];
-        this._onDocumentReady = [];
     }
     
     //-> Backbone#get/set/onChange
-    public function setCompileErrors(msg : String){
+    private function setCompileErrors(msg : String){
         var messages = msg.split('\n');
         this.compileErrors = messages.map(function(message){
             return new CompileError(message, allFiles.get);
@@ -44,7 +63,7 @@ class Session {
     }
 
     //-> Backbone#get/set/onChange
-    public function setAllFiles(allFiles){
+    private function setAllFiles(allFiles){
         this.allFiles = allFiles;
         this._onAllFilesChanged.foreach(function(f){
             f();
@@ -78,17 +97,12 @@ class Session {
     }
     
     
-    
-    public function setDocumentReady(){
-        this._onDocumentReady.foreach(function(f){
-            f();
-            return true;
+    public function saveFile (text){//ここの引数が必要なのは大人の事情
+        socket.emit('save', {
+            fileName : getCurrentFile().pathFromProjectRoot,
+            text: text
         });
     }
-    public function onDocumentReady(f: Void -> Void){
-        _onDocumentReady.push(f);
-    }
-    
 
     
     

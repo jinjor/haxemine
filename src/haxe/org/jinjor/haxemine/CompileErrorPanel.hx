@@ -18,8 +18,8 @@ class CompileErrorPanel {
     
     public var container: JQuery;
     
-    public function new(session : Session){
-        container = JQ('<div id="compile-errors"/>').on('click', 'a', function(){
+    public function new(container : JQuery, session : Session){
+        this.container = (untyped container).on('click', 'a', function(){
             var file = session.getAllFiles().get(JQuery.cur.attr('data-filePath'));
             session.selectNextFile(file);
         });
@@ -29,7 +29,6 @@ class CompileErrorPanel {
     }
     
     private function render(session : Session){
-        untyped console.log('4');
         container.html(template.render({
             errors : session.getCompileErrors()
         }));
