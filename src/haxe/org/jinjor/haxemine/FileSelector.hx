@@ -2,17 +2,21 @@ package org.jinjor.haxemine;
 
 import js.JQuery;
 using Lambda;
+using org.jinjor.util.Util;
 
 class FileSelector {
     
     private static inline function JQ(s: String){ return untyped $(s);}
     
     private static var template = new HoganTemplate<Dynamic>('
+        {{#dirs}}
+        <label class="file_selector_flat_dir">{{name}}</label>
         <ul>
             {{#files}}
             <li><a data-filePath="{{pathFromProjectRoot}}">{{shortName}}</a></li>
             {{/files}}
         </ul>
+        {{/dirs}}
     ');
     
     public var container : JQuery;
@@ -46,17 +50,49 @@ class FileSelector {
     }
     
     public function render(session : Session){
-        var fs : Array<Dynamic> = [];
-        for(f in session.getAllFiles()){
-            fs.push(f);
+        var dirsHash = new Hash<Dir>();
+        var all = session.getAllFiles();
+        for(name in all.keys()){
+            var dirName = name.substring(0, name.lastIndexOf('/'));
+            var f = all.get(name);
+            var dir = if(dirsHash.exists(dirName)){
+                dirsHash.get(dirName).files.push(f);
+            }else{
+                var dir = new Dir(dirName);
+                dirsHash.set(dirName, dir);
+                dir.files.push(f);
+            }
         }
-        untyped console.log(fs);
+        var dirsArray : Array<Dir> = dirsHash.map(function(dir){
+            dir.files.sort(function(f1, f2){
+                return f1.shortName.compareTo(f2.shortName);
+            });
+            return dir;
+        }).array();
+        dirsArray.sort(function(d1, d2){
+            return d1.name.compareTo(d2.name);
+        });
+
         container.html(template.render({
-            files: fs,
+            dirs: dirsArray,
             hasCompileError: function(file : SourceFile){
                 return hasCompileError(session, file);
             }
         }));
+    }    
+}
+
+private class Dir {
+    
+    public var name : String;
+    public var files : Array<SourceFile>;
+    
+    public function new(name){
+        this.name = name;
+        this.files = [];
     }
     
+    
 }
+
+

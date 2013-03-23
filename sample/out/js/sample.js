@@ -253,6 +253,11 @@ org.jinjor.haxeminesample.util.Util.__name__ = true;
 org.jinjor.haxeminesample.util.Util.join = function(a,b) {
 	if(a.charAt(a.length - 1) == "/" && b.charAt(0) == "/") return a + b.substring(1); else if(a.charAt(a.length - 1) != "/" && b.charAt(0) != "/") return a + "/" + b; else return a + b;
 }
+org.jinjor.haxeminesample.util.Util2 = function() { }
+org.jinjor.haxeminesample.util.Util2.__name__ = true;
+org.jinjor.haxeminesample.util.Util2.join = function(a,b) {
+	if(a.charAt(a.length - 1) == "/" && b.charAt(0) == "/") return a + b.substring(1); else if(a.charAt(a.length - 1) != "/" && b.charAt(0) != "/") return a + "/" + b; else return a + b;
+}
 if(Array.prototype.indexOf) HxOverrides.remove = function(a,o) {
 	var i = a.indexOf(o);
 	if(i == -1) return false;

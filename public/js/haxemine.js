@@ -732,18 +732,44 @@ org.jinjor.haxemine.FileSelector.hasCompileError = function(session,file) {
 }
 org.jinjor.haxemine.FileSelector.prototype = {
 	render: function(session) {
-		var fs = [];
-		var $it0 = session.getAllFiles().iterator();
+		var dirsHash = new Hash();
+		var all = session.getAllFiles();
+		var $it0 = all.keys();
 		while( $it0.hasNext() ) {
-			var f = $it0.next();
-			fs.push(f);
+			var name = $it0.next();
+			var dirName = name.substring(0,name.lastIndexOf("/"));
+			var f = all.get(name);
+			var dir = dirsHash.exists(dirName)?dirsHash.get(dirName).files.push(f):(function($this) {
+				var $r;
+				var dir1 = new org.jinjor.haxemine._FileSelector.Dir(dirName);
+				dirsHash.set(dirName,dir1);
+				$r = dir1.files.push(f);
+				return $r;
+			}(this));
 		}
-		console.log(fs);
-		this.container.html(org.jinjor.haxemine.FileSelector.template.render({ files : fs, hasCompileError : function(file) {
+		var dirsArray = Lambda.array(Lambda.map(dirsHash,function(dir) {
+			dir.files.sort(function(f1,f2) {
+				return org.jinjor.util.Util.compareTo(f1.shortName,f2.shortName);
+			});
+			return dir;
+		}));
+		dirsArray.sort(function(d1,d2) {
+			return org.jinjor.util.Util.compareTo(d1.name,d2.name);
+		});
+		this.container.html(org.jinjor.haxemine.FileSelector.template.render({ dirs : dirsArray, hasCompileError : function(file) {
 			return org.jinjor.haxemine.FileSelector.hasCompileError(session,file);
 		}}));
 	}
 	,__class__: org.jinjor.haxemine.FileSelector
+}
+if(!org.jinjor.haxemine._FileSelector) org.jinjor.haxemine._FileSelector = {}
+org.jinjor.haxemine._FileSelector.Dir = function(name) {
+	this.name = name;
+	this.files = [];
+};
+org.jinjor.haxemine._FileSelector.Dir.__name__ = true;
+org.jinjor.haxemine._FileSelector.Dir.prototype = {
+	__class__: org.jinjor.haxemine._FileSelector.Dir
 }
 org.jinjor.haxemine.HistoryArray = function(max,equals) {
 	this.array = [];
@@ -905,6 +931,15 @@ org.jinjor.haxemine.View.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.View
 }
+if(!org.jinjor.util) org.jinjor.util = {}
+org.jinjor.util.Util = function() { }
+org.jinjor.util.Util.__name__ = true;
+org.jinjor.util.Util.or = function(a,b) {
+	return a || b;
+}
+org.jinjor.util.Util.compareTo = function(a,b) {
+	return a < b?-1:a > b?1:0;
+}
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_;
 function $bind(o,m) { var f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; return f; };
@@ -964,7 +999,7 @@ if(typeof window != "undefined") {
 	};
 }
 org.jinjor.haxemine.CompileErrorPanel.template = new org.jinjor.haxemine.HoganTemplate("\n        <ul>\n            {{#errors}}\n            <li><a data-filePath=\"{{file.pathFromProjectRoot}}\">{{originalMessage}}</a></li>\n            {{/errors}}\n        </ul>\n    ");
-org.jinjor.haxemine.FileSelector.template = new org.jinjor.haxemine.HoganTemplate("\n        <ul>\n            {{#files}}\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\n            {{/files}}\n        </ul>\n    ");
+org.jinjor.haxemine.FileSelector.template = new org.jinjor.haxemine.HoganTemplate("\n        {{#dirs}}\n        <label class=\"file_selector_flat_dir\">{{name}}</label>\n        <ul>\n            {{#files}}\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\n            {{/files}}\n        </ul>\n        {{/dirs}}\n    ");
 org.jinjor.haxemine.Main.main();
 
 //@ sourceMappingURL=haxemine.js.map

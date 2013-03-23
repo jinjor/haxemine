@@ -37,3 +37,7 @@ li {
     font-size:small;
     font-family: arial,sans-serif;
 }
+
+.file_selector_flat_dir {
+  color: #aaaaaa;
+}
