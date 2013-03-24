@@ -1,6 +1,6 @@
 {
 "version":3,
-"file":"haxemine_haxe.js",
+"file":"haxemine.js",
 "sourceRoot":"file://",
 "sources":["C:/Motion-Twin/Haxe/std/js/_std/EReg.hx","C:/Motion-Twin/Haxe/std/js/_std/Hash.hx","C:/Motion-Twin/Haxe/std/js/_std/HxOverrides.hx","C:/Motion-Twin/Haxe/std/IntIter.hx","C:/Motion-Twin/Haxe/std/Lambda.hx","C:/Motion-Twin/Haxe/std/List.hx","C:/Motion-Twin/Haxe/std/js/_std/Reflect.hx","C:/Motion-Twin/Haxe/std/js/_std/Std.hx","C:/Motion-Twin/Haxe/std/StringBuf.hx","C:/Motion-Twin/Haxe/std/StringTools.hx","C:/Motion-Twin/Haxe/std/js/_std/Type.hx","C:/Motion-Twin/Haxe/std/haxe/Json.hx","C:/Motion-Twin/Haxe/std/haxe/io/Bytes.hx","C:/Motion-Twin/Haxe/std/js/Boot.hx","C:/Motion-Twin/Haxe/std/js/Lib.hx","C:/Motion-Twin/Haxe/lib/nodejs/0,8,1/js/Node.hx","C:/NodeJS/haxemine/src/haxe/org/jinjor/haxemine/model/CompileError.hx","C:/NodeJS/haxemine/src/haxe/org/jinjor/haxemine/model/HistoryArray.hx","C:/NodeJS/haxemine/src/haxe/org/jinjor/haxemine/model/Session.hx","C:/NodeJS/haxemine/src/haxe/org/jinjor/haxemine/model/SourceFile.hx","C:/NodeJS/haxemine/src/haxe/org/jinjor/haxemine/server/Main.hx","C:/NodeJS/haxemine/src/haxe/org/jinjor/util/Util.hx","C:/Motion-Twin/Haxe/std/Math.hx"],
 "names":[],

@@ -1,5 +1,5 @@
 -cp haxe
--js ../haxemine_haxe.js
+-js ../haxemine.js
 -main org.jinjor.haxemine.server.Main
 -debug
 --js-modern

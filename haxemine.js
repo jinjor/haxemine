@@ -1892,4 +1892,4 @@ js.NodeC.FILE_READWRITE_APPEND = "a+";
 org.jinjor.haxemine.server.Main.main();
 })();
 
-//@ sourceMappingURL=haxemine_haxe.js.map
+//@ sourceMappingURL=haxemine.js.map
