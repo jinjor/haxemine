@@ -1,4 +1,7 @@
-package org.jinjor.haxemine;
+package org.jinjor.haxemine.client;
+
+import org.jinjor.haxemine.model.EditingFile;
+import org.jinjor.haxemine.model.AceEditorModel;
 
 import js.JQuery;
 using Lambda;

@@ -1,5 +1,6 @@
-package org.jinjor.haxemine;
+package org.jinjor.haxemine.client;
 
+import org.jinjor.haxemine.model.Session;
 
 import js.JQuery;
 using Lambda;

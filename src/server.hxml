@@ -1,0 +1,6 @@
+-cp haxe
+-js ../haxemine_haxe.js
+-main org.jinjor.haxemine.server.Main
+-debug
+--js-modern
+-lib nodejs

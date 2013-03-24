@@ -1,4 +1,4 @@
-package org.jinjor.haxemine;
+package org.jinjor.haxemine.client;
 
 class HoganTemplate<T> {
     

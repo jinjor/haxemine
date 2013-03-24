@@ -1,9 +1,11 @@
-package org.jinjor.haxemine;
+package org.jinjor.haxemine.client;
 
-import org.jinjor.haxemine.CompileError;
-import org.jinjor.haxemine.Session;
-import org.jinjor.haxemine.View;
-import org.jinjor.haxemine.FileSelector;
+import org.jinjor.haxemine.model.CompileError;
+import org.jinjor.haxemine.model.Session;
+import org.jinjor.haxemine.model.HistoryArray;
+import org.jinjor.haxemine.model.SourceFile;
+import org.jinjor.haxemine.client.View;
+import org.jinjor.haxemine.client.FileSelector;
 
 import js.JQuery;
 

@@ -1,4 +1,4 @@
 -cp haxe
 -js ../public/js/haxemine.js
--main org.jinjor.haxemine.Main
+-main org.jinjor.haxemine.client.Main
 -debug

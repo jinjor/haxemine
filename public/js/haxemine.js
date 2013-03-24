@@ -572,7 +572,172 @@ js.Lib.setErrorHandler = function(f) {
 var org = org || {}
 if(!org.jinjor) org.jinjor = {}
 if(!org.jinjor.haxemine) org.jinjor.haxemine = {}
-org.jinjor.haxemine.AceEditorModel = function(editor,editingFile) {
+if(!org.jinjor.haxemine.client) org.jinjor.haxemine.client = {}
+org.jinjor.haxemine.client.AceEditorView = function(editor,session) {
+	new org.jinjor.haxemine.model.AceEditorModel(editor,new org.jinjor.haxemine.model.EditingFile(session));
+	editor.commands.addCommand({ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor1) {
+		session.saveFile(editor1.getSession().getValue());
+	}});
+	this.render(editor,"ace/theme/eclipse");
+};
+org.jinjor.haxemine.client.AceEditorView.__name__ = true;
+org.jinjor.haxemine.client.AceEditorView.prototype = {
+	render: function(editor,theme) {
+		editor.setTheme(theme);
+	}
+	,__class__: org.jinjor.haxemine.client.AceEditorView
+}
+org.jinjor.haxemine.client.HoganTemplate = function(s) {
+	this.template = Hogan.compile(s);
+};
+org.jinjor.haxemine.client.HoganTemplate.__name__ = true;
+org.jinjor.haxemine.client.HoganTemplate.prototype = {
+	render: function(data) {
+		return this.template.render(data);
+	}
+	,__class__: org.jinjor.haxemine.client.HoganTemplate
+}
+org.jinjor.haxemine.client.CompileErrorPanel = function(container,session) {
+	var _g = this;
+	this.container = container.on("click","a",function() {
+		var file = session.getAllFiles().get($(this).attr("data-filePath"));
+		session.selectNextFile(file);
+	});
+	session.onCompileErrorsChanged(function() {
+		_g.render(session);
+	});
+};
+org.jinjor.haxemine.client.CompileErrorPanel.__name__ = true;
+org.jinjor.haxemine.client.CompileErrorPanel.JQ = function(s) {
+	return $(s);
+}
+org.jinjor.haxemine.client.CompileErrorPanel.prototype = {
+	render: function(session) {
+		this.container.html(org.jinjor.haxemine.client.CompileErrorPanel.template.render({ errors : session.getCompileErrors()}));
+	}
+	,__class__: org.jinjor.haxemine.client.CompileErrorPanel
+}
+org.jinjor.haxemine.client.FileSelector = function(container,session) {
+	var that = this;
+	this.container = container.on("click","a",function() {
+		var file = session.getAllFiles().get($(this).attr("data-filePath"));
+		session.selectNextFile(file);
+	});
+	session.onCompileErrorsChanged(function() {
+		that.render(session);
+	});
+	session.onAllFilesChanged(function() {
+		that.render(session);
+	});
+};
+org.jinjor.haxemine.client.FileSelector.__name__ = true;
+org.jinjor.haxemine.client.FileSelector.JQ = function(s) {
+	return $(s);
+}
+org.jinjor.haxemine.client.FileSelector.hasCompileError = function(session,file) {
+	var found = false;
+	Lambda.foreach(session.getCompileErrors(),function(error) {
+		if(error.file == file) {
+			found = true;
+			return false;
+		}
+		return true;
+	});
+	return found;
+}
+org.jinjor.haxemine.client.FileSelector.prototype = {
+	render: function(session) {
+		var dirsHash = new Hash();
+		var all = session.getAllFiles();
+		var $it0 = all.keys();
+		while( $it0.hasNext() ) {
+			var name = $it0.next();
+			var dirName = name.substring(0,name.lastIndexOf("/"));
+			var f = all.get(name);
+			var dir = dirsHash.exists(dirName)?dirsHash.get(dirName).files.push(f):(function($this) {
+				var $r;
+				var dir1 = new org.jinjor.haxemine.client._FileSelector.Dir(dirName);
+				dirsHash.set(dirName,dir1);
+				$r = dir1.files.push(f);
+				return $r;
+			}(this));
+		}
+		var dirsArray = Lambda.array(Lambda.map(dirsHash,function(dir) {
+			dir.files.sort(function(f1,f2) {
+				return org.jinjor.util.Util.compareTo(f1.shortName,f2.shortName);
+			});
+			return dir;
+		}));
+		dirsArray.sort(function(d1,d2) {
+			return org.jinjor.util.Util.compareTo(d1.name,d2.name);
+		});
+		this.container.html(org.jinjor.haxemine.client.FileSelector.template.render({ dirs : dirsArray, hasCompileError : function(file) {
+			return org.jinjor.haxemine.client.FileSelector.hasCompileError(session,file);
+		}}));
+	}
+	,__class__: org.jinjor.haxemine.client.FileSelector
+}
+if(!org.jinjor.haxemine.client._FileSelector) org.jinjor.haxemine.client._FileSelector = {}
+org.jinjor.haxemine.client._FileSelector.Dir = function(name) {
+	this.name = name;
+	this.files = [];
+};
+org.jinjor.haxemine.client._FileSelector.Dir.__name__ = true;
+org.jinjor.haxemine.client._FileSelector.Dir.prototype = {
+	__class__: org.jinjor.haxemine.client._FileSelector.Dir
+}
+org.jinjor.haxemine.client.Main = function() { }
+org.jinjor.haxemine.client.Main.__name__ = true;
+org.jinjor.haxemine.client.Main.JQ = function(s) {
+	return $(s);
+}
+org.jinjor.haxemine.client.Main.main = function() {
+	var socket = io.connect("/");
+	var session = new org.jinjor.haxemine.model.Session(socket,new org.jinjor.haxemine.model.HistoryArray(10,org.jinjor.haxemine.model.SourceFile.equals));
+	var ace = js.Lib.window.ace;
+	var view = new org.jinjor.haxemine.client.View(session,ace);
+	new js.JQuery(js.Lib.document).ready(function(e) {
+		view.render($("body"));
+	});
+	socket.on("connect",function(msg) {
+		console.log("connected.");
+		session.compile();
+	});
+}
+org.jinjor.haxemine.client.SourceFileDao = function() {
+};
+org.jinjor.haxemine.client.SourceFileDao.__name__ = true;
+org.jinjor.haxemine.client.SourceFileDao.prototype = {
+	getFile: function(filePath,callBack) {
+		$.ajax({ url : "src", data : { fileName : filePath}, type : "GET", success : function(file) {
+			callBack(file);
+		}});
+	}
+	,__class__: org.jinjor.haxemine.client.SourceFileDao
+}
+org.jinjor.haxemine.client.View = function(session,ace) {
+	this.ace = ace;
+	this.session = session;
+};
+org.jinjor.haxemine.client.View.__name__ = true;
+org.jinjor.haxemine.client.View.JQ = function(s) {
+	return $(s);
+}
+org.jinjor.haxemine.client.View.prototype = {
+	render: function(container) {
+		var fileSelectorContainer = $("<div id=\"all-haxe-files\"/>");
+		var aceContainer = $("<div id=\"editor\"/>");
+		var compileErrorPanelContainer = $("<div id=\"compile-errors\"/>");
+		container.append(fileSelectorContainer).append(aceContainer).append($("<hr/>")).append(compileErrorPanelContainer);
+		var editor = this.ace.edit("editor");
+		new org.jinjor.haxemine.client.FileSelector(fileSelectorContainer,this.session);
+		new org.jinjor.haxemine.client.AceEditorView(editor,this.session);
+		new org.jinjor.haxemine.client.CompileErrorPanel(compileErrorPanelContainer,this.session);
+	}
+	,__class__: org.jinjor.haxemine.client.View
+}
+if(!org.jinjor.haxemine.model) org.jinjor.haxemine.model = {}
+org.jinjor.haxemine.model.AceEditorModel = function(editor,editingFile) {
 	editingFile.onChange(function() {
 		editor.getSession().setValue(editingFile.getText());
 		editor.getSession().setMode("ace/mode/" + editingFile.getMode());
@@ -584,71 +749,27 @@ org.jinjor.haxemine.AceEditorModel = function(editor,editingFile) {
 		editor.getSession().setAnnotations(annotations);
 	});
 };
-org.jinjor.haxemine.AceEditorModel.__name__ = true;
-org.jinjor.haxemine.AceEditorModel.prototype = {
-	__class__: org.jinjor.haxemine.AceEditorModel
+org.jinjor.haxemine.model.AceEditorModel.__name__ = true;
+org.jinjor.haxemine.model.AceEditorModel.prototype = {
+	__class__: org.jinjor.haxemine.model.AceEditorModel
 }
-org.jinjor.haxemine.AceEditorView = function(editor,session) {
-	new org.jinjor.haxemine.AceEditorModel(editor,new org.jinjor.haxemine.EditingFile(session));
-	editor.commands.addCommand({ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor1) {
-		session.saveFile(editor1.getSession().getValue());
-	}});
-	this.render(editor,"ace/theme/eclipse");
-};
-org.jinjor.haxemine.AceEditorView.__name__ = true;
-org.jinjor.haxemine.AceEditorView.prototype = {
-	render: function(editor,theme) {
-		editor.setTheme(theme);
-	}
-	,__class__: org.jinjor.haxemine.AceEditorView
-}
-org.jinjor.haxemine.CompileError = function(originalMessage,filePathToFile) {
+org.jinjor.haxemine.model.CompileError = function(originalMessage,filePathToFile) {
 	this.originalMessage = originalMessage;
-	var parsed = org.jinjor.haxemine.CompileError.parseCompileErrorMessage(originalMessage);
+	var parsed = org.jinjor.haxemine.model.CompileError.parseCompileErrorMessage(originalMessage);
 	this.file = filePathToFile(parsed.path);
 	this.row = parsed.row;
 	this.message = parsed.message;
 };
-org.jinjor.haxemine.CompileError.__name__ = true;
-org.jinjor.haxemine.CompileError.parseCompileErrorMessage = function(message) {
+org.jinjor.haxemine.model.CompileError.__name__ = true;
+org.jinjor.haxemine.model.CompileError.parseCompileErrorMessage = function(message) {
 	var elms = message.split(":");
 	console.log(elms);
 	return { path : elms[0], row : Std.parseInt(elms[1]), message : elms[elms.length - 1]};
 }
-org.jinjor.haxemine.CompileError.prototype = {
-	__class__: org.jinjor.haxemine.CompileError
+org.jinjor.haxemine.model.CompileError.prototype = {
+	__class__: org.jinjor.haxemine.model.CompileError
 }
-org.jinjor.haxemine.HoganTemplate = function(s) {
-	this.template = Hogan.compile(s);
-};
-org.jinjor.haxemine.HoganTemplate.__name__ = true;
-org.jinjor.haxemine.HoganTemplate.prototype = {
-	render: function(data) {
-		return this.template.render(data);
-	}
-	,__class__: org.jinjor.haxemine.HoganTemplate
-}
-org.jinjor.haxemine.CompileErrorPanel = function(container,session) {
-	var _g = this;
-	this.container = container.on("click","a",function() {
-		var file = session.getAllFiles().get($(this).attr("data-filePath"));
-		session.selectNextFile(file);
-	});
-	session.onCompileErrorsChanged(function() {
-		_g.render(session);
-	});
-};
-org.jinjor.haxemine.CompileErrorPanel.__name__ = true;
-org.jinjor.haxemine.CompileErrorPanel.JQ = function(s) {
-	return $(s);
-}
-org.jinjor.haxemine.CompileErrorPanel.prototype = {
-	render: function(session) {
-		this.container.html(org.jinjor.haxemine.CompileErrorPanel.template.render({ errors : session.getCompileErrors()}));
-	}
-	,__class__: org.jinjor.haxemine.CompileErrorPanel
-}
-org.jinjor.haxemine.EditingFile = function(session) {
+org.jinjor.haxemine.model.EditingFile = function(session) {
 	var that = this;
 	this.session = session;
 	this._onChange = [];
@@ -663,8 +784,8 @@ org.jinjor.haxemine.EditingFile = function(session) {
 		});
 	});
 };
-org.jinjor.haxemine.EditingFile.__name__ = true;
-org.jinjor.haxemine.EditingFile.prototype = {
+org.jinjor.haxemine.model.EditingFile.__name__ = true;
+org.jinjor.haxemine.model.EditingFile.prototype = {
 	getMode: function() {
 		return this.mode;
 	}
@@ -691,7 +812,7 @@ org.jinjor.haxemine.EditingFile.prototype = {
 		var that = this;
 		var currentFile = this.session.getCurrentFile();
 		if(currentFile == null) return;
-		new org.jinjor.haxemine.SourceFileDao().getFile(currentFile.pathFromProjectRoot,function(_file) {
+		new org.jinjor.haxemine.client.SourceFileDao().getFile(currentFile.pathFromProjectRoot,function(_file) {
 			if(_file == null) return;
 			that.text = _file.text;
 			that.mode = _file.mode;
@@ -705,84 +826,15 @@ org.jinjor.haxemine.EditingFile.prototype = {
 			});
 		});
 	}
-	,__class__: org.jinjor.haxemine.EditingFile
+	,__class__: org.jinjor.haxemine.model.EditingFile
 }
-org.jinjor.haxemine.FileSelector = function(container,session) {
-	var that = this;
-	this.container = container.on("click","a",function() {
-		var file = session.getAllFiles().get($(this).attr("data-filePath"));
-		session.selectNextFile(file);
-	});
-	session.onCompileErrorsChanged(function() {
-		that.render(session);
-	});
-	session.onAllFilesChanged(function() {
-		that.render(session);
-	});
-};
-org.jinjor.haxemine.FileSelector.__name__ = true;
-org.jinjor.haxemine.FileSelector.JQ = function(s) {
-	return $(s);
-}
-org.jinjor.haxemine.FileSelector.hasCompileError = function(session,file) {
-	var found = false;
-	Lambda.foreach(session.getCompileErrors(),function(error) {
-		if(error.file == file) {
-			found = true;
-			return false;
-		}
-		return true;
-	});
-	return found;
-}
-org.jinjor.haxemine.FileSelector.prototype = {
-	render: function(session) {
-		var dirsHash = new Hash();
-		var all = session.getAllFiles();
-		var $it0 = all.keys();
-		while( $it0.hasNext() ) {
-			var name = $it0.next();
-			var dirName = name.substring(0,name.lastIndexOf("/"));
-			var f = all.get(name);
-			var dir = dirsHash.exists(dirName)?dirsHash.get(dirName).files.push(f):(function($this) {
-				var $r;
-				var dir1 = new org.jinjor.haxemine._FileSelector.Dir(dirName);
-				dirsHash.set(dirName,dir1);
-				$r = dir1.files.push(f);
-				return $r;
-			}(this));
-		}
-		var dirsArray = Lambda.array(Lambda.map(dirsHash,function(dir) {
-			dir.files.sort(function(f1,f2) {
-				return org.jinjor.util.Util.compareTo(f1.shortName,f2.shortName);
-			});
-			return dir;
-		}));
-		dirsArray.sort(function(d1,d2) {
-			return org.jinjor.util.Util.compareTo(d1.name,d2.name);
-		});
-		this.container.html(org.jinjor.haxemine.FileSelector.template.render({ dirs : dirsArray, hasCompileError : function(file) {
-			return org.jinjor.haxemine.FileSelector.hasCompileError(session,file);
-		}}));
-	}
-	,__class__: org.jinjor.haxemine.FileSelector
-}
-if(!org.jinjor.haxemine._FileSelector) org.jinjor.haxemine._FileSelector = {}
-org.jinjor.haxemine._FileSelector.Dir = function(name) {
-	this.name = name;
-	this.files = [];
-};
-org.jinjor.haxemine._FileSelector.Dir.__name__ = true;
-org.jinjor.haxemine._FileSelector.Dir.prototype = {
-	__class__: org.jinjor.haxemine._FileSelector.Dir
-}
-org.jinjor.haxemine.HistoryArray = function(max,equals) {
+org.jinjor.haxemine.model.HistoryArray = function(max,equals) {
 	this.array = [];
 	this.max = max;
 	this.equals = equals;
 };
-org.jinjor.haxemine.HistoryArray.__name__ = true;
-org.jinjor.haxemine.HistoryArray.prototype = {
+org.jinjor.haxemine.model.HistoryArray.__name__ = true;
+org.jinjor.haxemine.model.HistoryArray.prototype = {
 	add: function(elm) {
 		var i = 0;
 		while(i < this.array.length) {
@@ -796,27 +848,9 @@ org.jinjor.haxemine.HistoryArray.prototype = {
 		i = this.array.length - 1;
 		while(i > this.max) this.array.pop();
 	}
-	,__class__: org.jinjor.haxemine.HistoryArray
+	,__class__: org.jinjor.haxemine.model.HistoryArray
 }
-org.jinjor.haxemine.Main = function() { }
-org.jinjor.haxemine.Main.__name__ = true;
-org.jinjor.haxemine.Main.JQ = function(s) {
-	return $(s);
-}
-org.jinjor.haxemine.Main.main = function() {
-	var socket = io.connect("/");
-	var session = new org.jinjor.haxemine.Session(socket,new org.jinjor.haxemine.HistoryArray(10,org.jinjor.haxemine.SourceFile.equals));
-	var ace = js.Lib.window.ace;
-	var view = new org.jinjor.haxemine.View(session,ace);
-	new js.JQuery(js.Lib.document).ready(function(e) {
-		view.render($("body"));
-	});
-	socket.on("connect",function(msg) {
-		console.log("connected.");
-		session.compile();
-	});
-}
-org.jinjor.haxemine.Session = function(socket,editingFiles) {
+org.jinjor.haxemine.model.Session = function(socket,editingFiles) {
 	var _g = this;
 	var that = this;
 	this.socket = socket;
@@ -826,7 +860,7 @@ org.jinjor.haxemine.Session = function(socket,editingFiles) {
 	socket.on("all-haxe-files",function(filesPaths) {
 		var files = new Hash();
 		Lambda.foreach(filesPaths,function(f) {
-			files.set(f,new org.jinjor.haxemine.SourceFile(f));
+			files.set(f,new org.jinjor.haxemine.model.SourceFile(f));
 			return true;
 		});
 		_g.setAllFiles(files);
@@ -842,8 +876,8 @@ org.jinjor.haxemine.Session = function(socket,editingFiles) {
 	this._onCompileErrorsChanged = [];
 	this._onEditingFileChanged = [];
 };
-org.jinjor.haxemine.Session.__name__ = true;
-org.jinjor.haxemine.Session.prototype = {
+org.jinjor.haxemine.model.Session.__name__ = true;
+org.jinjor.haxemine.model.Session.prototype = {
 	saveFile: function(text) {
 		this.socket.emit("save",{ fileName : this.getCurrentFile().pathFromProjectRoot, text : text});
 	}
@@ -888,65 +922,36 @@ org.jinjor.haxemine.Session.prototype = {
 		var _g = this;
 		var messages = msg.split("\n");
 		this.compileErrors = Lambda.array(Lambda.map(messages,function(message) {
-			return new org.jinjor.haxemine.CompileError(message,($_=_g.allFiles,$bind($_,$_.get)));
+			return new org.jinjor.haxemine.model.CompileError(message,($_=_g.allFiles,$bind($_,$_.get)));
 		}));
 		Lambda.foreach(this._onCompileErrorsChanged,function(f) {
 			f();
 			return true;
 		});
 	}
-	,__class__: org.jinjor.haxemine.Session
+	,__class__: org.jinjor.haxemine.model.Session
 }
-org.jinjor.haxemine.SourceFile = function(pathFromProjectRoot) {
+org.jinjor.haxemine.model.SourceFile = function(pathFromProjectRoot) {
 	this.pathFromProjectRoot = pathFromProjectRoot;
 	var splitted = pathFromProjectRoot.split("/");
 	this.shortName = splitted[splitted.length - 1];
 };
-org.jinjor.haxemine.SourceFile.__name__ = true;
-org.jinjor.haxemine.SourceFile.equals = function(o1,o2) {
+org.jinjor.haxemine.model.SourceFile.__name__ = true;
+org.jinjor.haxemine.model.SourceFile.equals = function(o1,o2) {
 	if(o1 == null || o2 == null) return false;
 	return o1.pathFromProjectRoot == o2.pathFromProjectRoot;
 }
-org.jinjor.haxemine.SourceFile.prototype = {
-	__class__: org.jinjor.haxemine.SourceFile
-}
-org.jinjor.haxemine.SourceFileDao = function() {
-};
-org.jinjor.haxemine.SourceFileDao.__name__ = true;
-org.jinjor.haxemine.SourceFileDao.prototype = {
-	getFile: function(filePath,callBack) {
-		$.ajax({ url : "src", data : { fileName : filePath}, type : "GET", success : function(file) {
-			callBack(file);
-		}});
-	}
-	,__class__: org.jinjor.haxemine.SourceFileDao
-}
-org.jinjor.haxemine.View = function(session,ace) {
-	this.ace = ace;
-	this.session = session;
-};
-org.jinjor.haxemine.View.__name__ = true;
-org.jinjor.haxemine.View.JQ = function(s) {
-	return $(s);
-}
-org.jinjor.haxemine.View.prototype = {
-	render: function(container) {
-		var fileSelectorContainer = $("<div id=\"all-haxe-files\"/>");
-		var aceContainer = $("<div id=\"editor\"/>");
-		var compileErrorPanelContainer = $("<div id=\"compile-errors\"/>");
-		container.append(fileSelectorContainer).append(aceContainer).append($("<hr/>")).append(compileErrorPanelContainer);
-		var editor = this.ace.edit("editor");
-		new org.jinjor.haxemine.FileSelector(fileSelectorContainer,this.session);
-		new org.jinjor.haxemine.AceEditorView(editor,this.session);
-		new org.jinjor.haxemine.CompileErrorPanel(compileErrorPanelContainer,this.session);
-	}
-	,__class__: org.jinjor.haxemine.View
+org.jinjor.haxemine.model.SourceFile.prototype = {
+	__class__: org.jinjor.haxemine.model.SourceFile
 }
 if(!org.jinjor.util) org.jinjor.util = {}
 org.jinjor.util.Util = function() { }
 org.jinjor.util.Util.__name__ = true;
 org.jinjor.util.Util.or = function(a,b) {
 	return a || b;
+}
+org.jinjor.util.Util.and = function(a,b) {
+	return a && b;
 }
 org.jinjor.util.Util.compareTo = function(a,b) {
 	return a < b?-1:a > b?1:0;
@@ -1009,8 +1014,8 @@ if(typeof window != "undefined") {
 		return f(msg,[url + ":" + line]);
 	};
 }
-org.jinjor.haxemine.CompileErrorPanel.template = new org.jinjor.haxemine.HoganTemplate("\n        <ul>\n            {{#errors}}\n            <li><a data-filePath=\"{{file.pathFromProjectRoot}}\">{{originalMessage}}</a></li>\n            {{/errors}}\n        </ul>\n    ");
-org.jinjor.haxemine.FileSelector.template = new org.jinjor.haxemine.HoganTemplate("\r\n        {{#dirs}}\r\n        <label class=\"file_selector_flat_dir\">{{name}}</label>\r\n        <ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>\r\n        {{/dirs}}\r\n    ");
-org.jinjor.haxemine.Main.main();
+org.jinjor.haxemine.client.CompileErrorPanel.template = new org.jinjor.haxemine.client.HoganTemplate("\n        <ul>\n            {{#errors}}\n            <li><a data-filePath=\"{{file.pathFromProjectRoot}}\">{{originalMessage}}</a></li>\n            {{/errors}}\n        </ul>\n    ");
+org.jinjor.haxemine.client.FileSelector.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        {{#dirs}}\r\n        <label class=\"file_selector_flat_dir\">{{name}}</label>\r\n        <ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>\r\n        {{/dirs}}\r\n    ");
+org.jinjor.haxemine.client.Main.main();
 
 //@ sourceMappingURL=haxemine.js.map

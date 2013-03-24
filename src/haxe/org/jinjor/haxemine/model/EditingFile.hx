@@ -1,4 +1,6 @@
-package org.jinjor.haxemine;
+package org.jinjor.haxemine.model;
+
+import org.jinjor.haxemine.client.SourceFileDao;
 
 using Lambda;
 
