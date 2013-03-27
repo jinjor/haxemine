@@ -1452,10 +1452,10 @@ var org = {}
 org.jinjor = {}
 org.jinjor.haxemine = {}
 org.jinjor.haxemine.model = {}
-org.jinjor.haxemine.model.CompileError = function(originalMessage,filePathToFile) {
+org.jinjor.haxemine.model.CompileError = function(originalMessage) {
 	this.originalMessage = originalMessage;
 	var parsed = org.jinjor.haxemine.model.CompileError.parseCompileErrorMessage(originalMessage);
-	this.file = filePathToFile(parsed.path);
+	this.path = parsed.path;
 	this.row = parsed.row;
 	this.message = parsed.message;
 };
@@ -1469,7 +1469,7 @@ org.jinjor.haxemine.model.CompileError.parseCompileErrorMessage = function(messa
 org.jinjor.haxemine.model.CompileError.prototype = {
 	message: null
 	,row: null
-	,file: null
+	,path: null
 	,originalMessage: null
 	,__class__: org.jinjor.haxemine.model.CompileError
 }
@@ -1504,18 +1504,12 @@ org.jinjor.haxemine.model.Session = function(socket,editingFiles) {
 	var that = this;
 	this.socket = socket;
 	socket.on("stdout",function(msg) {
-		console.log(msg);
+		if(msg != "") console.log(msg);
 	});
-	socket.on("all-haxe-files",function(filesPaths) {
-		var files = new Hash();
-		Lambda.foreach(filesPaths,function(f) {
-			files.set(f,new org.jinjor.haxemine.model.SourceFile(f));
-			return true;
-		});
-		_g.setAllFiles(files);
+	socket.on("all-haxe-files",function(files) {
+		_g.setAllFiles(org.jinjor.util.Util.dynamicToHash(files));
 	});
 	socket.on("haxe-compile-err",function(msg) {
-		console.log("error found: " + Std.string(msg));
 		that.setCompileErrors(msg);
 	});
 	this.compileErrors = [];
@@ -1568,12 +1562,8 @@ org.jinjor.haxemine.model.Session.prototype = {
 	,getCompileErrors: function() {
 		return this.compileErrors;
 	}
-	,setCompileErrors: function(msg) {
-		var _g = this;
-		var messages = msg.split("\n");
-		this.compileErrors = Lambda.array(Lambda.map(messages,function(message) {
-			return new org.jinjor.haxemine.model.CompileError(message,($_=_g.allFiles,$bind($_,$_.get)));
-		}));
+	,setCompileErrors: function(compileErrors) {
+		this.compileErrors = compileErrors;
 		Lambda.foreach(this._onCompileErrorsChanged,function(f) {
 			f();
 			return true;
@@ -1667,12 +1657,17 @@ org.jinjor.haxemine.server.Main.main = function() {
 	var io = socketio.listen(server,{ 'log level' : 1});
 	io.sockets.on("connection",function(socket) {
 		org.jinjor.haxemine.server.Main.print("connection");
-		org.jinjor.haxemine.server.Main.getAllHaxeFiles(async,fs,projectRoot,function(err,files) {
+		org.jinjor.haxemine.server.Main.getAllHaxeFiles(async,fs,projectRoot,function(err,filePaths) {
 			if(err != null) {
 				console.log(err);
 				throw err;
 			}
-			console.log(files);
+			console.log(filePaths);
+			var files = { };
+			Lambda.foreach(filePaths,function(f) {
+				files[f] = new org.jinjor.haxemine.model.SourceFile(f);
+				return true;
+			});
 			socket.emit("all-haxe-files",files);
 		});
 		var doTasks = function() {
@@ -1716,8 +1711,12 @@ org.jinjor.haxemine.server.Main.compileHaxe = function(childProcess,socket,proje
 	childProcess.exec("haxe " + hxmlPath,{ cwd : projectRoot},function(err,stdout,stderr) {
 		if(err != null) org.jinjor.haxemine.server.Main.print(stderr,hxmlPath);
 		socket.emit("stdout",stdout);
-		var compileError = err != null?stderr:"";
-		socket.emit("haxe-compile-err",compileError);
+		var msg = err != null?stderr:"";
+		var messages = msg.split("\n");
+		var compileErrors = Lambda.array(Lambda.map(messages,function(message) {
+			return new org.jinjor.haxemine.model.CompileError(message);
+		}));
+		socket.emit("haxe-compile-err",compileErrors);
 		callBack(err);
 	});
 }
@@ -1771,6 +1770,16 @@ org.jinjor.util.Util.and = function(a,b) {
 }
 org.jinjor.util.Util.compareTo = function(a,b) {
 	return a < b?-1:a > b?1:0;
+}
+org.jinjor.util.Util.dynamicToHash = function(d) {
+	var hash = new Hash();
+	var _g = 0, _g1 = Reflect.fields(d);
+	while(_g < _g1.length) {
+		var field = _g1[_g];
+		++_g;
+		hash.set(field,Reflect.field(d,field));
+	}
+	return hash;
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_;

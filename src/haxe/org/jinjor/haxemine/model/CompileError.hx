@@ -13,14 +13,14 @@ class CompileError {
     }
     
     public var originalMessage : String;
-    public var file : SourceFile;
+    public var path : String;
     public var row : Int;
     public var message : String;
     
-    public function new(originalMessage, filePathToFile : String -> SourceFile){
+    public function new(originalMessage){
         this.originalMessage = originalMessage;
         var parsed = parseCompileErrorMessage(originalMessage);
-        this.file = filePathToFile(parsed.path);
+        this.path = parsed.path;
         this.row = parsed.row;
         this.message = parsed.message;
     }

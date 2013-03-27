@@ -6,7 +6,7 @@ using Lambda;
 
 class EditingFile {
     
-    public var session : Session;
+    //public var session : Session;
     private var _onChange : Array<Void -> Void>;
     private var _onCompileErrorsChanged : Array<Void -> Void>;
     
@@ -21,7 +21,7 @@ class EditingFile {
         this._onCompileErrorsChanged = [];
          
         session.onEditingFileChanged(function(){
-            that.loadNew();
+            that.loadNew(session);
         });
         session.onCompileErrorsChanged(function(){
             that._onCompileErrorsChanged.foreach(function(f){
@@ -32,7 +32,7 @@ class EditingFile {
     }
 
 
-    private function loadNew(){
+    private function loadNew(session){
         var that = this;
         var currentFile = session.getCurrentFile();
         if(currentFile == null){

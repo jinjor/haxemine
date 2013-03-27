@@ -1,6 +1,7 @@
 package org.jinjor.haxemine.model;
 
 using Lambda;
+using org.jinjor.util.Util;
 
 class Session {
 
@@ -17,19 +18,15 @@ class Session {
     public function new(socket, editingFiles){
         var that = this;
         this.socket = socket;
-        socket.on('stdout', function(msg) {
-            trace(msg);//View
+        socket.on('stdout', function(msg : Dynamic) {
+            if(msg != ''){
+                trace(msg);//View
+            }
         });
-        socket.on('all-haxe-files', function(filesPaths : Array<String>) {
-            var files = new Hash<SourceFile>();
-            filesPaths.foreach(function(f){
-                files.set(f, new SourceFile(f));
-                return true;
-            });
-            setAllFiles(files);
+        socket.on('all-haxe-files', function(files : Dynamic<SourceFile>) {
+            setAllFiles(Util.dynamicToHash(files));
         });
         socket.on('haxe-compile-err', function(msg : Dynamic) {
-            trace('error found: ' + msg);
             that.setCompileErrors(msg);
         });
         this.compileErrors = [];
@@ -42,11 +39,8 @@ class Session {
     }
     
     //-> Backbone#get/set/onChange
-    private function setCompileErrors(msg : String){
-        var messages = msg.split('\n');
-        this.compileErrors = messages.map(function(message){
-            return new CompileError(message, allFiles.get);
-        }).array();
+    private function setCompileErrors(compileErrors : Array<CompileError>){
+        this.compileErrors = compileErrors;
         this._onCompileErrorsChanged.foreach(function(f){
             f();
             return true;
@@ -60,7 +54,7 @@ class Session {
     }
 
     //-> Backbone#get/set/onChange
-    private function setAllFiles(allFiles){
+    private function setAllFiles(allFiles : Hash<SourceFile>){
         this.allFiles = allFiles;
         this._onAllFilesChanged.foreach(function(f){
             f();

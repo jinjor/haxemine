@@ -94,14 +94,21 @@ class Main {
         
         io.sockets.on('connection', function(socket : Dynamic) {
           print("connection");
-          getAllHaxeFiles(async, fs, projectRoot, function(err, files){
+          getAllHaxeFiles(async, fs, projectRoot, function(err, filePaths : Array<String>){
             if(err != null){
               trace(err);
               throw err;
             }
-            trace(files);
+            trace(filePaths);
+            
+            var files : Dynamic<SourceFile> = {};
+            filePaths.foreach(function(f){
+                untyped {files[f] = new SourceFile(f);}
+                return true;
+            });
             
             socket.emit('all-haxe-files', files);
+            
           });
           
           var doTasks = function(){
@@ -161,8 +168,14 @@ class Main {
         //err.and(print(stderr, hxmlPath));
         socket.emit('stdout', stdout);
         
-        var compileError = if(err != null) stderr else '';
-        socket.emit('haxe-compile-err', compileError);
+        var msg = if(err != null) stderr else '';
+        
+        var messages = msg.split('\n');
+        var compileErrors = messages.map(function(message){
+            return new CompileError(message);
+        }).array();
+        
+        socket.emit('haxe-compile-err', compileErrors);
         callBack(err);
       });
     }

@@ -43,7 +43,7 @@ class FileSelector {
     private static function hasCompileError(session : Session, file : SourceFile) : Bool{
         var found = false;
         session.getCompileErrors().foreach(function(error){
-            if(error.file == file){
+            if(session.getAllFiles().get(error.path) == file){
                 found = true;
                 return false;
             }
