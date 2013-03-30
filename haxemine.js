@@ -1473,6 +1473,17 @@ org.jinjor.haxemine.model.CompileError.prototype = {
 	,originalMessage: null
 	,__class__: org.jinjor.haxemine.model.CompileError
 }
+org.jinjor.haxemine.model.FileDetail = function(text,mode) {
+	this.text = text;
+	this.mode = mode;
+};
+$hxClasses["org.jinjor.haxemine.model.FileDetail"] = org.jinjor.haxemine.model.FileDetail;
+org.jinjor.haxemine.model.FileDetail.__name__ = ["org","jinjor","haxemine","model","FileDetail"];
+org.jinjor.haxemine.model.FileDetail.prototype = {
+	mode: null
+	,text: null
+	,__class__: org.jinjor.haxemine.model.FileDetail
+}
 org.jinjor.haxemine.model.HistoryArray = function(max,equals) {
 	this.array = [];
 	this.max = max;
@@ -1523,7 +1534,6 @@ org.jinjor.haxemine.server.Main.print = function(s,author) {
 	console.log((author || "haxemine") + " > " + s);
 }
 org.jinjor.haxemine.server.Main.main = function() {
-	console.log("hello node");
 	var express = js.Node.require("express");
 	var fs = js.Node.require("fs");
 	var sys = js.Node.require("sys");
@@ -1617,7 +1627,7 @@ org.jinjor.haxemine.server.Main.main = function() {
 }
 org.jinjor.haxemine.server.Main.findFromSrc = function(fs,fileName) {
 	console.log(fileName);
-	return { text : fs.readFileSync(fileName,"utf8"), mode : "haxe"};
+	return new org.jinjor.haxemine.model.FileDetail(fs.readFileSync(fileName,"utf8"),"haxe");
 }
 org.jinjor.haxemine.server.Main.saveToSrc = function(fs,fileName,text) {
 	fs.writeFileSync(fileName,text,"utf8");

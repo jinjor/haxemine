@@ -5,7 +5,7 @@ import js.Node;
 import org.jinjor.haxemine.model.CompileError;
 import org.jinjor.haxemine.model.HistoryArray;
 import org.jinjor.haxemine.model.SourceFile;
-
+import org.jinjor.haxemine.model.FileDetail;
 
 using Lambda;
 using org.jinjor.util.Util;
@@ -22,7 +22,6 @@ class Main {
     }
     
     public static function main(){
-        trace('hello node');
         
         var express : Dynamic = Node.require('express');
         var fs  : Dynamic    = Node.require('fs');
@@ -139,12 +138,9 @@ class Main {
     
     //logics---------------------------
     
-    static function findFromSrc(fs, fileName){
+    static function findFromSrc(fs, fileName) : FileDetail {
       untyped console.log(fileName);
-      return {
-        text: fs.readFileSync(fileName, "utf8"),
-        mode: 'haxe'
-      };
+      return new FileDetail(fs.readFileSync(fileName, "utf8"), 'haxe');
     }
     static function saveToSrc(fs, fileName, text){
       fs.writeFileSync(fileName, text, "utf8");
