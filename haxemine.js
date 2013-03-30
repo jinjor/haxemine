@@ -1527,7 +1527,10 @@ org.jinjor.haxemine.model.SourceFile.prototype = {
 	,__class__: org.jinjor.haxemine.model.SourceFile
 }
 org.jinjor.haxemine.server = {}
-org.jinjor.haxemine.server.HaxemineConfig = function() { }
+org.jinjor.haxemine.server.HaxemineConfig = function(port,hxml) {
+	this.port = port;
+	this.hxml = hxml;
+};
 $hxClasses["org.jinjor.haxemine.server.HaxemineConfig"] = org.jinjor.haxemine.server.HaxemineConfig;
 org.jinjor.haxemine.server.HaxemineConfig.__name__ = ["org","jinjor","haxemine","server","HaxemineConfig"];
 org.jinjor.haxemine.server.HaxemineConfig.prototype = {
@@ -1547,16 +1550,44 @@ org.jinjor.haxemine.server.Main.main = function() {
 	var sys = js.Node.require("sys");
 	var http = js.Node.require("http");
 	var path = js.Node.require("path");
+	var readline = js.Node.require("readline");
 	var socketio = js.Node.require("socket.io");
 	var childProcess = js.Node.require("child_process");
 	var async = js.Node.require("async");
-	var CONF_FILE = "haxemine.json";
-	if(!path.existsSync("haxemine.json")) {
-		org.jinjor.haxemine.server.Main.print("haxemine.json is required in current directory.");
-		process.exit(1);
-	}
 	var projectRoot = ".";
-	var conf = haxe.Json.parse(fs.readFileSync(projectRoot + "/" + CONF_FILE,"utf8"));
+	var confPath = projectRoot + "/" + "haxemine.json";
+	if(!path.existsSync(confPath)) {
+		org.jinjor.haxemine.server.Main.print("haxemine.json" + "is required in current directory.");
+		org.jinjor.haxemine.server.Main.print("create " + "haxemine.json" + " here? [y/n]");
+		var rli = readline.createInterface(process.stdin,process.stdout);
+		rli.on("line",function(cmd) {
+			if(cmd == "y") org.jinjor.haxemine.server.Main.getAllHxmlFiles(async,fs,projectRoot,function(err,files) {
+				if(err) {
+					console.log(err);
+					throw err;
+				}
+				files.sort(function(f1,f2) {
+					return StringTools.startsWith(f1,"build") && StringTools.startsWith(f2,"compile")?1:-1;
+				});
+				var xhml = Lambda.array(Lambda.map(files,function(file) {
+					return { path : file};
+				}));
+				var conf = new org.jinjor.haxemine.server.HaxemineConfig(8765,xhml);
+				var confJson = JSON.stringify(conf,null," ");
+				fs.writeFileSync(confPath,confJson,"utf8");
+				org.jinjor.haxemine.server.Main.print("created haxemine.conf\n" + confJson);
+				org.jinjor.haxemine.server.Main.print("modify haxemine.conf and restart haxemine.");
+				process.exit(0);
+			}); else if(cmd == "n") process.stdin.destroy();
+			rli.prompt();
+		}).on("close",function() {
+			process.stdin.destroy();
+		});
+		rli.prompt();
+	} else org.jinjor.haxemine.server.Main.startApp(sys,fs,path,childProcess,async,http,socketio,express,projectRoot);
+}
+org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,async,http,socketio,express,projectRoot) {
+	var conf = haxe.Json.parse(fs.readFileSync(projectRoot + "/" + "haxemine.json","utf8"));
 	var port = conf.port || 8765;
 	org.jinjor.haxemine.server.Main.print("projectRoot:" + projectRoot);
 	org.jinjor.haxemine.server.Main.print("port:" + port);
@@ -1681,12 +1712,23 @@ org.jinjor.haxemine.server.Main.walk = function(fs,dir,done) {
 	});
 }
 org.jinjor.haxemine.server.Main.getAllHaxeFiles = function(async,fs,projectRoot,_callback) {
-	console.log(projectRoot);
-	org.jinjor.haxemine.server.Main.walk(fs,projectRoot,function(err,results) {
+	var filter = function(item) {
+		return StringTools.endsWith(item,".hx");
+	};
+	org.jinjor.haxemine.server.Main.getAllMatchedFiles(async,fs,projectRoot,filter,_callback);
+}
+org.jinjor.haxemine.server.Main.getAllHxmlFiles = function(async,fs,projectRoot,_callback) {
+	var filter = function(item) {
+		return StringTools.endsWith(item,".hxml");
+	};
+	org.jinjor.haxemine.server.Main.getAllMatchedFiles(async,fs,projectRoot,filter,_callback);
+}
+org.jinjor.haxemine.server.Main.getAllMatchedFiles = function(async,fs,root,filter,_callback) {
+	org.jinjor.haxemine.server.Main.walk(fs,root,function(err,results) {
 		if(err != null) _callback(err,null); else {
 			var all = [];
 			async.map(results,function(item,cb) {
-				if(item.indexOf(".hx") == item.length - ".hx".length) cb(null,item.split(projectRoot + "/")[1]); else cb(null,null);
+				if(filter(item)) cb(null,item.split(root + "/")[1]); else cb(null,null);
 			},function(err1,items) {
 				items.forEach(function(item) {
 					if(item != null) all.push(item);
@@ -1847,6 +1889,7 @@ js.NodeC.FILE_WRITE = "w";
 js.NodeC.FILE_WRITE_APPEND = "a+";
 js.NodeC.FILE_READWRITE = "a";
 js.NodeC.FILE_READWRITE_APPEND = "a+";
+org.jinjor.haxemine.server.Main.CONF_FILE = "haxemine.json";
 org.jinjor.haxemine.server.Main.main();
 })();
 

@@ -8,11 +8,14 @@ import org.jinjor.haxemine.model.SourceFile;
 import org.jinjor.haxemine.model.FileDetail;
 
 using Lambda;
+using StringTools;
 using org.jinjor.util.Util;
 
 class Main {
     
-    private static function print(s, ?author : String){
+    static inline var CONF_FILE = 'haxemine.json';
+    
+    static function print(s, ?author : String){
       untyped console.log(author.or('haxemine') + ' > ' + s);
     }
     
@@ -23,22 +26,59 @@ class Main {
         var sys     = Node.require('sys');
         var http = Node.require('http');
         var path = Node.require('path');
+        var readline = Node.require('readline');
         var socketio = Node.require('socket.io');
         //var watch = Node.require('./lib/watch.js');
         var childProcess = Node.require('child_process');
         var async : Dynamic = Node.require('async');
-        
-        
-        var CONF_FILE = 'haxemine.json';
-        
-        
-        if(!path.existsSync('haxemine.json')){
-          print('haxemine.json is required in current directory.');
-          untyped process.exit(1);
-        }
-        
+        //var process : Dynamic = untyped process;
         
         var projectRoot = '.';
+        var confPath = projectRoot + '/' + CONF_FILE;
+        if(!path.existsSync(confPath)){
+            print(CONF_FILE + 'is required in current directory.');
+            print('create ' + CONF_FILE + ' here? [y/n]');
+            
+            var rli = readline.createInterface(untyped process.stdin, untyped process.stdout);
+    
+            rli.on('line', function(cmd) {
+                if(cmd == 'y'){
+                    getAllHxmlFiles(async, fs, projectRoot, function(err, files : Array<String>){
+                        if(err){
+                            untyped console.log(err);
+                            throw(err);
+                        }
+                        files.sort(function(f1 : String, f2 : String){
+                            return if(f1.startsWith('build') && f2.startsWith('compile')){
+                                1;
+                            }else{
+                                -1;
+                            }
+                        });
+                        var xhml = files.map(function(file){
+                            return {path: file};
+                        }).array();
+                        var conf = new HaxemineConfig(8765, xhml);
+                        var confJson = untyped JSON.stringify(conf, null, " ");
+                        fs.writeFileSync(confPath, confJson, "utf8");
+                        print('created haxemine.conf\n' + confJson);
+                        print('modify haxemine.conf and restart haxemine.');
+                        untyped process.exit(0);
+                    });
+                }else if(cmd == 'n'){
+                    untyped process.stdin.destroy();
+                }
+                rli.prompt();
+            }).on('close', function () {
+                untyped process.stdin.destroy();
+            });
+            rli.prompt();
+        }else{
+            startApp(sys, fs, path, childProcess, async, http, socketio, express, projectRoot);
+        }
+    }
+    
+    static function startApp(sys, fs : Dynamic, path : Dynamic, childProcess : Dynamic, async : Dynamic, http, socketio, express : Dynamic, projectRoot : String){
         var conf : HaxemineConfig = Json.parse(fs.readFileSync(projectRoot + '/' + CONF_FILE, 'utf8'));
         var port = conf.port.or(8765);
         print('projectRoot:' + projectRoot);
@@ -127,8 +167,7 @@ class Main {
           socket.on('disconnect', function(){
             print("disconnect");
           });
-        });
-        
+        });        
     }
     
     //logics---------------------------
@@ -170,6 +209,9 @@ class Main {
       });
     }
     
+    
+    
+    
     //---------------------------
 
     static function walk(fs, dir, done) : Void {
@@ -198,15 +240,27 @@ class Main {
     }
     
     static function getAllHaxeFiles(async, fs, projectRoot : String, _callback){
-      untyped console.log(projectRoot);
-      walk(fs, projectRoot, function(err, results) {
+        var filter = function(item : String){
+            return item.endsWith('.hx');
+        };
+        getAllMatchedFiles(async, fs, projectRoot, filter, _callback);
+    }
+    static function getAllHxmlFiles(async, fs, projectRoot : String, _callback){
+        var filter = function(item : String){
+            return item.endsWith('.hxml');
+        };
+        getAllMatchedFiles(async, fs, projectRoot, filter, _callback);
+    }
+    
+    static function getAllMatchedFiles(async, fs, root : String, filter:String -> Bool, _callback){
+      walk(fs, root, function(err, results) {
         if (err != null) {
           _callback(err, null);
         }else{
           var all = [];
           async.map(results, function(item : String, cb) {
-            if(item.indexOf('.hx') == (item.length - '.hx'.length)){
-              cb(null, item.split(projectRoot + '/')[1]);
+            if(filter(item)){
+              cb(null, item.split(root + '/')[1]);
             }else{
               cb(null, null);
             }
