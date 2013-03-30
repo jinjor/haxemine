@@ -4,7 +4,7 @@ A simple editor for Haxe and Jasmine
 
 install
 
-    node install -g path/to/haxemine
+    npm install -g path/to/haxemine
 
 
 haxemine.json
