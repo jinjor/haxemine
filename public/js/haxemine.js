@@ -828,6 +828,7 @@ org.jinjor.haxemine.client.Session.prototype = {
 		this.socket.emit("doTasks",{ });
 	}
 	,getCompileErrorsByFile: function(file) {
+		if(file == null) return new List();
 		return Lambda.filter(this.getCompileErrors(),function(error) {
 			return error.originalMessage.indexOf(file.pathFromProjectRoot) == 0 || error.originalMessage.indexOf("./" + file.pathFromProjectRoot) == 0;
 		});

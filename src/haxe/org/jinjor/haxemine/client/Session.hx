@@ -97,6 +97,9 @@ class Session {
     }
     
     public function getCompileErrorsByFile(file : SourceFile) : List<CompileError> {
+        if(file == null){
+            return new List();
+        }
         return getCompileErrors().filter(function(error){
             return error.originalMessage.indexOf(file.pathFromProjectRoot) == 0
             || error.originalMessage.indexOf('./' + file.pathFromProjectRoot) == 0;
