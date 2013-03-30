@@ -1,6 +1,7 @@
 package org.jinjor.haxemine.server;
 
 class SaveFileDto {
+    
     public var fileName: String;
     public var text: String;
     

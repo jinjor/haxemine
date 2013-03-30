@@ -919,7 +919,16 @@ org.jinjor.haxemine.client.Session = function(socket,editingFiles) {
 org.jinjor.haxemine.client.Session.__name__ = true;
 org.jinjor.haxemine.client.Session.prototype = {
 	saveNewFile: function(pathFromProjectRoot,text) {
-		this.socket.emit("save",new org.jinjor.haxemine.server.SaveFileDto(pathFromProjectRoot,text));
+		var dup = false;
+		var $it0 = this.getAllFiles().iterator();
+		while( $it0.hasNext() ) {
+			var file = $it0.next();
+			if(file.pathFromProjectRoot == pathFromProjectRoot) {
+				dup = true;
+				break;
+			}
+		}
+		if(dup) js.Lib.alert(pathFromProjectRoot + " already exists."); else this.socket.emit("save",new org.jinjor.haxemine.server.SaveFileDto(pathFromProjectRoot,text));
 	}
 	,saveFile: function(text) {
 		this.socket.emit("save",new org.jinjor.haxemine.server.SaveFileDto(this.getCurrentFile().pathFromProjectRoot,text));

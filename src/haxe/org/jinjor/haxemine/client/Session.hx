@@ -1,5 +1,6 @@
 package org.jinjor.haxemine.client;
 
+import js.Lib;
 import org.jinjor.haxemine.model.CompileError;
 import org.jinjor.haxemine.model.SourceFile;
 import org.jinjor.haxemine.model.HistoryArray;
@@ -117,7 +118,21 @@ class Session {
     }
     
     public function saveNewFile(pathFromProjectRoot : String, text : String){
-        socket.emit('save', new SaveFileDto(pathFromProjectRoot, text));
+        var dup = false;
+        for(file in getAllFiles()){
+            if(file.pathFromProjectRoot == pathFromProjectRoot){
+                dup = true;
+                break;
+            }
+        }
+        if(dup){
+            Lib.alert(pathFromProjectRoot + ' already exists.');
+        }else{
+            socket.emit('save', new SaveFileDto(pathFromProjectRoot, text));
+        }
+        
+        
+        
     }
     
 }
