@@ -1,8 +1,10 @@
 package org.jinjor.haxemine.client;
 
+import js.Lib;
 import js.JQuery;
 import org.jinjor.haxemine.model.SourceFile;
 
+using StringTools;
 using Lambda;
 using org.jinjor.util.Util;
 
@@ -10,9 +12,21 @@ class FileSelector {
     
     private static inline function JQ(s: String){ return untyped $(s);}
     
+    private static var classTemplate = new HoganTemplate<Dynamic>(
+'package {{_package}};
+
+class {{_class}} {
+
+    public function new() {
+        
+    }
+
+}'
+);
+    
     private static var template = new HoganTemplate<Dynamic>('
         {{#dirs}}
-        <label class="file_selector_flat_dir">{{name}}</label>
+        <label class="file_selector_dir">{{name}}</label>
         <ul>
             {{#files}}
             <li><a data-filePath="{{pathFromProjectRoot}}">{{shortName}}</a></li>
@@ -29,6 +43,24 @@ class FileSelector {
         this.container = (untyped container).on('click', 'a', function(){
             var file = session.getAllFiles().get(JQuery.cur.attr('data-filePath'));
             session.selectNextFile(file);
+        }).on('click', '.file_selector_dir', function(){
+            var path = JQuery.cur.text();
+            var guessedPackage = path.replace('/', '.');
+            var classPath = js.Lib.window.prompt("create new class", guessedPackage + '.');
+            if(classPath != null){
+                var splittedClass = classPath.split('.');
+                var className = splittedClass[splittedClass.length-1];
+                if(className == ''){
+                    Lib.alert('invalid name');
+                }else{
+                    var text = classTemplate.render({
+                        _package: classPath.substring(0, classPath.length - className.length - 1),
+                        _class: className
+                    });
+                    session.saveNewFile(path + '/' + className + '.hx', text);
+                }
+            }
+            
         });
         
         session.onCompileErrorsChanged(function(){

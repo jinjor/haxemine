@@ -115,7 +115,9 @@ class Session {
     public function saveFile(text : String){
         socket.emit('save', new SaveFileDto(getCurrentFile().pathFromProjectRoot, text));
     }
-
     
+    public function saveNewFile(pathFromProjectRoot : String, text : String){
+        socket.emit('save', new SaveFileDto(pathFromProjectRoot, text));
+    }
     
 }

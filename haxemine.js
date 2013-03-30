@@ -1624,8 +1624,7 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 		org.jinjor.haxemine.server.Main.print("haxemine listening on port " + Std.string(app.get("port")));
 	});
 	var io = socketio.listen(server,{ 'log level' : 1});
-	io.sockets.on("connection",function(socket) {
-		org.jinjor.haxemine.server.Main.print("connection");
+	var refreshAllFiles = function(socket) {
 		org.jinjor.haxemine.server.Main.getAllHaxeFiles(async,fs,projectRoot,function(err,filePaths) {
 			if(err != null) {
 				console.log(err);
@@ -1639,6 +1638,10 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 			});
 			socket.emit("all-haxe-files",files);
 		});
+	};
+	io.sockets.on("connection",function(socket) {
+		org.jinjor.haxemine.server.Main.print("connection");
+		refreshAllFiles(socket);
 		var doTasks = function() {
 			var tasks = Lambda.array(Lambda.map(conf.hxml,function(hxml) {
 				var task = org.jinjor.haxemine.server.Main.createCompileHaxeTask(childProcess,socket,projectRoot,hxml.path);
@@ -1652,7 +1655,10 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 				console.log(data);
 				throw "bad request.";
 			}
-			org.jinjor.haxemine.server.Main.saveToSrc(fs,projectRoot + "/" + data.fileName,data.text);
+			var _path = projectRoot + "/" + data.fileName;
+			var isNew = !path.existsSync(_path);
+			org.jinjor.haxemine.server.Main.saveToSrc(fs,_path,data.text);
+			if(isNew) refreshAllFiles(socket);
 			socket.emit("stdout","saved");
 			doTasks();
 		});

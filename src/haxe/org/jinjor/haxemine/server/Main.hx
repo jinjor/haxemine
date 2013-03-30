@@ -125,9 +125,8 @@ class Main {
         
         var io = socketio.listen(server, {'log level': 1});
         
-        io.sockets.on('connection', function(socket : Dynamic) {
-          print("connection");
-          getAllHaxeFiles(async, fs, projectRoot, function(err, filePaths : Array<String>){
+        var refreshAllFiles = function(socket){
+            getAllHaxeFiles(async, fs, projectRoot, function(err, filePaths : Array<String>){
             if(err != null){
               trace(err);
               throw err;
@@ -141,8 +140,12 @@ class Main {
             });
             
             socket.emit('all-haxe-files', files);
-            
           });
+        };
+        
+        io.sockets.on('connection', function(socket : Dynamic) {
+          print("connection");
+          refreshAllFiles(socket);
           
           var doTasks = function(){
             var tasks = conf.hxml.map(function(hxml){
@@ -157,7 +160,13 @@ class Main {
               trace(data);
               throw "bad request.";
             }
-            saveToSrc(fs, projectRoot + '/'+ data.fileName, data.text);
+            var _path = projectRoot + '/'+ data.fileName;
+            var isNew = !path.existsSync(_path);
+            saveToSrc(fs, _path, data.text);
+            if(isNew){
+                refreshAllFiles(socket);
+            }
+            
             socket.emit('stdout', 'saved');
             doTasks();
           });
@@ -177,7 +186,7 @@ class Main {
       return new FileDetail(fs.readFileSync(fileName, "utf8"), 'haxe');
     }
     static function saveToSrc(fs, fileName, text){
-      fs.writeFileSync(fileName, text, "utf8");
+        fs.writeFileSync(fileName, text, "utf8");
     }
     
     static function createCompileHaxeTask(childProcess, socket, projectRoot, hxmlPath){

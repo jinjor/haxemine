@@ -493,6 +493,92 @@ StringBuf.prototype = {
 	}
 	,__class__: StringBuf
 }
+var StringTools = function() { }
+StringTools.__name__ = true;
+StringTools.urlEncode = function(s) {
+	return encodeURIComponent(s);
+}
+StringTools.urlDecode = function(s) {
+	return decodeURIComponent(s.split("+").join(" "));
+}
+StringTools.htmlEscape = function(s) {
+	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+}
+StringTools.htmlUnescape = function(s) {
+	return s.split("&gt;").join(">").split("&lt;").join("<").split("&amp;").join("&");
+}
+StringTools.startsWith = function(s,start) {
+	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
+}
+StringTools.endsWith = function(s,end) {
+	var elen = end.length;
+	var slen = s.length;
+	return slen >= elen && HxOverrides.substr(s,slen - elen,elen) == end;
+}
+StringTools.isSpace = function(s,pos) {
+	var c = HxOverrides.cca(s,pos);
+	return c >= 9 && c <= 13 || c == 32;
+}
+StringTools.ltrim = function(s) {
+	var l = s.length;
+	var r = 0;
+	while(r < l && StringTools.isSpace(s,r)) r++;
+	if(r > 0) return HxOverrides.substr(s,r,l - r); else return s;
+}
+StringTools.rtrim = function(s) {
+	var l = s.length;
+	var r = 0;
+	while(r < l && StringTools.isSpace(s,l - r - 1)) r++;
+	if(r > 0) return HxOverrides.substr(s,0,l - r); else return s;
+}
+StringTools.trim = function(s) {
+	return StringTools.ltrim(StringTools.rtrim(s));
+}
+StringTools.rpad = function(s,c,l) {
+	var sl = s.length;
+	var cl = c.length;
+	while(sl < l) if(l - sl < cl) {
+		s += HxOverrides.substr(c,0,l - sl);
+		sl = l;
+	} else {
+		s += c;
+		sl += cl;
+	}
+	return s;
+}
+StringTools.lpad = function(s,c,l) {
+	var ns = "";
+	var sl = s.length;
+	if(sl >= l) return s;
+	var cl = c.length;
+	while(sl < l) if(l - sl < cl) {
+		ns += HxOverrides.substr(c,0,l - sl);
+		sl = l;
+	} else {
+		ns += c;
+		sl += cl;
+	}
+	return ns + s;
+}
+StringTools.replace = function(s,sub,by) {
+	return s.split(sub).join(by);
+}
+StringTools.hex = function(n,digits) {
+	var s = "";
+	var hexChars = "0123456789ABCDEF";
+	do {
+		s = hexChars.charAt(n & 15) + s;
+		n >>>= 4;
+	} while(n > 0);
+	if(digits != null) while(s.length < digits) s = "0" + s;
+	return s;
+}
+StringTools.fastCodeAt = function(s,index) {
+	return s.charCodeAt(index);
+}
+StringTools.isEOF = function(c) {
+	return c != c;
+}
 var js = js || {}
 js.Boot = function() { }
 js.Boot.__name__ = true;
@@ -716,6 +802,18 @@ org.jinjor.haxemine.client.FileSelector = function(container,session) {
 	this.container = container.on("click","a",function() {
 		var file = session.getAllFiles().get($(this).attr("data-filePath"));
 		session.selectNextFile(file);
+	}).on("click",".file_selector_dir",function() {
+		var path = $(this).text();
+		var guessedPackage = StringTools.replace(path,"/",".");
+		var classPath = js.Lib.window.prompt("create new class",guessedPackage + ".");
+		if(classPath != null) {
+			var splittedClass = classPath.split(".");
+			var className = splittedClass[splittedClass.length - 1];
+			if(className == "") js.Lib.alert("invalid name"); else {
+				var text = org.jinjor.haxemine.client.FileSelector.classTemplate.render({ _package : classPath.substring(0,classPath.length - className.length - 1), _class : className});
+				session.saveNewFile(path + "/" + className + ".hx",text);
+			}
+		}
 	});
 	session.onCompileErrorsChanged(function() {
 		that.render(session);
@@ -820,7 +918,10 @@ org.jinjor.haxemine.client.Session = function(socket,editingFiles) {
 };
 org.jinjor.haxemine.client.Session.__name__ = true;
 org.jinjor.haxemine.client.Session.prototype = {
-	saveFile: function(text) {
+	saveNewFile: function(pathFromProjectRoot,text) {
+		this.socket.emit("save",new org.jinjor.haxemine.server.SaveFileDto(pathFromProjectRoot,text));
+	}
+	,saveFile: function(text) {
 		this.socket.emit("save",new org.jinjor.haxemine.server.SaveFileDto(this.getCurrentFile().pathFromProjectRoot,text));
 	}
 	,compile: function() {
@@ -1049,7 +1150,8 @@ if(typeof window != "undefined") {
 	};
 }
 org.jinjor.haxemine.client.CompileErrorPanel.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <ul>\r\n            {{#errors}}\r\n            <li><a data-filePath=\"{{file.pathFromProjectRoot}}\">{{originalMessage}}</a></li>\r\n            {{/errors}}\r\n        </ul>\r\n    ");
-org.jinjor.haxemine.client.FileSelector.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        {{#dirs}}\r\n        <label class=\"file_selector_flat_dir\">{{name}}</label>\r\n        <ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>\r\n        {{/dirs}}\r\n    ");
+org.jinjor.haxemine.client.FileSelector.classTemplate = new org.jinjor.haxemine.client.HoganTemplate("package {{_package}};\r\n\r\nclass {{_class}} {\r\n\r\n    public function new() {\r\n        \r\n    }\r\n\r\n}");
+org.jinjor.haxemine.client.FileSelector.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        {{#dirs}}\r\n        <label class=\"file_selector_dir\">{{name}}</label>\r\n        <ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>\r\n        {{/dirs}}\r\n    ");
 org.jinjor.haxemine.client.Main.main();
 
 //@ sourceMappingURL=haxemine.js.map
