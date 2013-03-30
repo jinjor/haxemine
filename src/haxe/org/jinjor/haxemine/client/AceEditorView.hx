@@ -1,16 +1,23 @@
 package org.jinjor.haxemine.client;
 
-import org.jinjor.haxemine.model.EditingFile;
-import org.jinjor.haxemine.model.AceEditorModel;
-
 import js.JQuery;
 using Lambda;
 
 class AceEditorView {
     
     
-    public function new(editor : Dynamic, session){
-        new AceEditorModel(editor, new EditingFile(session));//既にバインド済
+    public function new(editor : Dynamic, session : Session){
+        session.onEditingFileChanged(function(detail){
+            editor.getSession().setValue(detail.text);
+            editor.getSession().setMode("ace/mode/" + detail.mode);
+        });
+    
+        session.onCompileErrorsChanged(function(){
+             var annotations = session.getCompileErrorsByFile(session.getCurrentFile()).map(function(error){
+                return {row:error.row-1, text: error.message, type:"error"};
+            }).array();
+            editor.getSession().setAnnotations(annotations);
+        });
         
         editor.commands.addCommand({
             Name : "savefile",

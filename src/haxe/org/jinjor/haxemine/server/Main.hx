@@ -3,7 +3,6 @@ package org.jinjor.haxemine.server;
 import haxe.Json;
 import js.Node;
 import org.jinjor.haxemine.model.CompileError;
-import org.jinjor.haxemine.model.Session;
 import org.jinjor.haxemine.model.HistoryArray;
 import org.jinjor.haxemine.model.SourceFile;
 

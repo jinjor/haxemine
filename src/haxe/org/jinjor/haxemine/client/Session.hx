@@ -1,4 +1,9 @@
-package org.jinjor.haxemine.model;
+package org.jinjor.haxemine.client;
+
+import org.jinjor.haxemine.model.CompileError;
+import org.jinjor.haxemine.model.SourceFile;
+import org.jinjor.haxemine.model.HistoryArray;
+import org.jinjor.haxemine.model.FileDetail;
 
 using Lambda;
 using org.jinjor.util.Util;
@@ -13,7 +18,7 @@ class Session {
     
     private var _onAllFilesChanged : Array<Void -> Void>;
     private var _onCompileErrorsChanged : Array<Void -> Void>;
-    private var _onEditingFileChanged : Array<Void -> Void>;
+    private var _onEditingFileChanged : Array<FileDetail -> Void>;
     
     public function new(socket, editingFiles){
         var that = this;
@@ -74,18 +79,29 @@ class Session {
         return editingFiles.array[0];
     }
     public function selectNextFile(file: SourceFile) {
+        var that = this;
         if(file == null){
             return;
         }
         editingFiles.add(file);
-        this._onEditingFileChanged.foreach(function(f){
-            f();
-            return true;
+        new FileDetailDao().getFile(getCurrentFile().pathFromProjectRoot, function(detail: FileDetail){
+            that._onEditingFileChanged.foreach(function(f){
+                f(detail);
+                return true;
+            });
         });
     }
-    public function onEditingFileChanged(f: Void -> Void){
+    public function onEditingFileChanged(f: FileDetail -> Void){
         _onEditingFileChanged.push(f);
     }
+    
+    public function getCompileErrorsByFile(file : SourceFile) : List<CompileError> {
+        return getCompileErrors().filter(function(error){
+            return error.originalMessage.indexOf(file.pathFromProjectRoot) == 0
+            || error.originalMessage.indexOf('./' + file.pathFromProjectRoot) == 0;
+        });
+    }
+    
     
     public function compile(){
         untyped console.log(socket);

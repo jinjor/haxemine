@@ -1,7 +1,7 @@
 package org.jinjor.haxemine.client;
 
 import org.jinjor.haxemine.model.CompileError;
-import org.jinjor.haxemine.model.Session;
+import org.jinjor.haxemine.client.Session;
 import org.jinjor.haxemine.model.HistoryArray;
 import org.jinjor.haxemine.model.SourceFile;
 import org.jinjor.haxemine.client.View;
