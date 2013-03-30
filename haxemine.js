@@ -1527,6 +1527,14 @@ org.jinjor.haxemine.model.SourceFile.prototype = {
 	,__class__: org.jinjor.haxemine.model.SourceFile
 }
 org.jinjor.haxemine.server = {}
+org.jinjor.haxemine.server.HaxemineConfig = function() { }
+$hxClasses["org.jinjor.haxemine.server.HaxemineConfig"] = org.jinjor.haxemine.server.HaxemineConfig;
+org.jinjor.haxemine.server.HaxemineConfig.__name__ = ["org","jinjor","haxemine","server","HaxemineConfig"];
+org.jinjor.haxemine.server.HaxemineConfig.prototype = {
+	hxml: null
+	,port: null
+	,__class__: org.jinjor.haxemine.server.HaxemineConfig
+}
 org.jinjor.haxemine.server.Main = function() { }
 $hxClasses["org.jinjor.haxemine.server.Main"] = org.jinjor.haxemine.server.Main;
 org.jinjor.haxemine.server.Main.__name__ = ["org","jinjor","haxemine","server","Main"];
@@ -1687,6 +1695,17 @@ org.jinjor.haxemine.server.Main.getAllHaxeFiles = function(async,fs,projectRoot,
 			_callback(null,all);
 		}
 	});
+}
+org.jinjor.haxemine.server.SaveFileDto = function(fileName,text) {
+	this.fileName = fileName;
+	this.text = text;
+};
+$hxClasses["org.jinjor.haxemine.server.SaveFileDto"] = org.jinjor.haxemine.server.SaveFileDto;
+org.jinjor.haxemine.server.SaveFileDto.__name__ = ["org","jinjor","haxemine","server","SaveFileDto"];
+org.jinjor.haxemine.server.SaveFileDto.prototype = {
+	text: null
+	,fileName: null
+	,__class__: org.jinjor.haxemine.server.SaveFileDto
 }
 org.jinjor.util = {}
 org.jinjor.util.Util = function() { }

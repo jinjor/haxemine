@@ -10,11 +10,6 @@ import org.jinjor.haxemine.model.FileDetail;
 using Lambda;
 using org.jinjor.util.Util;
 
-typedef Conf = {
-    port : Int,
-    hxml : Array<Dynamic>
-}
-
 class Main {
     
     private static function print(s, ?author : String){
@@ -44,7 +39,7 @@ class Main {
         
         
         var projectRoot = '.';
-        var conf : Conf = Json.parse(fs.readFileSync(projectRoot + '/' + CONF_FILE, 'utf8'));
+        var conf : HaxemineConfig = Json.parse(fs.readFileSync(projectRoot + '/' + CONF_FILE, 'utf8'));
         var port = conf.port.or(8765);
         print('projectRoot:' + projectRoot);
         print('port:' + port);
@@ -117,7 +112,7 @@ class Main {
             async.series(tasks, function(){});
           };
           
-          socket.on('save', function(data) {
+          socket.on('save', function(data : SaveFileDto) {
             if(data.fileName == null){
               trace(data);
               throw "bad request.";

@@ -821,7 +821,7 @@ org.jinjor.haxemine.client.Session = function(socket,editingFiles) {
 org.jinjor.haxemine.client.Session.__name__ = true;
 org.jinjor.haxemine.client.Session.prototype = {
 	saveFile: function(text) {
-		this.socket.emit("save",{ fileName : this.getCurrentFile().pathFromProjectRoot, text : text});
+		this.socket.emit("save",new org.jinjor.haxemine.server.SaveFileDto(this.getCurrentFile().pathFromProjectRoot,text));
 	}
 	,compile: function() {
 		console.log(this.socket);
@@ -957,6 +957,15 @@ org.jinjor.haxemine.model.SourceFile.equals = function(o1,o2) {
 }
 org.jinjor.haxemine.model.SourceFile.prototype = {
 	__class__: org.jinjor.haxemine.model.SourceFile
+}
+if(!org.jinjor.haxemine.server) org.jinjor.haxemine.server = {}
+org.jinjor.haxemine.server.SaveFileDto = function(fileName,text) {
+	this.fileName = fileName;
+	this.text = text;
+};
+org.jinjor.haxemine.server.SaveFileDto.__name__ = true;
+org.jinjor.haxemine.server.SaveFileDto.prototype = {
+	__class__: org.jinjor.haxemine.server.SaveFileDto
 }
 if(!org.jinjor.util) org.jinjor.util = {}
 org.jinjor.util.Util = function() { }

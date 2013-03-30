@@ -4,6 +4,7 @@ import org.jinjor.haxemine.model.CompileError;
 import org.jinjor.haxemine.model.SourceFile;
 import org.jinjor.haxemine.model.HistoryArray;
 import org.jinjor.haxemine.model.FileDetail;
+import org.jinjor.haxemine.server.SaveFileDto;
 
 using Lambda;
 using org.jinjor.util.Util;
@@ -108,11 +109,8 @@ class Session {
         socket.emit('doTasks', {});
     }
     
-    public function saveFile(text){
-        socket.emit('save', {
-            fileName : getCurrentFile().pathFromProjectRoot,
-            text: text
-        });
+    public function saveFile(text : String){
+        socket.emit('save', new SaveFileDto(getCurrentFile().pathFromProjectRoot, text));
     }
 
     
