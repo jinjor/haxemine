@@ -1454,10 +1454,10 @@ var org = {}
 org.jinjor = {}
 org.jinjor.haxemine = {}
 org.jinjor.haxemine.model = {}
-org.jinjor.haxemine.model.CompileError = function(originalMessage,filePathToFile) {
+org.jinjor.haxemine.model.CompileError = function(originalMessage) {
 	this.originalMessage = originalMessage;
 	var parsed = org.jinjor.haxemine.model.CompileError.parseCompileErrorMessage(originalMessage);
-	this.file = filePathToFile(parsed.path);
+	this.path = parsed.path;
 	this.row = parsed.row;
 	this.message = parsed.message;
 };
@@ -1471,9 +1471,20 @@ org.jinjor.haxemine.model.CompileError.parseCompileErrorMessage = function(messa
 org.jinjor.haxemine.model.CompileError.prototype = {
 	message: null
 	,row: null
-	,file: null
+	,path: null
 	,originalMessage: null
 	,__class__: org.jinjor.haxemine.model.CompileError
+}
+org.jinjor.haxemine.model.FileDetail = function(text,mode) {
+	this.text = text;
+	this.mode = mode;
+};
+$hxClasses["org.jinjor.haxemine.model.FileDetail"] = org.jinjor.haxemine.model.FileDetail;
+org.jinjor.haxemine.model.FileDetail.__name__ = ["org","jinjor","haxemine","model","FileDetail"];
+org.jinjor.haxemine.model.FileDetail.prototype = {
+	mode: null
+	,text: null
+	,__class__: org.jinjor.haxemine.model.FileDetail
 }
 org.jinjor.haxemine.model.HistoryArray = function(max,equals) {
 	this.array = [];
@@ -1501,96 +1512,6 @@ org.jinjor.haxemine.model.HistoryArray.prototype = {
 	,array: null
 	,__class__: org.jinjor.haxemine.model.HistoryArray
 }
-org.jinjor.haxemine.model.Session = function(socket,editingFiles) {
-	var _g = this;
-	var that = this;
-	this.socket = socket;
-	socket.on("stdout",function(msg) {
-		console.log(msg);
-	});
-	socket.on("all-haxe-files",function(filesPaths) {
-		var files = new Hash();
-		Lambda.foreach(filesPaths,function(f) {
-			files.set(f,new org.jinjor.haxemine.model.SourceFile(f));
-			return true;
-		});
-		_g.setAllFiles(files);
-	});
-	socket.on("haxe-compile-err",function(msg) {
-		console.log("error found: " + Std.string(msg));
-		that.setCompileErrors(msg);
-	});
-	this.compileErrors = [];
-	this.editingFiles = editingFiles;
-	this.allFiles = new Hash();
-	this._onAllFilesChanged = [];
-	this._onCompileErrorsChanged = [];
-	this._onEditingFileChanged = [];
-};
-$hxClasses["org.jinjor.haxemine.model.Session"] = org.jinjor.haxemine.model.Session;
-org.jinjor.haxemine.model.Session.__name__ = ["org","jinjor","haxemine","model","Session"];
-org.jinjor.haxemine.model.Session.prototype = {
-	saveFile: function(text) {
-		this.socket.emit("save",{ fileName : this.getCurrentFile().pathFromProjectRoot, text : text});
-	}
-	,compile: function() {
-		console.log(this.socket);
-		this.socket.emit("doTasks",{ });
-	}
-	,onEditingFileChanged: function(f) {
-		this._onEditingFileChanged.push(f);
-	}
-	,selectNextFile: function(file) {
-		if(file == null) return;
-		this.editingFiles.add(file);
-		Lambda.foreach(this._onEditingFileChanged,function(f) {
-			f();
-			return true;
-		});
-	}
-	,getCurrentFile: function() {
-		return this.editingFiles.array[0];
-	}
-	,onAllFilesChanged: function(f) {
-		this._onAllFilesChanged.push(f);
-	}
-	,getAllFiles: function() {
-		return this.allFiles;
-	}
-	,setAllFiles: function(allFiles) {
-		this.allFiles = allFiles;
-		Lambda.foreach(this._onAllFilesChanged,function(f) {
-			f();
-			return true;
-		});
-	}
-	,onCompileErrorsChanged: function(f) {
-		this._onCompileErrorsChanged.push(f);
-	}
-	,getCompileErrors: function() {
-		return this.compileErrors;
-	}
-	,setCompileErrors: function(msg) {
-		var _g = this;
-		var messages = msg.split("\n");
-		this.compileErrors = Lambda.array(Lambda.map(messages,function(message) {
-			return new org.jinjor.haxemine.model.CompileError(message,($_=_g.allFiles,$bind($_,$_.get)));
-		}));
-		Lambda.foreach(this._onCompileErrorsChanged,function(f) {
-			f();
-			return true;
-		});
-	}
-	,_onEditingFileChanged: null
-	,_onCompileErrorsChanged: null
-	,_onAllFilesChanged: null
-	,fileToLoad: null
-	,allFiles: null
-	,editingFiles: null
-	,compileErrors: null
-	,socket: null
-	,__class__: org.jinjor.haxemine.model.Session
-}
 org.jinjor.haxemine.model.SourceFile = function(pathFromProjectRoot) {
 	this.pathFromProjectRoot = pathFromProjectRoot;
 	var splitted = pathFromProjectRoot.split("/");
@@ -1608,6 +1529,17 @@ org.jinjor.haxemine.model.SourceFile.prototype = {
 	,__class__: org.jinjor.haxemine.model.SourceFile
 }
 org.jinjor.haxemine.server = {}
+org.jinjor.haxemine.server.HaxemineConfig = function(port,hxml) {
+	this.port = port;
+	this.hxml = hxml;
+};
+$hxClasses["org.jinjor.haxemine.server.HaxemineConfig"] = org.jinjor.haxemine.server.HaxemineConfig;
+org.jinjor.haxemine.server.HaxemineConfig.__name__ = ["org","jinjor","haxemine","server","HaxemineConfig"];
+org.jinjor.haxemine.server.HaxemineConfig.prototype = {
+	hxml: null
+	,port: null
+	,__class__: org.jinjor.haxemine.server.HaxemineConfig
+}
 org.jinjor.haxemine.server.Main = function() { }
 $hxClasses["org.jinjor.haxemine.server.Main"] = org.jinjor.haxemine.server.Main;
 org.jinjor.haxemine.server.Main.__name__ = ["org","jinjor","haxemine","server","Main"];
@@ -1615,22 +1547,49 @@ org.jinjor.haxemine.server.Main.print = function(s,author) {
 	console.log((author || "haxemine") + " > " + s);
 }
 org.jinjor.haxemine.server.Main.main = function() {
-	console.log("hello node");
 	var express = js.Node.require("express");
 	var fs = js.Node.require("fs");
 	var sys = js.Node.require("sys");
 	var http = js.Node.require("http");
 	var path = js.Node.require("path");
+	var readline = js.Node.require("readline");
 	var socketio = js.Node.require("socket.io");
 	var childProcess = js.Node.require("child_process");
 	var async = js.Node.require("async");
-	var CONF_FILE = "haxemine.json";
-	if(!path.existsSync("haxemine.json")) {
-		org.jinjor.haxemine.server.Main.print("haxemine.json is required in current directory.");
-		process.exit(1);
-	}
 	var projectRoot = ".";
-	var conf = haxe.Json.parse(fs.readFileSync(projectRoot + "/" + CONF_FILE,"utf8"));
+	var confPath = projectRoot + "/" + "haxemine.json";
+	if(!path.existsSync(confPath)) {
+		org.jinjor.haxemine.server.Main.print("haxemine.json" + "is required in current directory.");
+		org.jinjor.haxemine.server.Main.print("create " + "haxemine.json" + " here? [y/n]");
+		var rli = readline.createInterface(process.stdin,process.stdout);
+		rli.on("line",function(cmd) {
+			if(cmd == "y") org.jinjor.haxemine.server.Main.getAllHxmlFiles(async,fs,projectRoot,function(err,files) {
+				if(err) {
+					console.log(err);
+					throw err;
+				}
+				files.sort(function(f1,f2) {
+					return StringTools.startsWith(f1,"build") && StringTools.startsWith(f2,"compile")?1:-1;
+				});
+				var xhml = Lambda.array(Lambda.map(files,function(file) {
+					return { path : file};
+				}));
+				var conf = new org.jinjor.haxemine.server.HaxemineConfig(8765,xhml);
+				var confJson = JSON.stringify(conf,null," ");
+				fs.writeFileSync(confPath,confJson,"utf8");
+				org.jinjor.haxemine.server.Main.print("created haxemine.conf\n" + confJson);
+				org.jinjor.haxemine.server.Main.print("modify haxemine.conf and restart haxemine.");
+				process.exit(0);
+			}); else if(cmd == "n") process.stdin.destroy();
+			rli.prompt();
+		}).on("close",function() {
+			process.stdin.destroy();
+		});
+		rli.prompt();
+	} else org.jinjor.haxemine.server.Main.startApp(sys,fs,path,childProcess,async,http,socketio,express,projectRoot);
+}
+org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,async,http,socketio,express,projectRoot) {
+	var conf = haxe.Json.parse(fs.readFileSync(projectRoot + "/" + "haxemine.json","utf8"));
 	var port = conf.port || 8765;
 	org.jinjor.haxemine.server.Main.print("projectRoot:" + projectRoot);
 	org.jinjor.haxemine.server.Main.print("port:" + port);
@@ -1669,12 +1628,17 @@ org.jinjor.haxemine.server.Main.main = function() {
 	var io = socketio.listen(server,{ 'log level' : 1});
 	io.sockets.on("connection",function(socket) {
 		org.jinjor.haxemine.server.Main.print("connection");
-		org.jinjor.haxemine.server.Main.getAllHaxeFiles(async,fs,projectRoot,function(err,files) {
+		org.jinjor.haxemine.server.Main.getAllHaxeFiles(async,fs,projectRoot,function(err,filePaths) {
 			if(err != null) {
 				console.log(err);
 				throw err;
 			}
-			console.log(files);
+			console.log(filePaths);
+			var files = { };
+			Lambda.foreach(filePaths,function(f) {
+				files[f] = new org.jinjor.haxemine.model.SourceFile(f);
+				return true;
+			});
 			socket.emit("all-haxe-files",files);
 		});
 		var doTasks = function() {
@@ -1704,7 +1668,7 @@ org.jinjor.haxemine.server.Main.main = function() {
 }
 org.jinjor.haxemine.server.Main.findFromSrc = function(fs,fileName) {
 	console.log(fileName);
-	return { text : fs.readFileSync(fileName,"utf8"), mode : "haxe"};
+	return new org.jinjor.haxemine.model.FileDetail(fs.readFileSync(fileName,"utf8"),"haxe");
 }
 org.jinjor.haxemine.server.Main.saveToSrc = function(fs,fileName,text) {
 	fs.writeFileSync(fileName,text,"utf8");
@@ -1718,8 +1682,12 @@ org.jinjor.haxemine.server.Main.compileHaxe = function(childProcess,socket,proje
 	childProcess.exec("haxe " + hxmlPath,{ cwd : projectRoot},function(err,stdout,stderr) {
 		if(err != null) org.jinjor.haxemine.server.Main.print(stderr,hxmlPath);
 		socket.emit("stdout",stdout);
-		var compileError = err != null?stderr:"";
-		socket.emit("haxe-compile-err",compileError);
+		var msg = err != null?stderr:"";
+		var messages = msg.split("\n");
+		var compileErrors = Lambda.array(Lambda.map(messages,function(message) {
+			return new org.jinjor.haxemine.model.CompileError(message);
+		}));
+		socket.emit("haxe-compile-err",compileErrors);
 		callBack(err);
 	});
 }
@@ -1746,12 +1714,23 @@ org.jinjor.haxemine.server.Main.walk = function(fs,dir,done) {
 	});
 }
 org.jinjor.haxemine.server.Main.getAllHaxeFiles = function(async,fs,projectRoot,_callback) {
-	console.log(projectRoot);
-	org.jinjor.haxemine.server.Main.walk(fs,projectRoot,function(err,results) {
+	var filter = function(item) {
+		return StringTools.endsWith(item,".hx");
+	};
+	org.jinjor.haxemine.server.Main.getAllMatchedFiles(async,fs,projectRoot,filter,_callback);
+}
+org.jinjor.haxemine.server.Main.getAllHxmlFiles = function(async,fs,projectRoot,_callback) {
+	var filter = function(item) {
+		return StringTools.endsWith(item,".hxml");
+	};
+	org.jinjor.haxemine.server.Main.getAllMatchedFiles(async,fs,projectRoot,filter,_callback);
+}
+org.jinjor.haxemine.server.Main.getAllMatchedFiles = function(async,fs,root,filter,_callback) {
+	org.jinjor.haxemine.server.Main.walk(fs,root,function(err,results) {
 		if(err != null) _callback(err,null); else {
 			var all = [];
 			async.map(results,function(item,cb) {
-				if(item.indexOf(".hx") == item.length - ".hx".length) cb(null,item.split(projectRoot + "/")[1]); else cb(null,null);
+				if(filter(item)) cb(null,item.split(root + "/")[1]); else cb(null,null);
 			},function(err1,items) {
 				items.forEach(function(item) {
 					if(item != null) all.push(item);
@@ -1760,6 +1739,17 @@ org.jinjor.haxemine.server.Main.getAllHaxeFiles = function(async,fs,projectRoot,
 			_callback(null,all);
 		}
 	});
+}
+org.jinjor.haxemine.server.SaveFileDto = function(fileName,text) {
+	this.fileName = fileName;
+	this.text = text;
+};
+$hxClasses["org.jinjor.haxemine.server.SaveFileDto"] = org.jinjor.haxemine.server.SaveFileDto;
+org.jinjor.haxemine.server.SaveFileDto.__name__ = ["org","jinjor","haxemine","server","SaveFileDto"];
+org.jinjor.haxemine.server.SaveFileDto.prototype = {
+	text: null
+	,fileName: null
+	,__class__: org.jinjor.haxemine.server.SaveFileDto
 }
 org.jinjor.util = {}
 org.jinjor.util.Util = function() { }
@@ -1773,6 +1763,16 @@ org.jinjor.util.Util.and = function(a,b) {
 }
 org.jinjor.util.Util.compareTo = function(a,b) {
 	return a < b?-1:a > b?1:0;
+}
+org.jinjor.util.Util.dynamicToHash = function(d) {
+	var hash = new Hash();
+	var _g = 0, _g1 = Reflect.fields(d);
+	while(_g < _g1.length) {
+		var field = _g1[_g];
+		++_g;
+		hash.set(field,Reflect.field(d,field));
+	}
+	return hash;
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_;
@@ -1891,6 +1891,7 @@ js.NodeC.FILE_WRITE = "w";
 js.NodeC.FILE_WRITE_APPEND = "a+";
 js.NodeC.FILE_READWRITE = "a";
 js.NodeC.FILE_READWRITE_APPEND = "a+";
+org.jinjor.haxemine.server.Main.CONF_FILE = "haxemine.json";
 org.jinjor.haxemine.server.Main.main();
 })();
 
