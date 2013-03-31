@@ -23,10 +23,6 @@ class Main {
         new JQuery(js.Lib.document).ready(function(e){
             view.render(JQ('body'));
         });
-        socket.on('connect', function(msg) {
-            trace("connected.");//View
-            session.compile();
-        });
         
     }
     

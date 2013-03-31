@@ -20,11 +20,15 @@ li {
   list-style-type: none;
 }
 #menu {
+  font-weight:bold;
   color:#ddd;
   padding: 4px 2px 4px 2px;
   background: -moz-linear-gradient(top, #668, #556);
   background: -webkit-gradient(linear, left top, left bottom, from(#668), to(#556));
   border-bottom: solid 1px #333;
+}
+.disconnected{
+  color:#f99;
 }
 
 #all-haxe-files {

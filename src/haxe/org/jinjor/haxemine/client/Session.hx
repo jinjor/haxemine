@@ -19,6 +19,8 @@ class Session {
     private var allFiles : Hash<SourceFile>;
     private var fileToLoad : SourceFile;
     
+    private var _onSocketConnected : Array<Void -> Void>;
+    private var _onSocketDisconnected : Array<Void -> Void>;
     private var _onInitialInfoReceived : Array<InitialInfoDto -> Void>;
     private var _onAllFilesChanged : Array<Void -> Void>;
     private var _onCompileErrorsChanged : Array<Void -> Void>;
@@ -36,7 +38,7 @@ class Session {
             setAllFiles(Util.dynamicToHash(files));
         });
         socket.on('initial-info', function(initialInfoDto : InitialInfoDto) {
-            this._onInitialInfoReceived.foreach(function(f){
+            _onInitialInfoReceived.foreach(function(f){
                 f(initialInfoDto);
                 return true;
             });
@@ -45,14 +47,42 @@ class Session {
         socket.on('haxe-compile-err', function(msg : Dynamic) {
             that.setCompileErrors(msg);
         });
+        socket.on('connect', function(_) {
+            trace("connected.");//View
+            _onSocketConnected.foreach(function(f){
+                f();
+                return true;
+            });
+        });
+        socket.on('disconnect', function(_){
+            trace("disconnected.");//View
+            _onSocketDisconnected.foreach(function(f){
+                f();
+                return true;
+            });
+        });
         this.compileErrors = [];
         this.editingFiles = editingFiles;
         this.allFiles = new Hash();
         
+        this._onSocketConnected = [];
+        this._onSocketDisconnected = [];
         this._onInitialInfoReceived = [];
         this._onAllFilesChanged = [];
         this._onCompileErrorsChanged = [];
         this._onEditingFileChanged = [];
+        
+        this.onSocketConnected(function(){
+            compile();
+        });
+    }
+    
+    
+    public function onSocketConnected(f: Void -> Void){
+        _onSocketConnected.push(f);
+    }
+    public function onSocketDisconnected(f: Void -> Void){
+        _onSocketDisconnected.push(f);
     }
     
     //-> Backbone#get/set/onChange

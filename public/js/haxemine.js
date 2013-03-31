@@ -891,16 +891,19 @@ org.jinjor.haxemine.client.Main.main = function() {
 	new js.JQuery(js.Lib.document).ready(function(e) {
 		view.render($("body"));
 	});
-	socket.on("connect",function(msg) {
-		console.log("connected.");
-		session.compile();
-	});
 }
 org.jinjor.haxemine.client.Menu = function(session) {
 	var _g = this;
 	this.container = $("<nav id=\"menu\"/>");
 	session.onInitialInfoReceived(function(initialInfoDto) {
-		_g.render(initialInfoDto);
+		_g.initialInfoDto = initialInfoDto;
+		_g.render();
+	});
+	session.onSocketConnected(function() {
+		_g.render();
+	});
+	session.onSocketDisconnected(function() {
+		_g.renderDisconnected();
 	});
 };
 org.jinjor.haxemine.client.Menu.__name__ = true;
@@ -908,8 +911,12 @@ org.jinjor.haxemine.client.Menu.JQ = function(s) {
 	return $(s);
 }
 org.jinjor.haxemine.client.Menu.prototype = {
-	render: function(initialInfoDto) {
-		var html = org.jinjor.haxemine.client.Menu.template.render(initialInfoDto);
+	renderDisconnected: function() {
+		var html = org.jinjor.haxemine.client.Menu.templateDisConnected.render({ });
+		this.container.html(html);
+	}
+	,render: function() {
+		var html = org.jinjor.haxemine.client.Menu.template.render(this.initialInfoDto);
 		this.container.html(html);
 	}
 	,__class__: org.jinjor.haxemine.client.Menu
@@ -934,13 +941,32 @@ org.jinjor.haxemine.client.Session = function(socket,editingFiles) {
 	socket.on("haxe-compile-err",function(msg) {
 		that.setCompileErrors(msg);
 	});
+	socket.on("connect",function(_) {
+		console.log("connected.");
+		Lambda.foreach(_g._onSocketConnected,function(f) {
+			f();
+			return true;
+		});
+	});
+	socket.on("disconnect",function(_) {
+		console.log("disconnected.");
+		Lambda.foreach(_g._onSocketDisconnected,function(f) {
+			f();
+			return true;
+		});
+	});
 	this.compileErrors = [];
 	this.editingFiles = editingFiles;
 	this.allFiles = new Hash();
+	this._onSocketConnected = [];
+	this._onSocketDisconnected = [];
 	this._onInitialInfoReceived = [];
 	this._onAllFilesChanged = [];
 	this._onCompileErrorsChanged = [];
 	this._onEditingFileChanged = [];
+	this.onSocketConnected(function() {
+		_g.compile();
+	});
 };
 org.jinjor.haxemine.client.Session.__name__ = true;
 org.jinjor.haxemine.client.Session.prototype = {
@@ -1014,6 +1040,12 @@ org.jinjor.haxemine.client.Session.prototype = {
 			f();
 			return true;
 		});
+	}
+	,onSocketDisconnected: function(f) {
+		this._onSocketDisconnected.push(f);
+	}
+	,onSocketConnected: function(f) {
+		this._onSocketConnected.push(f);
 	}
 	,__class__: org.jinjor.haxemine.client.Session
 }
@@ -1197,6 +1229,7 @@ org.jinjor.haxemine.client.CompileErrorPanel.template = new org.jinjor.haxemine.
 org.jinjor.haxemine.client.FileSelector.classTemplate = new org.jinjor.haxemine.client.HoganTemplate("package {{_package}};\r\n\r\nclass {{_class}} {\r\n\r\n    public function new() {\r\n        \r\n    }\r\n\r\n}");
 org.jinjor.haxemine.client.FileSelector.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        {{#dirs}}\r\n        <label class=\"file_selector_dir\">{{name}}</label>\r\n        <ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>\r\n        {{/dirs}}\r\n    ");
 org.jinjor.haxemine.client.Menu.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <label><!--{{projectRoot}}-->Haxemine</label>\r\n    ");
+org.jinjor.haxemine.client.Menu.templateDisConnected = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <label class=\"disconnected\">Disconnected</label>\r\n    ");
 org.jinjor.haxemine.client.Main.main();
 
 //@ sourceMappingURL=haxemine.js.map
