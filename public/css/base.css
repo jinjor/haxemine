@@ -38,6 +38,10 @@ li {
     font-family: arial,sans-serif;
 }
 
-.file_selector_flat_dir {
+.file_selector_dir {
   color: #aaaaaa;
+  cursor: pointer;
+}
+.file_selector_dir:hover {
+  text-decoration: underline;
 }
