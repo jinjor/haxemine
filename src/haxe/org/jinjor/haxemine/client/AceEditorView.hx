@@ -5,18 +5,16 @@ using Lambda;
 
 class AceEditorView {
     
-    
     public function new(editor : Dynamic, session : Session){
+        
         session.onEditingFileChanged(function(detail){
             editor.getSession().setValue(detail.text);
             editor.getSession().setMode("ace/mode/" + detail.mode);
+            annotateCompileErrors(editor, session);
         });
     
         session.onCompileErrorsChanged(function(){
-             var annotations = session.getCompileErrorsByFile(session.getCurrentFile()).map(function(error){
-                return {row:error.row-1, text: error.message, type:"error"};
-            }).array();
-            editor.getSession().setAnnotations(annotations);
+            annotateCompileErrors(editor, session);
         });
         
         editor.commands.addCommand({
@@ -30,6 +28,13 @@ class AceEditorView {
             }
         });
         render(editor, "ace/theme/eclipse"); 
+    }
+    
+    private static function annotateCompileErrors(editor, session:Session){
+        var annotations = session.getCompileErrorsByFile(session.getCurrentFile()).map(function(error){
+            return {row:error.row-1, text: error.message, type:"error"};
+        }).array();
+        editor.getSession().setAnnotations(annotations);
     }
     
     private function render(editor, theme : String) {

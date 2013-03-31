@@ -651,12 +651,10 @@ org.jinjor.haxemine.client.AceEditorView = function(editor,session) {
 	session.onEditingFileChanged(function(detail) {
 		editor.getSession().setValue(detail.text);
 		editor.getSession().setMode("ace/mode/" + detail.mode);
+		org.jinjor.haxemine.client.AceEditorView.annotateCompileErrors(editor,session);
 	});
 	session.onCompileErrorsChanged(function() {
-		var annotations = Lambda.array(session.getCompileErrorsByFile(session.getCurrentFile()).map(function(error) {
-			return { row : error.row - 1, text : error.message, type : "error"};
-		}));
-		editor.getSession().setAnnotations(annotations);
+		org.jinjor.haxemine.client.AceEditorView.annotateCompileErrors(editor,session);
 	});
 	editor.commands.addCommand({ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor1) {
 		session.saveFile(editor1.getSession().getValue());
@@ -664,6 +662,12 @@ org.jinjor.haxemine.client.AceEditorView = function(editor,session) {
 	this.render(editor,"ace/theme/eclipse");
 };
 org.jinjor.haxemine.client.AceEditorView.__name__ = true;
+org.jinjor.haxemine.client.AceEditorView.annotateCompileErrors = function(editor,session) {
+	var annotations = Lambda.array(session.getCompileErrorsByFile(session.getCurrentFile()).map(function(error) {
+		return { row : error.row - 1, text : error.message, type : "error"};
+	}));
+	editor.getSession().setAnnotations(annotations);
+}
 org.jinjor.haxemine.client.AceEditorView.prototype = {
 	render: function(editor,theme) {
 		editor.setTheme(theme);
