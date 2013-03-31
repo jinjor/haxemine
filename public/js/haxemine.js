@@ -1052,7 +1052,7 @@ if(typeof window != "undefined") {
 		return f(msg,[url + ":" + line]);
 	};
 }
-org.jinjor.haxemine.client.CompileErrorPanel.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <ul>\r\n            {{#errors}}\r\n            <li><a data-filePath=\"{{file.pathFromProjectRoot}}\">{{originalMessage}}</a></li>\r\n            {{/errors}}\r\n        </ul>\r\n    ");
+org.jinjor.haxemine.client.CompileErrorPanel.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <ul>\r\n            {{#errors}}\r\n            <li><a data-filePath=\"{{path}}\">{{originalMessage}}</a></li>\r\n            {{/errors}}\r\n        </ul>\r\n    ");
 org.jinjor.haxemine.client.FileSelector.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        {{#dirs}}\r\n        <label class=\"file_selector_flat_dir\">{{name}}</label>\r\n        <ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>\r\n        {{/dirs}}\r\n    ");
 org.jinjor.haxemine.client.Main.main();
 
