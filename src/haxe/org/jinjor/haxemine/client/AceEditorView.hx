@@ -10,13 +10,11 @@ class AceEditorView {
         session.onEditingFileChanged(function(detail){
             editor.getSession().setValue(detail.text);
             editor.getSession().setMode("ace/mode/" + detail.mode);
+            annotateCompileError(editor, session);
         });
     
         session.onCompileErrorsChanged(function(){
-             var annotations = session.getCompileErrorsByFile(session.getCurrentFile()).map(function(error){
-                return {row:error.row-1, text: error.message, type:"error"};
-            }).array();
-            editor.getSession().setAnnotations(annotations);
+            annotateCompileError(editor, session);
         });
         
         editor.commands.addCommand({
@@ -31,6 +29,15 @@ class AceEditorView {
         });
         render(editor, "ace/theme/eclipse"); 
     }
+    
+    private static function annotateCompileError(editor, session : Session) {
+        var annotations = session.getCompileErrorsByFile(session.getCurrentFile()).map(function(error){
+            return {row:error.row-1, text: error.message, type:"error"};
+        }).array();
+        editor.getSession().setAnnotations(annotations);
+        
+    }
+    
     
     private function render(editor, theme : String) {
         editor.setTheme(theme); 
