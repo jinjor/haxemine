@@ -5,7 +5,7 @@ import org.jinjor.haxeminesample.util.Util2;
 
 class Main{
   
-  public static function main()
+  public static function main() {
     trace('Hello.');
     sub();
   }

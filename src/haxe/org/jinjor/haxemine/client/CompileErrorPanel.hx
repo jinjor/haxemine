@@ -10,7 +10,7 @@ class CompileErrorPanel {
     private static var template = new HoganTemplate<Dynamic>('
         <ul>
             {{#errors}}
-            <li><a data-filePath="{{file.pathFromProjectRoot}}">{{originalMessage}}</a></li>
+            <li><a data-filePath="{{path}}">{{originalMessage}}</a></li>
             {{/errors}}
         </ul>
     ');

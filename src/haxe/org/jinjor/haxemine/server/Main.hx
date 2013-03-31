@@ -133,6 +133,7 @@ class Main {
                     throw err;
                 }
                 socket.emit('initial-info', new InitialInfoDto(projectRoot, files));
+                untyped console.log(new InitialInfoDto(projectRoot, files));
             });
           
           var doTasks = function(){

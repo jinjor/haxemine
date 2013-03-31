@@ -1643,6 +1643,7 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 				throw err;
 			}
 			socket.emit("initial-info",new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files));
+			console.log(new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files));
 		});
 		var doTasks = function() {
 			var tasks = Lambda.array(Lambda.map(conf.hxml,function(hxml) {
