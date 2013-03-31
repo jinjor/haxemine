@@ -6,7 +6,7 @@ hr {
 }
 a {
   cursor: pointer;
-  color:#444499;
+  color:#449;
 }
 a:hover {
   text-decoration: underline;
@@ -19,6 +19,14 @@ ul {
 li {
   list-style-type: none;
 }
+#menu {
+  color:#ddd;
+  padding: 4px 2px 4px 2px;
+  background: -moz-linear-gradient(top, #668, #556);
+  background: -webkit-gradient(linear, left top, left bottom, from(#668), to(#556));
+  border-bottom: solid 1px #333;
+}
+
 #all-haxe-files {
   float:left;
   width:20%;
@@ -39,7 +47,7 @@ li {
 }
 
 .file_selector_dir {
-  color: #aaaaaa;
+  color: #aaa;
   cursor: pointer;
 }
 .file_selector_dir:hover {

@@ -125,27 +125,15 @@ class Main {
         
         var io = socketio.listen(server, {'log level': 1});
         
-        var refreshAllFiles = function(socket){
-            getAllHaxeFiles(async, fs, projectRoot, function(err, filePaths : Array<String>){
-            if(err != null){
-              trace(err);
-              throw err;
-            }
-            trace(filePaths);
-            
-            var files : Dynamic<SourceFile> = {};
-            filePaths.foreach(function(f){
-                untyped {files[f] = new SourceFile(f);}
-                return true;
-            });
-            
-            socket.emit('all-haxe-files', files);
-          });
-        };
-        
         io.sockets.on('connection', function(socket : Dynamic) {
-          print("connection");
-          refreshAllFiles(socket);
+            print("connection");
+            getAllHaxeFiles(async, fs, projectRoot, function(err, files : Dynamic<SourceFile>){
+                if(err != null){
+                    trace(err);
+                    throw err;
+                }
+                socket.emit('initial-info', new InitialInfoDto(projectRoot, files));
+            });
           
           var doTasks = function(){
             var tasks = conf.hxml.map(function(hxml){
@@ -164,7 +152,13 @@ class Main {
             var isNew = !path.existsSync(_path);
             saveToSrc(fs, _path, data.text);
             if(isNew){
-                refreshAllFiles(socket);
+                getAllHaxeFiles(async, fs, projectRoot, function(err, files : Dynamic<SourceFile>){
+                    if(err != null){
+                        trace(err);
+                        throw err;
+                    }
+                    socket.emit('all-haxe-files', files);
+                });
             }
             
             socket.emit('stdout', 'saved');
@@ -248,11 +242,22 @@ class Main {
       });
     }
     
-    static function getAllHaxeFiles(async, fs, projectRoot : String, _callback){
+    static function getAllHaxeFiles(async, fs, projectRoot : String, _callback : Dynamic -> Dynamic<SourceFile> -> Void){
         var filter = function(item : String){
             return item.endsWith('.hx');
         };
-        getAllMatchedFiles(async, fs, projectRoot, filter, _callback);
+        getAllMatchedFiles(async, fs, projectRoot, filter, function(err, filePaths){
+            if(err){
+                _callback(err, null);
+            }else{
+                var files : Dynamic<SourceFile> = {};
+                filePaths.foreach(function(f){
+                    untyped {files[f] = new SourceFile(f);}
+                    return true;
+                });
+                _callback(null, files);
+            }
+        });
     }
     static function getAllHxmlFiles(async, fs, projectRoot : String, _callback){
         var filter = function(item : String){

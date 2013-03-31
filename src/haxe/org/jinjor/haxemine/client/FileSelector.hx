@@ -37,10 +37,10 @@ class {{_class}} {
     
     public var container : JQuery;
     
-    public function new(container : JQuery, session : Session){
+    public function new(session : Session){
         var that = this;
         
-        this.container = (untyped container).on('click', 'a', function(){
+        this.container = JQ('<div id="all-haxe-files"/>').on('click', 'a', function(){
             var file = session.getAllFiles().get(JQuery.cur.attr('data-filePath'));
             session.selectNextFile(file);
         }).on('click', '.file_selector_dir', function(){

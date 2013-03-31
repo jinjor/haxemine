@@ -6,6 +6,7 @@ import org.jinjor.haxemine.model.SourceFile;
 import org.jinjor.haxemine.model.HistoryArray;
 import org.jinjor.haxemine.model.FileDetail;
 import org.jinjor.haxemine.server.SaveFileDto;
+import org.jinjor.haxemine.server.InitialInfoDto;
 
 using Lambda;
 using org.jinjor.util.Util;
@@ -18,6 +19,7 @@ class Session {
     private var allFiles : Hash<SourceFile>;
     private var fileToLoad : SourceFile;
     
+    private var _onInitialInfoReceived : Array<InitialInfoDto -> Void>;
     private var _onAllFilesChanged : Array<Void -> Void>;
     private var _onCompileErrorsChanged : Array<Void -> Void>;
     private var _onEditingFileChanged : Array<FileDetail -> Void>;
@@ -33,6 +35,13 @@ class Session {
         socket.on('all-haxe-files', function(files : Dynamic<SourceFile>) {
             setAllFiles(Util.dynamicToHash(files));
         });
+        socket.on('initial-info', function(initialInfoDto : InitialInfoDto) {
+            this._onInitialInfoReceived.foreach(function(f){
+                f(initialInfoDto);
+                return true;
+            });
+            setAllFiles(Util.dynamicToHash(initialInfoDto.allFiles));
+        });
         socket.on('haxe-compile-err', function(msg : Dynamic) {
             that.setCompileErrors(msg);
         });
@@ -40,6 +49,7 @@ class Session {
         this.editingFiles = editingFiles;
         this.allFiles = new Hash();
         
+        this._onInitialInfoReceived = [];
         this._onAllFilesChanged = [];
         this._onCompileErrorsChanged = [];
         this._onEditingFileChanged = [];
@@ -60,6 +70,13 @@ class Session {
         _onCompileErrorsChanged.push(f);
     }
 
+
+
+    public function onInitialInfoReceived(f: InitialInfoDto -> Void){
+        _onInitialInfoReceived.push(f);
+    }
+    
+    
     //-> Backbone#get/set/onChange
     private function setAllFiles(allFiles : Hash<SourceFile>){
         this.allFiles = allFiles;

@@ -17,24 +17,20 @@ class View {
     }
     
     public function render(container : JQuery){
-        var fileSelectorContainer = JQ('<div id="all-haxe-files"/>');
-        var aceContainer = JQ('<div id="editor"/>');
-        var compileErrorPanelContainer = JQ('<div id="compile-errors"/>');
-        
+        var compileErrorPanelContainer = new CompileErrorPanel(session).container;
+        var menuContainer = new Menu(session).container;
+        var fileSelectorContainer = new FileSelector(session).container;
+                
         container
+        .append(menuContainer)
         .append(fileSelectorContainer)
-        //.append(JQ('<div id="all-tests"><a>hoge</a></div>'))
-        //.append(JQ('<div id="all-tests"></div>'))
-        .append(aceContainer)
+        .append(JQ('<div id="editor"/>'))
         .append(JQ('<hr/>'))
         .append(compileErrorPanelContainer);
-        //↑先に作っているのはACEの都合
         
         var editor = ace.edit("editor");
+        new AceEditorView(editor, session);//ACEだけは後
         
-        new FileSelector(fileSelectorContainer, session);
-        new AceEditorView(editor, session);
-        new CompileErrorPanel(compileErrorPanelContainer, session);
     }
     
     
