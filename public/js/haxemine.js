@@ -819,9 +819,6 @@ org.jinjor.haxemine.client.FileSelector = function(session) {
 			}
 		}
 	});
-	session.onCompileErrorsChanged(function() {
-		that.render(session);
-	});
 	session.onAllFilesChanged(function() {
 		that.render(session);
 	});
@@ -843,6 +840,7 @@ org.jinjor.haxemine.client.FileSelector.hasCompileError = function(session,file)
 }
 org.jinjor.haxemine.client.FileSelector.prototype = {
 	render: function(session) {
+		var _g = this;
 		var dirsHash = new Hash();
 		var all = session.getAllFiles();
 		var $it0 = all.keys();
@@ -850,13 +848,11 @@ org.jinjor.haxemine.client.FileSelector.prototype = {
 			var name = $it0.next();
 			var dirName = name.substring(0,name.lastIndexOf("/"));
 			var f = all.get(name);
-			var dir = dirsHash.exists(dirName)?dirsHash.get(dirName).files.push(f):(function($this) {
-				var $r;
-				var dir1 = new org.jinjor.haxemine.client._FileSelector.Dir(dirName);
-				dirsHash.set(dirName,dir1);
-				$r = dir1.files.push(f);
-				return $r;
-			}(this));
+			if(dirsHash.exists(dirName)) dirsHash.get(dirName).files.push(f); else {
+				var dir = new org.jinjor.haxemine.client._FileSelector.Dir(dirName);
+				dirsHash.set(dirName,dir);
+				dir.files.push(f);
+			}
 		}
 		var dirsArray = Lambda.array(Lambda.map(dirsHash,function(dir) {
 			dir.files.sort(function(f1,f2) {
@@ -867,9 +863,13 @@ org.jinjor.haxemine.client.FileSelector.prototype = {
 		dirsArray.sort(function(d1,d2) {
 			return org.jinjor.util.Util.compareTo(d1.name,d2.name);
 		});
-		this.container.html(org.jinjor.haxemine.client.FileSelector.template.render({ dirs : dirsArray, hasCompileError : function(file) {
-			return org.jinjor.haxemine.client.FileSelector.hasCompileError(session,file);
-		}}));
+		this.container.empty();
+		Lambda.foreach(dirsArray,function(dir) {
+			var dirDom = $(org.jinjor.haxemine.client.FileSelector.dirTemplate.render(dir));
+			var filesDom = $(org.jinjor.haxemine.client.FileSelector.filesTemplate.render(dir));
+			_g.container.append(new org.jinjor.haxemine.client.Folder(dirDom,filesDom).container);
+			return true;
+		});
 	}
 	,__class__: org.jinjor.haxemine.client.FileSelector
 }
@@ -881,6 +881,37 @@ org.jinjor.haxemine.client._FileSelector.Dir = function(name) {
 org.jinjor.haxemine.client._FileSelector.Dir.__name__ = true;
 org.jinjor.haxemine.client._FileSelector.Dir.prototype = {
 	__class__: org.jinjor.haxemine.client._FileSelector.Dir
+}
+org.jinjor.haxemine.client.Folder = function(dir,files) {
+	var _g = this;
+	this.container = $("<div/>");
+	this.closedMark = $("<span class=\"closeMark\"> - </span>").click(function() {
+		_g.renderClose();
+	});
+	this.openMark = $("<span class=\"openMark\"> + </span>").click(function() {
+		_g.renderOpen();
+	});
+	var dirContainer = $("<div/>").append(this.closedMark).append(this.openMark).append(dir);
+	this.fileContainer = $("<div/>").append(files);
+	this.container.append(dirContainer).append(this.fileContainer);
+	this.renderClose();
+};
+org.jinjor.haxemine.client.Folder.__name__ = true;
+org.jinjor.haxemine.client.Folder.JQ = function(s) {
+	return $(s);
+}
+org.jinjor.haxemine.client.Folder.prototype = {
+	renderClose: function() {
+		this.closedMark.hide();
+		this.openMark.show();
+		this.fileContainer.hide();
+	}
+	,renderOpen: function() {
+		this.closedMark.show();
+		this.openMark.hide();
+		this.fileContainer.show();
+	}
+	,__class__: org.jinjor.haxemine.client.Folder
 }
 org.jinjor.haxemine.client.Main = function() { }
 org.jinjor.haxemine.client.Main.__name__ = true;
@@ -1231,7 +1262,8 @@ if(typeof window != "undefined") {
 }
 org.jinjor.haxemine.client.CompileErrorPanel.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <ul>\r\n            {{#errors}}\r\n            <li><a data-filePath=\"{{path}}\">{{originalMessage}}</a></li>\r\n            {{/errors}}\r\n        </ul>\r\n    ");
 org.jinjor.haxemine.client.FileSelector.classTemplate = new org.jinjor.haxemine.client.HoganTemplate("package {{_package}};\r\n\r\nclass {{_class}} {\r\n\r\n    public function new() {\r\n        \r\n    }\r\n\r\n}");
-org.jinjor.haxemine.client.FileSelector.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        {{#dirs}}\r\n        <label class=\"file_selector_dir\">{{name}}</label>\r\n        <ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>\r\n        {{/dirs}}\r\n    ");
+org.jinjor.haxemine.client.FileSelector.dirTemplate = new org.jinjor.haxemine.client.HoganTemplate("<label class=\"file_selector_dir\">{{name}}</label>");
+org.jinjor.haxemine.client.FileSelector.filesTemplate = new org.jinjor.haxemine.client.HoganTemplate("<ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>");
 org.jinjor.haxemine.client.Menu.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <label><!--{{projectRoot}}-->Haxemine</label>\r\n    ");
 org.jinjor.haxemine.client.Menu.templateDisConnected = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <label class=\"disconnected\">Disconnected</label>\r\n    ");
 org.jinjor.haxemine.client.Main.main();

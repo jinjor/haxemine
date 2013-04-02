@@ -10,7 +10,7 @@ using org.jinjor.util.Util;
 
 class FileSelector {
     
-    private static inline function JQ(s: String){ return untyped $(s);}
+    private static inline function JQ(s: String) : Dynamic { return untyped $(s);}
     
     private static var classTemplate = new HoganTemplate<Dynamic>(
 'package {{_package}};
@@ -23,17 +23,14 @@ class {{_class}} {
 
 }'
 );
-    
-    private static var template = new HoganTemplate<Dynamic>('
-        {{#dirs}}
-        <label class="file_selector_dir">{{name}}</label>
-        <ul>
+
+    private static var dirTemplate = new HoganTemplate<Dir>('<label class="file_selector_dir">{{name}}</label>');
+    private static var filesTemplate = new HoganTemplate<Dir>(
+        '<ul>
             {{#files}}
             <li><a data-filePath="{{pathFromProjectRoot}}">{{shortName}}</a></li>
             {{/files}}
-        </ul>
-        {{/dirs}}
-    ');
+        </ul>');
     
     public var container : JQuery;
     
@@ -63,9 +60,9 @@ class {{_class}} {
             
         });
         
-        session.onCompileErrorsChanged(function(){
-            that.render(session);
-        });
+        //session.onCompileErrorsChanged(function(){
+        //    that.render(session);
+        //});
         session.onAllFilesChanged(function(){
             that.render(session);
         });  
@@ -86,10 +83,11 @@ class {{_class}} {
     public function render(session : Session){
         var dirsHash = new Hash<Dir>();
         var all = session.getAllFiles();
+
         for(name in all.keys()){
             var dirName = name.substring(0, name.lastIndexOf('/'));
             var f = all.get(name);
-            var dir = if(dirsHash.exists(dirName)){
+            if(dirsHash.exists(dirName)){
                 dirsHash.get(dirName).files.push(f);
             }else{
                 var dir = new Dir(dirName);
@@ -97,6 +95,7 @@ class {{_class}} {
                 dir.files.push(f);
             }
         }
+
         var dirsArray : Array<Dir> = dirsHash.map(function(dir){
             dir.files.sort(function(f1, f2){
                 return f1.shortName.compareTo(f2.shortName);
@@ -106,13 +105,15 @@ class {{_class}} {
         dirsArray.sort(function(d1, d2){
             return d1.name.compareTo(d2.name);
         });
+        
+        container.empty();
+        dirsArray.foreach(function(dir){
+            var dirDom : JQuery = JQ(dirTemplate.render(dir));
+            var filesDom : JQuery = JQ(filesTemplate.render(dir));
+            container.append(new Folder(dirDom, filesDom).container);
+            return true;
+        });
 
-        container.html(template.render({
-            dirs: dirsArray,
-            hasCompileError: function(file : SourceFile){
-                return hasCompileError(session, file);
-            }
-        }));
     }    
 }
 
