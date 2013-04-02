@@ -33,7 +33,7 @@ li {
 
 #all-haxe-files {
   float:left;
-  width:20%;
+  width:25%;
   height: 100%;
   border-right: solid 1px rgb(159, 159, 159);
   font-size:small;
@@ -49,11 +49,38 @@ li {
     font-size:small;
     font-family: arial,sans-serif;
 }
-
 .file_selector_dir {
   color: #aaa;
   cursor: pointer;
 }
 .file_selector_dir:hover {
   text-decoration: underline;
+}
+.folder {
+  margin-top: 1px;
+}
+.folder ul {
+  margin-left: 16px;
+}
+.openMark {
+  margin-right: 2px;
+  border: 1px solid #668;
+  background-color: #ccd;
+  color: #668;
+  width: 15px;
+  height: 14px;
+  float:left;
+  cursor: pointer;
+  text-align:center;
+}
+.closeMark {
+  margin-right: 2px;
+  border: 1px solid #668;
+  background-color: #ccd;
+  color: #668;
+  width: 15px;
+  height: 14px;
+  float:left;
+  cursor: pointer;
+  text-align:center;
 }

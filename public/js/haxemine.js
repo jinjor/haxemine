@@ -884,11 +884,11 @@ org.jinjor.haxemine.client._FileSelector.Dir.prototype = {
 }
 org.jinjor.haxemine.client.Folder = function(dir,files) {
 	var _g = this;
-	this.container = $("<div/>");
-	this.closedMark = $("<span class=\"closeMark\"> - </span>").click(function() {
+	this.container = $("<div class=\"folder\"/>");
+	this.closedMark = $("<span class=\"closeMark\">-</span>").css({ display : "block"}).click(function() {
 		_g.renderClose();
 	});
-	this.openMark = $("<span class=\"openMark\"> + </span>").click(function() {
+	this.openMark = $("<span class=\"openMark\">+</span>").css({ display : "block"}).click(function() {
 		_g.renderOpen();
 	});
 	var dirContainer = $("<div/>").append(this.closedMark).append(this.openMark).append(dir);
