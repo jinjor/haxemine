@@ -885,10 +885,10 @@ org.jinjor.haxemine.client._FileSelector.Dir.prototype = {
 org.jinjor.haxemine.client.Folder = function(dir,files) {
 	var _g = this;
 	this.container = $("<div class=\"folder\"/>");
-	this.closedMark = $("<span class=\"closeMark\">-</span>").css({ display : "block"}).click(function() {
+	this.closedMark = $("<div class=\"closeMark\">-</div>").click(function() {
 		_g.renderClose();
 	});
-	this.openMark = $("<span class=\"openMark\">+</span>").css({ display : "block"}).click(function() {
+	this.openMark = $("<div class=\"openMark\">+</div>").click(function() {
 		_g.renderOpen();
 	});
 	var dirContainer = $("<div/>").append(this.closedMark).append(this.openMark).append(dir);

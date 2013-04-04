@@ -16,14 +16,10 @@ class Folder {
     public function new(dir : JQuery, files : JQuery) {
 
         this.container = JQ('<div class="folder"/>');
-        this.closedMark = JQ('<span class="closeMark">-</span>').css({
-            display:'block'
-        }).click(function(){
+        this.closedMark = JQ('<div class="closeMark">-</div>').click(function(){
             renderClose();
         });
-        this.openMark = JQ('<span class="openMark">+</span>').css({
-            display:'block'
-        }).click(function(){
+        this.openMark = JQ('<div class="openMark">+</div>').click(function(){
             renderOpen();
         });
         var dirContainer = JQ('<div/>').append(this.closedMark).append(this.openMark).append(dir);
