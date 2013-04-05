@@ -1526,6 +1526,17 @@ org.jinjor.haxemine.model.SourceFile.prototype = {
 	,pathFromProjectRoot: null
 	,__class__: org.jinjor.haxemine.model.SourceFile
 }
+org.jinjor.haxemine.model.TaskProgress = function(taskName,compileErrors) {
+	this.taskName = taskName;
+	this.compileErrors = compileErrors;
+};
+$hxClasses["org.jinjor.haxemine.model.TaskProgress"] = org.jinjor.haxemine.model.TaskProgress;
+org.jinjor.haxemine.model.TaskProgress.__name__ = ["org","jinjor","haxemine","model","TaskProgress"];
+org.jinjor.haxemine.model.TaskProgress.prototype = {
+	compileErrors: null
+	,taskName: null
+	,__class__: org.jinjor.haxemine.model.TaskProgress
+}
 org.jinjor.haxemine.server = {}
 org.jinjor.haxemine.server.HaxemineConfig = function(port,hxml) {
 	this.port = port;
@@ -1538,14 +1549,16 @@ org.jinjor.haxemine.server.HaxemineConfig.prototype = {
 	,port: null
 	,__class__: org.jinjor.haxemine.server.HaxemineConfig
 }
-org.jinjor.haxemine.server.InitialInfoDto = function(projectRoot,allFiles) {
+org.jinjor.haxemine.server.InitialInfoDto = function(projectRoot,allFiles,taskProgresses) {
 	this.projectRoot = projectRoot;
 	this.allFiles = allFiles;
+	this.taskProgresses = taskProgresses;
 };
 $hxClasses["org.jinjor.haxemine.server.InitialInfoDto"] = org.jinjor.haxemine.server.InitialInfoDto;
 org.jinjor.haxemine.server.InitialInfoDto.__name__ = ["org","jinjor","haxemine","server","InitialInfoDto"];
 org.jinjor.haxemine.server.InitialInfoDto.prototype = {
-	allFiles: null
+	taskProgresses: null
+	,allFiles: null
 	,projectRoot: null
 	,__class__: org.jinjor.haxemine.server.InitialInfoDto
 }
@@ -1642,8 +1655,8 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 				console.log(err);
 				throw err;
 			}
-			socket.emit("initial-info",new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files));
-			console.log(new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files));
+			var taskProgresses = [];
+			socket.emit("initial-info",new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files,taskProgresses));
 		});
 		var doTasks = function() {
 			var tasks = Lambda.array(Lambda.map(conf.hxml,function(hxml) {

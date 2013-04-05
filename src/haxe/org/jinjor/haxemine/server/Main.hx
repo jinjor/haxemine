@@ -132,8 +132,8 @@ class Main {
                     trace(err);
                     throw err;
                 }
-                socket.emit('initial-info', new InitialInfoDto(projectRoot, files));
-                untyped console.log(new InitialInfoDto(projectRoot, files));
+                var taskProgresses = [];//TODO
+                socket.emit('initial-info', new InitialInfoDto(projectRoot, files, taskProgresses));
             });
           
           var doTasks = function(){

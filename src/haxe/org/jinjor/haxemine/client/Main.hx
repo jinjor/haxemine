@@ -19,7 +19,7 @@ class Main {
         var session = new Session(socket, new HistoryArray<SourceFile>(10, SourceFile.equals));
         var ace = untyped js.Lib.window.ace;
         
-        var view = new View(session, ace);
+        var view = new View(ace, socket, session);
         new JQuery(js.Lib.document).ready(function(e){
             view.render(JQ('body'));
         });

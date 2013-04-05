@@ -14,6 +14,7 @@ using org.jinjor.util.Util;
 class Session {
 
     private var socket : Dynamic;
+    
     private var compileErrors : Array<CompileError>;
     private var editingFiles : HistoryArray<SourceFile>;
     private var allFiles : Hash<SourceFile>;
