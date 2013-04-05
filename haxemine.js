@@ -1615,6 +1615,10 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 	var port = conf.port || 8765;
 	org.jinjor.haxemine.server.Main.print("projectRoot:" + projectRoot);
 	org.jinjor.haxemine.server.Main.print("port:" + port);
+	var taskProgresses = Lambda.array(Lambda.map(conf.hxml,function(hxml) {
+		var name = hxml.path;
+		return new org.jinjor.haxemine.model.TaskProgress(name,[]);
+	}));
 	var app = express();
 	app.configure(function() {
 		app.set("port",port);
@@ -1655,7 +1659,6 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 				console.log(err);
 				throw err;
 			}
-			var taskProgresses = [];
 			socket.emit("initial-info",new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files,taskProgresses));
 		});
 		var doTasks = function() {

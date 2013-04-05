@@ -6,6 +6,7 @@ import org.jinjor.haxemine.model.CompileError;
 import org.jinjor.haxemine.model.HistoryArray;
 import org.jinjor.haxemine.model.SourceFile;
 import org.jinjor.haxemine.model.FileDetail;
+import org.jinjor.haxemine.model.TaskProgress;
 
 using Lambda;
 using StringTools;
@@ -84,6 +85,11 @@ class Main {
         print('projectRoot:' + projectRoot);
         print('port:' + port);
         
+        var taskProgresses = conf.hxml.map(function(hxml){
+            var name = hxml.path;
+            return new TaskProgress(name, []);
+        }).array();
+        
         
         var app : Dynamic = express();
         
@@ -132,7 +138,6 @@ class Main {
                     trace(err);
                     throw err;
                 }
-                var taskProgresses = [];//TODO
                 socket.emit('initial-info', new InitialInfoDto(projectRoot, files, taskProgresses));
             });
           
