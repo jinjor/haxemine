@@ -51,6 +51,7 @@ li {
     height: 16px;
 }
 .task-view {
+    cursor:default;
     font-size:small;
     border: 1px solid #aaa;
     margin-left:5px;
@@ -70,10 +71,14 @@ li {
     background-color: #fdd;
 }
 .task-view.ready {
+    cursor: pointer;
     color: #666;
     border-color: #888;
     -moz-box-shadow: 1px 1px 3px #999;
     -webkit-box-shadow: 1px 1px 3px #999;
+}
+.task-view.ready:hover{
+    background-color: #eee;
 }
 
 #compile-errors { 

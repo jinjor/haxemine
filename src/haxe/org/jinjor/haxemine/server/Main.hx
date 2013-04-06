@@ -87,7 +87,7 @@ class Main {
         
         var taskInfos = conf.hxml.map(function(hxml){
             var name = hxml.path;
-            return new TaskInfo(name, hxml.auto.or(true));
+            return new TaskInfo(name, if(hxml.auto == null) true else hxml.auto);
         }).array();
         
         

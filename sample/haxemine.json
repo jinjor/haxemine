@@ -7,7 +7,7 @@
   },
   {
    "path": "build.hxml",
-   "auto": true
+   "auto": false
   }
  ]
 }

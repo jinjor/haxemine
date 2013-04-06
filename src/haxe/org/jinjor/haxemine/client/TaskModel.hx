@@ -11,14 +11,15 @@ class TaskModel {
     public var state : TaskModelState;
     private var _onUpdate : Array<Void -> Void>;
     
-    public function new(name : String, auto, socket : Dynamic) {
+    public function new(name : String, auto : Bool, socket : Dynamic) {
+        untyped console.log(auto);
         var that = this;
         socket.on('taskProgress', function(progress : TaskProgress) {
             
             if(name != progress.taskName){
                 return;
             }
-            untyped console.log(progress);
+            //untyped console.log(progress);
 
             that.state = if(progress.compileErrors.length <= 0){
                 TaskModelState.SUCCESS;
@@ -34,7 +35,7 @@ class TaskModel {
         this.name = name;
         this.auto = auto;
         _onUpdate = [];
-        state = TaskModelState.NONE;
+        reset();
     }
     
     public function onUpdate(f : Void -> Void) {

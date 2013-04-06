@@ -1617,7 +1617,7 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 	org.jinjor.haxemine.server.Main.print("port:" + port);
 	var taskInfos = Lambda.array(Lambda.map(conf.hxml,function(hxml) {
 		var name = hxml.path;
-		return new org.jinjor.haxemine.server.TaskInfo(name,hxml.auto || true);
+		return new org.jinjor.haxemine.server.TaskInfo(name,hxml.auto == null?true:hxml.auto);
 	}));
 	var app = express();
 	app.configure(function() {

@@ -11,7 +11,6 @@ class TaskView {
     public function new(session : Session, task : TaskModel) {
         
         task.onUpdate(function() {
-            untyped console.log(task.state);
             render(task);
         });
         session.onSave(function() {

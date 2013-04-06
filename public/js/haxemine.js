@@ -1126,10 +1126,10 @@ org.jinjor.haxemine.client.TaskListView.prototype = {
 }
 org.jinjor.haxemine.client.TaskModel = function(name,auto,socket) {
 	var _g = this;
+	console.log(auto);
 	var that = this;
 	socket.on("taskProgress",function(progress) {
 		if(name != progress.taskName) return;
-		console.log(progress);
 		that.state = progress.compileErrors.length <= 0?org.jinjor.haxemine.client.TaskModelState.SUCCESS:org.jinjor.haxemine.client.TaskModelState.FAILED;
 		Lambda.foreach(_g._onUpdate,function(f) {
 			f();
@@ -1139,7 +1139,7 @@ org.jinjor.haxemine.client.TaskModel = function(name,auto,socket) {
 	this.name = name;
 	this.auto = auto;
 	this._onUpdate = [];
-	this.state = org.jinjor.haxemine.client.TaskModelState.NONE;
+	this.reset();
 };
 org.jinjor.haxemine.client.TaskModel.__name__ = true;
 org.jinjor.haxemine.client.TaskModel.prototype = {
@@ -1167,7 +1167,6 @@ org.jinjor.haxemine.client.TaskModelState.READY.__enum__ = org.jinjor.haxemine.c
 org.jinjor.haxemine.client.TaskView = function(session,task) {
 	var _g = this;
 	task.onUpdate(function() {
-		console.log(task.state);
 		_g.render(task);
 	});
 	session.onSave(function() {
