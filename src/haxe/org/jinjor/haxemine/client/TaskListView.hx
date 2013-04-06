@@ -20,7 +20,7 @@ class TaskListView {
                 return new TaskModel(progress.taskName, socket);
             });
             var taskViewContainers = tasks.map(function(task){
-                return new TaskView(task);
+                return new TaskView(session, task);
             }).map(function(view){
                 return view.container;
             });

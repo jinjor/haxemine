@@ -141,6 +141,16 @@ class Main {
                 socket.emit('initial-info', new InitialInfoDto(projectRoot, files, taskProgresses));
             });
           
+          var doTask = function(taskName : String){
+            var tasks = conf.hxml.filter(function(hxml){
+                return hxml.path == taskName;
+            }).map(function(hxml){
+              var task = createCompileHaxeTask(childProcess, socket, projectRoot, hxml.path);
+              return task;
+            }).array();
+            async.series(tasks, function(){});
+          };
+          
           var doTasks = function(){
             var tasks = conf.hxml.map(function(hxml){
               var task = createCompileHaxeTask(childProcess, socket, projectRoot, hxml.path);
@@ -169,6 +179,9 @@ class Main {
             
             socket.emit('stdout', 'saved');
             doTasks();
+          });
+          socket.on('doTask', function(e) {
+            doTask(e.taskName);
           });
           socket.on('doTasks', function() {
             doTasks();

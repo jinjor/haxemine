@@ -74,7 +74,7 @@ class Session {
         this._onEditingFileChanged = [];
         
         this.onSocketConnected(function(){
-            compile();
+            doAllAutoTasks();
         });
     }
     
@@ -156,8 +156,14 @@ class Session {
     }
     
     
-    public function compile(){
-        untyped console.log(socket);
+    
+    
+    public function doTask(taskName : String){
+        socket.emit('doTask', {
+            taskName: taskName
+        });
+    }
+    public function doAllAutoTasks(){
         socket.emit('doTasks', {});
     }
     

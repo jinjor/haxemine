@@ -1661,6 +1661,16 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 			}
 			socket.emit("initial-info",new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files,taskProgresses));
 		});
+		var doTask = function(taskName) {
+			var tasks = Lambda.array(Lambda.filter(conf.hxml,function(hxml) {
+				return hxml.path == taskName;
+			}).map(function(hxml) {
+				var task = org.jinjor.haxemine.server.Main.createCompileHaxeTask(childProcess,socket,projectRoot,hxml.path);
+				return task;
+			}));
+			async.series(tasks,function() {
+			});
+		};
 		var doTasks = function() {
 			var tasks = Lambda.array(Lambda.map(conf.hxml,function(hxml) {
 				var task = org.jinjor.haxemine.server.Main.createCompileHaxeTask(childProcess,socket,projectRoot,hxml.path);
@@ -1686,6 +1696,9 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 			});
 			socket.emit("stdout","saved");
 			doTasks();
+		});
+		socket.on("doTask",function(e) {
+			doTask(e.taskName);
 		});
 		socket.on("doTasks",function() {
 			doTasks();

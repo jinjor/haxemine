@@ -50,7 +50,7 @@ li {
 #task-list-view {
     height: 16px;
 }
-#task-list-view a {
+#task-list-view .task-view {
     font-size:small;
     border: 1px solid #888;
     margin-left:5px;

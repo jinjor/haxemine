@@ -1003,7 +1003,7 @@ org.jinjor.haxemine.client.Session = function(socket,editingFiles) {
 	this._onCompileErrorsChanged = [];
 	this._onEditingFileChanged = [];
 	this.onSocketConnected(function() {
-		_g.compile();
+		_g.doAllAutoTasks();
 	});
 };
 org.jinjor.haxemine.client.Session.__name__ = true;
@@ -1023,9 +1023,11 @@ org.jinjor.haxemine.client.Session.prototype = {
 	,saveFile: function(text) {
 		this.socket.emit("save",new org.jinjor.haxemine.server.SaveFileDto(this.getCurrentFile().pathFromProjectRoot,text));
 	}
-	,compile: function() {
-		console.log(this.socket);
+	,doAllAutoTasks: function() {
 		this.socket.emit("doTasks",{ });
+	}
+	,doTask: function(taskName) {
+		this.socket.emit("doTask",{ taskName : taskName});
 	}
 	,getCompileErrorsByFile: function(file) {
 		if(file == null) return new List();
@@ -1094,7 +1096,7 @@ org.jinjor.haxemine.client.TaskListView = function(socket,session) {
 			return new org.jinjor.haxemine.client.TaskModel(progress.taskName,socket);
 		});
 		var taskViewContainers = tasks.map(function(task) {
-			return new org.jinjor.haxemine.client.TaskView(task);
+			return new org.jinjor.haxemine.client.TaskView(session,task);
 		}).map(function(view) {
 			return view.container;
 		});
@@ -1132,12 +1134,14 @@ org.jinjor.haxemine.client.TaskModel.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.client.TaskModel
 }
-org.jinjor.haxemine.client.TaskView = function(task) {
+org.jinjor.haxemine.client.TaskView = function(session,task) {
 	var _g = this;
 	task.onUpdate(function(taskProgress) {
 		_g.render(taskProgress.taskName);
 	});
-	this.container = $("<a/>");
+	this.container = $("<a class=\"task-view\"/>").click(function() {
+		session.doTask(task.name);
+	});
 	this.render(task.name);
 };
 org.jinjor.haxemine.client.TaskView.__name__ = true;

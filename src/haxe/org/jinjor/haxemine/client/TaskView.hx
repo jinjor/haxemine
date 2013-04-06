@@ -8,13 +8,15 @@ class TaskView {
 
     public var container : JQuery;
     
-    public function new(task : TaskModel) {
+    public function new(session : Session, task : TaskModel) {
         
         task.onUpdate(function(taskProgress){
             render(taskProgress.taskName);
         });
         
-        this.container = JQ('<a/>');
+        this.container = JQ('<a class="task-view"/>').click(function(){
+            session.doTask(task.name);
+        });
         render(task.name);
     }
     
