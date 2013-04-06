@@ -1,8 +1,8 @@
 package org.jinjor.haxemine.server;
 
 typedef Hxml = {
-    path : String
-    //auto : Bool
+    path : String,
+    auto : Bool
 }
 
 

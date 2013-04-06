@@ -16,8 +16,8 @@ class TaskListView {
         
         session.onInitialInfoReceived(function(info : InitialInfoDto) {
             
-            var tasks = info.taskProgresses.map(function(progress) {
-                return new TaskModel(progress.taskName, socket);
+            var tasks = info.taskInfos.map(function(taskInfo) {
+                return new TaskModel(taskInfo.taskName, taskInfo.auto, socket);
             });
             var taskViewContainers = tasks.map(function(task){
                 return new TaskView(session, task);
@@ -30,6 +30,7 @@ class TaskListView {
                 container.append(c);
                 return true;
             });
+            
         });
         this.container = JQ('<div id="task-list-view"/>');
     }

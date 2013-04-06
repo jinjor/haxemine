@@ -50,21 +50,32 @@ li {
 #task-list-view {
     height: 16px;
 }
-#task-list-view .task-view {
+.task-view {
     font-size:small;
-    border: 1px solid #888;
+    border: 1px solid #aaa;
     margin-left:5px;
-    color: #666;
+    color: #999;
     background-color: #ddd;
     border-radius: 7px;
-    -moz-box-shadow: 1px 1px 3px #999;
-    -webkit-box-shadow: 1px 1px 3px #999;
     font-family: arial,sans-serif;
     text-align: center;
     width:120px;
     height: 14px;
     float:left;
 }
+.task-view.success {
+    background-color: #dfd;
+}
+.task-view.failed {
+    background-color: #fdd;
+}
+.task-view.ready {
+    color: #666;
+    border-color: #888;
+    -moz-box-shadow: 1px 1px 3px #999;
+    -webkit-box-shadow: 1px 1px 3px #999;
+}
+
 #compile-errors { 
     font-size:small;
     font-family: arial,sans-serif;

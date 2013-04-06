@@ -57,7 +57,7 @@ class Main {
                             }
                         });
                         var xhml = files.map(function(file){
-                            return {path: file};
+                            return {path: file, auto: true};
                         }).array();
                         var conf = new HaxemineConfig(8765, xhml);
                         var confJson = untyped JSON.stringify(conf, null, " ");
@@ -85,9 +85,9 @@ class Main {
         print('projectRoot:' + projectRoot);
         print('port:' + port);
         
-        var taskProgresses = conf.hxml.map(function(hxml){
+        var taskInfos = conf.hxml.map(function(hxml){
             var name = hxml.path;
-            return new TaskProgress(name, []);
+            return new TaskInfo(name, hxml.auto.or(true));
         }).array();
         
         
@@ -138,7 +138,7 @@ class Main {
                     trace(err);
                     throw err;
                 }
-                socket.emit('initial-info', new InitialInfoDto(projectRoot, files, taskProgresses));
+                socket.emit('initial-info', new InitialInfoDto(projectRoot, files, taskInfos));
             });
           
           var doTask = function(taskName : String){
@@ -151,8 +151,10 @@ class Main {
             async.series(tasks, function(){});
           };
           
-          var doTasks = function(){
-            var tasks = conf.hxml.map(function(hxml){
+          var doAutoTasks = function(){
+            var tasks = conf.hxml.filter(function(hxml){
+                return hxml.auto != null && hxml.auto;
+            }).map(function(hxml){
               var task = createCompileHaxeTask(childProcess, socket, projectRoot, hxml.path);
               return task;
             }).array();
@@ -178,13 +180,13 @@ class Main {
             }
             
             socket.emit('stdout', 'saved');
-            doTasks();
+            doAutoTasks();
           });
           socket.on('doTask', function(e) {
             doTask(e.taskName);
           });
           socket.on('doTasks', function() {
-            doTasks();
+            doAutoTasks();
           });
           socket.on('disconnect', function(){
             print("disconnect");
@@ -219,14 +221,18 @@ class Main {
         //err.and(print(stderr, hxmlPath));
         socket.emit('stdout', stdout);
         
-        var msg = if(err != null) stderr else '';
-        
-        var messages = msg.split('\n');
-        var compileErrors = messages.map(function(message){
-            return new CompileError(message);
-        }).array();
-        
-        socket.emit('haxe-compile-err', compileErrors);
+        var compileErrors = if(err){
+            var msg = stderr;
+            var messages = msg.split('\n');
+            var compileErrors = messages.map(function(message){
+                return new CompileError(message);
+            }).array();
+            compileErrors;
+        }else{
+            [];
+        }
+        socket.emit('taskProgress', new TaskProgress(hxmlPath, compileErrors));
+       
         callBack(err);
       });
     }

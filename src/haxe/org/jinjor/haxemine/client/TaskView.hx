@@ -10,18 +10,35 @@ class TaskView {
     
     public function new(session : Session, task : TaskModel) {
         
-        task.onUpdate(function(taskProgress){
-            render(taskProgress.taskName);
+        task.onUpdate(function() {
+            untyped console.log(task.state);
+            render(task);
+        });
+        session.onSave(function() {
+            task.reset();
+            render(task);
         });
         
         this.container = JQ('<a class="task-view"/>').click(function(){
-            session.doTask(task.name);
+            if(task.state == TaskModelState.READY){
+                session.doTask(task.name);
+            }
         });
-        render(task.name);
+        render(task);
     }
     
-    private function render(taskName) {
-        container.append(taskName);//TODO もうちょっとなんとかする
+    private function render(task : TaskModel) {
+        container.html(task.name)
+        .removeClass('success')
+        .removeClass('failed')
+        .removeClass('ready')
+        .addClass(switch(task.state){
+            case NONE: '';
+            case SUCCESS: 'success';
+            case FAILED: 'failed';
+            case READY : 'ready';
+        });
+
     }
 
 }

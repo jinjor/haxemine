@@ -13,19 +13,20 @@ using org.jinjor.util.Util;
 
 class Session {
 
-    private var socket : Dynamic;
+    var socket : Dynamic;
     
-    private var compileErrors : Array<CompileError>;
-    private var editingFiles : HistoryArray<SourceFile>;
-    private var allFiles : Hash<SourceFile>;
-    private var fileToLoad : SourceFile;
+    var compileErrors : Array<CompileError>;
+    var editingFiles : HistoryArray<SourceFile>;
+    var allFiles : Hash<SourceFile>;
+    var fileToLoad : SourceFile;
     
-    private var _onSocketConnected : Array<Void -> Void>;
-    private var _onSocketDisconnected : Array<Void -> Void>;
-    private var _onInitialInfoReceived : Array<InitialInfoDto -> Void>;
-    private var _onAllFilesChanged : Array<Void -> Void>;
-    private var _onCompileErrorsChanged : Array<Void -> Void>;
-    private var _onEditingFileChanged : Array<FileDetail -> Void>;
+    var _onSocketConnected : Array<Void -> Void>;
+    var _onSocketDisconnected : Array<Void -> Void>;
+    var _onInitialInfoReceived : Array<InitialInfoDto -> Void>;
+    var _onAllFilesChanged : Array<Void -> Void>;
+    var _onCompileErrorsChanged : Array<Void -> Void>;
+    var _onEditingFileChanged : Array<FileDetail -> Void>;
+    var _onSave : Array<Void -> Void>;
     
     public function new(socket, editingFiles){
         var that = this;
@@ -45,8 +46,8 @@ class Session {
             });
             setAllFiles(Util.dynamicToHash(initialInfoDto.allFiles));
         });
-        socket.on('haxe-compile-err', function(msg : Dynamic) {
-            that.setCompileErrors(msg);
+        socket.on('taskProgress', function(taskProgress : Dynamic) {//TODO ここじゃない
+            that.setCompileErrors(taskProgress.compileErrors);
         });
         socket.on('connect', function(_) {
             trace("connected.");//View
@@ -72,9 +73,10 @@ class Session {
         this._onAllFilesChanged = [];
         this._onCompileErrorsChanged = [];
         this._onEditingFileChanged = [];
+        this._onSave = [];
         
         this.onSocketConnected(function(){
-            doAllAutoTasks();
+            doAllAutoTasks();//TODO ここじゃないきがする
         });
     }
     
@@ -155,7 +157,9 @@ class Session {
         });
     }
     
-    
+    public function onSave(f : Void -> Void) {
+        _onSave.push(f);
+    }
     
     
     public function doTask(taskName : String){
@@ -168,6 +172,10 @@ class Session {
     }
     
     public function saveFile(text : String){
+        _onSave.foreach(function(f){
+            f();
+            return true;
+        });
         socket.emit('save', new SaveFileDto(getCurrentFile().pathFromProjectRoot, text));
     }
     

@@ -7,12 +7,12 @@ class InitialInfoDto {
     
     public var projectRoot : String;
     public var allFiles : Dynamic<SourceFile>;
-    public var taskProgresses : Array<TaskProgress>;
+    public var taskInfos : Array<TaskInfo>;
 
-    public function new(projectRoot, allFiles, taskProgresses) {
+    public function new(projectRoot, allFiles, taskInfos) {
         this.projectRoot = projectRoot;
         this.allFiles = allFiles;
-        this.taskProgresses = taskProgresses;
+        this.taskInfos = taskInfos;
     }
 
 }

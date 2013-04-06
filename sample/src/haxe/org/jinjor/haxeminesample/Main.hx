@@ -10,7 +10,7 @@ class Main{
     sub();
   }
   
-  private static function sub(){
+  private static function sub() {
       
   }
 
