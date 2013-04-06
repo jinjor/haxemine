@@ -770,12 +770,15 @@ org.jinjor.haxemine.client.HoganTemplate.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.client.HoganTemplate
 }
-org.jinjor.haxemine.client.CompileErrorPanel = function(session) {
+org.jinjor.haxemine.client.CompileErrorPanel = function(socket,session) {
 	var _g = this;
-	this.container = $("<div id=\"compile-errors\"/>").on("click","a",function() {
+	this.container = $("<div id=\"compile-error-panel\"/>");
+	this.errorContainer = $("<div id=\"compile-errors\"/>").on("click","a",function() {
 		var file = session.getAllFiles().get($(this).attr("data-filePath"));
 		session.selectNextFile(file);
 	});
+	var taskListViewContainer = new org.jinjor.haxemine.client.TaskListView(socket,session).container;
+	this.container.append(taskListViewContainer).append(this.errorContainer);
 	session.onCompileErrorsChanged(function() {
 		_g.render(session);
 	});
@@ -786,7 +789,7 @@ org.jinjor.haxemine.client.CompileErrorPanel.JQ = function(s) {
 }
 org.jinjor.haxemine.client.CompileErrorPanel.prototype = {
 	render: function(session) {
-		this.container.html(org.jinjor.haxemine.client.CompileErrorPanel.template.render({ errors : session.getCompileErrors()}));
+		this.errorContainer.html(org.jinjor.haxemine.client.CompileErrorPanel.template.render({ errors : session.getCompileErrors()}));
 	}
 	,__class__: org.jinjor.haxemine.client.CompileErrorPanel
 }
@@ -1101,7 +1104,7 @@ org.jinjor.haxemine.client.TaskListView = function(socket,session) {
 			return true;
 		});
 	});
-	this.container = $("<div/>");
+	this.container = $("<div id=\"task-list-view\"/>");
 };
 org.jinjor.haxemine.client.TaskListView.__name__ = true;
 org.jinjor.haxemine.client.TaskListView.JQ = function(s) {
@@ -1134,7 +1137,7 @@ org.jinjor.haxemine.client.TaskView = function(task) {
 	task.onUpdate(function(taskProgress) {
 		_g.render(taskProgress.taskName);
 	});
-	this.container = $("<div/>");
+	this.container = $("<a/>");
 	this.render(task.name);
 };
 org.jinjor.haxemine.client.TaskView.__name__ = true;
@@ -1158,11 +1161,10 @@ org.jinjor.haxemine.client.View.JQ = function(s) {
 }
 org.jinjor.haxemine.client.View.prototype = {
 	render: function(container) {
-		var taskListViewContainer = new org.jinjor.haxemine.client.TaskListView(this.socket,this.session).container;
-		var compileErrorPanelContainer = new org.jinjor.haxemine.client.CompileErrorPanel(this.session).container;
+		var compileErrorPanelContainer = new org.jinjor.haxemine.client.CompileErrorPanel(this.socket,this.session).container;
 		var menuContainer = new org.jinjor.haxemine.client.Menu(this.session).container;
 		var fileSelectorContainer = new org.jinjor.haxemine.client.FileSelector(this.session).container;
-		container.append(menuContainer).append(taskListViewContainer).append(fileSelectorContainer).append($("<div id=\"editor\"/>")).append($("<hr/>")).append(compileErrorPanelContainer);
+		container.append(menuContainer).append(fileSelectorContainer).append($("<div id=\"editor\"/>")).append($("<hr/>")).append(compileErrorPanelContainer);
 		var editor = this.ace.edit("editor");
 		new org.jinjor.haxemine.client.AceEditorView(editor,this.session);
 	}
@@ -1340,6 +1342,7 @@ org.jinjor.haxemine.client.FileSelector.dirTemplate = new org.jinjor.haxemine.cl
 org.jinjor.haxemine.client.FileSelector.filesTemplate = new org.jinjor.haxemine.client.HoganTemplate("<ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>");
 org.jinjor.haxemine.client.Menu.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <label><!--{{projectRoot}}-->Haxemine</label>\r\n    ");
 org.jinjor.haxemine.client.Menu.templateDisConnected = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <label class=\"disconnected\">Disconnected</label>\r\n    ");
+org.jinjor.haxemine.client.TaskListView.HEIGHT = 16;
 org.jinjor.haxemine.client.Main.main();
 
 //@ sourceMappingURL=haxemine.js.map

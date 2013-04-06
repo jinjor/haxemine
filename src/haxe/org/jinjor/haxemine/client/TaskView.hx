@@ -14,7 +14,7 @@ class TaskView {
             render(taskProgress.taskName);
         });
         
-        this.container = JQ('<div/>');
+        this.container = JQ('<a/>');
         render(task.name);
     }
     

@@ -8,6 +8,7 @@ using Lambda;
 class TaskListView {
     
     private static inline function JQ(s: String){ return untyped $(s);}
+    private static inline var HEIGHT = 16;
 
     public var container : JQuery;
 
@@ -30,7 +31,7 @@ class TaskListView {
                 return true;
             });
         });
-        this.container = JQ('<div/>');
+        this.container = JQ('<div id="task-list-view"/>');
     }
 
 }

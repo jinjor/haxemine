@@ -18,15 +18,12 @@ class View {
     }
     
     public function render(container : JQuery) {
-        
-        var taskListViewContainer = new TaskListView(socket, session).container;
-        var compileErrorPanelContainer = new CompileErrorPanel(session).container;
+        var compileErrorPanelContainer = new CompileErrorPanel(socket, session).container;
         var menuContainer = new Menu(session).container;
         var fileSelectorContainer = new FileSelector(session).container;
                 
         container
         .append(menuContainer)
-        .append(taskListViewContainer)
         .append(fileSelectorContainer)
         .append(JQ('<div id="editor"/>'))
         .append(JQ('<hr/>'))
