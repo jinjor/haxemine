@@ -93,9 +93,11 @@ class Main {
         
         var app : Dynamic = express();
         
+        untyped console.log(untyped __dirname + '/public/favicon.ico');
+        
         app.configure(function(){
           app.set('port', port);
-          app.use(express.favicon());
+          app.use(express.favicon(untyped __dirname + '/public/favicon.ico'));
           app.use(express.logger('dev'));
           app.use(express.bodyParser());
           app.use(express.methodOverride());

@@ -1620,9 +1620,10 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 		return new org.jinjor.haxemine.server.TaskInfo(name,hxml.auto == null?true:hxml.auto);
 	}));
 	var app = express();
+	console.log(__dirname + "/public/favicon.ico");
 	app.configure(function() {
 		app.set("port",port);
-		app["use"](express.favicon());
+		app["use"](express.favicon(__dirname + "/public/favicon.ico"));
 		app["use"](express.logger("dev"));
 		app["use"](express.bodyParser());
 		app["use"](express.methodOverride());
