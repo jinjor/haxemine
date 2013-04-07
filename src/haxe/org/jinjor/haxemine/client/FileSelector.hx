@@ -60,10 +60,7 @@ class {{_class}} {
             
         });
         
-        //session.onCompileErrorsChanged(function(){
-        //    that.render(session);
-        //});
-        session.onAllFilesChanged(function(){
+        session.onAllFilesChanged.sub(function(_){
             that.render(session);
         });  
     }

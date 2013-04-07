@@ -20,14 +20,14 @@ class Menu {
     
     public function new(session : Session) {
         this.container = JQ('<nav id="menu"/>');
-        session.onInitialInfoReceived(function(initialInfoDto){
+        session.onInitialInfoReceived.sub(function(initialInfoDto){
             this.initialInfoDto = initialInfoDto;
             render();
         });
-        session.onSocketConnected(function(){
+        session.onSocketConnected.sub(function(_){
             render();
         });
-        session.onSocketDisconnected(function(){
+        session.onSocketDisconnected.sub(function(_){
             renderDisconnected();
         });
     }

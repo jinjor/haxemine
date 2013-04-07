@@ -14,7 +14,7 @@ class TaskListView {
 
     public function new(socket : Dynamic, session : Session) {
         
-        session.onInitialInfoReceived(function(info : InitialInfoDto) {
+        session.onInitialInfoReceived.sub(function(info : InitialInfoDto) {
             
             var tasks = info.taskInfos.map(function(taskInfo) {
                 return new TaskModel(taskInfo.taskName, taskInfo.auto, socket);

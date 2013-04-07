@@ -30,7 +30,7 @@ class CompileErrorPanel {
             .append(taskListViewContainer)
             .append(errorContainer);
         
-        session.onCompileErrorsChanged(function(){
+        session.onCompileErrorsChanged.sub(function(_){
             render(session);
         });
     }

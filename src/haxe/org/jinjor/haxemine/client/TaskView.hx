@@ -13,7 +13,7 @@ class TaskView {
         task.onUpdate(function() {
             render(task);
         });
-        session.onSave(function() {
+        session.onSave.sub(function(_) {
             task.reset();
             render(task);
         });

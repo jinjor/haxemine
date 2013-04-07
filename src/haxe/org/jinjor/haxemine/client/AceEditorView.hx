@@ -5,16 +5,15 @@ using Lambda;
 
 class AceEditorView {
     
-    
     public function new(editor : Dynamic, session : Session){
-        session.onEditingFileChanged(function(detail){
+        session.onEditingFileChanged.sub(function(detail){
             editor.getSession().setValue(detail.text);
             //untyped console.log(detail.text);
             editor.getSession().setMode("ace/mode/" + detail.mode);
             annotateCompileError(editor, session);
         });
     
-        session.onCompileErrorsChanged(function(){
+        session.onCompileErrorsChanged.sub(function(_){
             annotateCompileError(editor, session);
         });
         
