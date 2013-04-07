@@ -142,9 +142,6 @@ class Session {
         }else{
             socket.emit('save', new SaveFileDto(pathFromProjectRoot, text));
         }
-        
-        
-        
     }
     
 }

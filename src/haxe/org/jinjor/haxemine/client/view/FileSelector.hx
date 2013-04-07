@@ -1,4 +1,4 @@
-package org.jinjor.haxemine.client;
+package org.jinjor.haxemine.client.view;
 
 import js.Lib;
 import js.JQuery;

@@ -1,4 +1,4 @@
-package org.jinjor.haxemine.client;
+package org.jinjor.haxemine.client.view;
 
 import js.JQuery;
 import org.jinjor.haxemine.server.InitialInfoDto;

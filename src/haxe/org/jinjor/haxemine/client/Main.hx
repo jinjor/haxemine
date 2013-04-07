@@ -4,8 +4,7 @@ import org.jinjor.haxemine.model.CompileError;
 import org.jinjor.haxemine.client.Session;
 import org.jinjor.haxemine.model.HistoryArray;
 import org.jinjor.haxemine.model.SourceFile;
-import org.jinjor.haxemine.client.View;
-import org.jinjor.haxemine.client.FileSelector;
+import org.jinjor.haxemine.client.view.View;
 
 import js.JQuery;
 
