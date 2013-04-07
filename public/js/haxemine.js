@@ -938,9 +938,22 @@ org.jinjor.haxemine.client.view.AceEditorView = function(editor,session) {
 	session.onCompileErrorsChanged.sub(function(_) {
 		org.jinjor.haxemine.client.view.AceEditorView.annotateCompileError(editor,session);
 	});
-	editor.commands.addCommand({ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor1) {
+	editor.commands.addCommands([{ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor1) {
 		session.saveFile(editor1.getSession().getValue());
-	}});
+	}},{ Name : "savefile", bindKey : { win : "Ctrl-Q", mac : "Command-Q"}, exec : function(editor1) {
+		var pos = editor1.getCursorPosition();
+		var value = editor1.getSession().getTokenAt(pos.row,pos.column).value;
+		var charCode = HxOverrides.cca(value,0);
+		var startsWithUpper = charCode != null && 65 <= charCode && charCode <= 90;
+		if(!startsWithUpper) return;
+		var filtered = Lambda.array(Lambda.filter(session.getAllFiles(),function(file) {
+			var name = file.shortName;
+			var splitted = name.split(".hx");
+			return splitted[0] == value;
+		}));
+		if(filtered.length == 1) session.selectNextFile(filtered[0]); else if(filtered.length > 1) {
+		}
+	}}]);
 	this.render(editor,"ace/theme/eclipse");
 };
 org.jinjor.haxemine.client.view.AceEditorView.__name__ = true;
