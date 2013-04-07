@@ -1089,23 +1089,17 @@ org.jinjor.haxemine.client.TaskModel = function(name,auto,socket) {
 	socket.on("taskProgress",function(progress) {
 		if(name != progress.taskName) return;
 		that.state = progress.compileErrors.length <= 0?org.jinjor.haxemine.client.TaskModelState.SUCCESS:org.jinjor.haxemine.client.TaskModelState.FAILED;
-		Lambda.foreach(_g._onUpdate,function(f) {
-			f();
-			return true;
-		});
+		_g.onUpdate.pub(null);
 	});
 	this.name = name;
 	this.auto = auto;
-	this._onUpdate = [];
+	this.onUpdate = new org.jinjor.util.Event();
 	this.reset();
 };
 org.jinjor.haxemine.client.TaskModel.__name__ = true;
 org.jinjor.haxemine.client.TaskModel.prototype = {
 	reset: function() {
 		this.state = this.auto?org.jinjor.haxemine.client.TaskModelState.NONE:org.jinjor.haxemine.client.TaskModelState.READY;
-	}
-	,onUpdate: function(f) {
-		this._onUpdate.push(f);
 	}
 	,__class__: org.jinjor.haxemine.client.TaskModel
 }
@@ -1124,7 +1118,7 @@ org.jinjor.haxemine.client.TaskModelState.READY.toString = $estr;
 org.jinjor.haxemine.client.TaskModelState.READY.__enum__ = org.jinjor.haxemine.client.TaskModelState;
 org.jinjor.haxemine.client.TaskView = function(session,task) {
 	var _g = this;
-	task.onUpdate(function() {
+	task.onUpdate.sub(function(_) {
 		_g.render(task);
 	});
 	session.onSave.sub(function(_) {

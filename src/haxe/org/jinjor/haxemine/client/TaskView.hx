@@ -10,7 +10,7 @@ class TaskView {
     
     public function new(session : Session, task : TaskModel) {
         
-        task.onUpdate(function() {
+        task.onUpdate.sub(function(_) {
             render(task);
         });
         session.onSave.sub(function(_) {
