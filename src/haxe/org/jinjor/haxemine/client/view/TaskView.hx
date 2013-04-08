@@ -33,6 +33,7 @@ class TaskView {
         .removeClass('ready')
         .addClass(switch(task.state){
             case NONE: '';
+            case WAITING: '';
             case SUCCESS: 'success';
             case FAILED: 'failed';
             case READY : 'ready';

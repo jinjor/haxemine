@@ -911,7 +911,7 @@ org.jinjor.haxemine.client.TaskModel.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.client.TaskModel
 }
-org.jinjor.haxemine.client.TaskModelState = { __ename__ : true, __constructs__ : ["NONE","SUCCESS","FAILED","READY"] }
+org.jinjor.haxemine.client.TaskModelState = { __ename__ : true, __constructs__ : ["NONE","SUCCESS","FAILED","READY","WAITING"] }
 org.jinjor.haxemine.client.TaskModelState.NONE = ["NONE",0];
 org.jinjor.haxemine.client.TaskModelState.NONE.toString = $estr;
 org.jinjor.haxemine.client.TaskModelState.NONE.__enum__ = org.jinjor.haxemine.client.TaskModelState;
@@ -924,6 +924,9 @@ org.jinjor.haxemine.client.TaskModelState.FAILED.__enum__ = org.jinjor.haxemine.
 org.jinjor.haxemine.client.TaskModelState.READY = ["READY",3];
 org.jinjor.haxemine.client.TaskModelState.READY.toString = $estr;
 org.jinjor.haxemine.client.TaskModelState.READY.__enum__ = org.jinjor.haxemine.client.TaskModelState;
+org.jinjor.haxemine.client.TaskModelState.WAITING = ["WAITING",4];
+org.jinjor.haxemine.client.TaskModelState.WAITING.toString = $estr;
+org.jinjor.haxemine.client.TaskModelState.WAITING.__enum__ = org.jinjor.haxemine.client.TaskModelState;
 if(!org.jinjor.haxemine.client.view) org.jinjor.haxemine.client.view = {}
 org.jinjor.haxemine.client.view.AceEditorView = function(editor,session) {
 	session.onEditingFileChanged.sub(function(detail) {
@@ -1150,6 +1153,9 @@ org.jinjor.haxemine.client.view.TaskView.prototype = {
 			var $r;
 			switch( (task.state)[1] ) {
 			case 0:
+				$r = "";
+				break;
+			case 4:
 				$r = "";
 				break;
 			case 1:

@@ -5,4 +5,5 @@ enum TaskModelState {
     SUCCESS;
     FAILED;
     READY;
+    WAITING;
 }
