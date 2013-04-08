@@ -13,7 +13,7 @@ class AceEditorView {
             annotateCompileError(editor, session);
         });
     
-        session.onCompileErrorsChanged.sub(function(_){
+        session.onLastTaskProgressChanged.sub(function(_){
             annotateCompileError(editor, session);
         });
 

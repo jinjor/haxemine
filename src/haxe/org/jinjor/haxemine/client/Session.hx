@@ -7,6 +7,7 @@ import org.jinjor.haxemine.model.HistoryArray;
 import org.jinjor.haxemine.model.FileDetail;
 import org.jinjor.haxemine.server.SaveFileDto;
 import org.jinjor.haxemine.server.InitialInfoDto;
+import org.jinjor.haxemine.model.TaskProgress;
 
 using Lambda;
 using org.jinjor.util.Util;
@@ -16,16 +17,16 @@ class Session {
 
     var socket : Dynamic;
     
-    var compileErrors : Array<CompileError>;
     var editingFiles : HistoryArray<SourceFile>;
     var allFiles : Hash<SourceFile>;
     var fileToLoad : SourceFile;
+    var lastTaskProgress : TaskProgress;
     
     public var onSocketConnected : Event<Void>;
     public var onSocketDisconnected : Event<Void>;
     public var onInitialInfoReceived : Event<InitialInfoDto>;
     public var onAllFilesChanged : Event<Void>;
-    public var onCompileErrorsChanged : Event<Void>;
+    public var onLastTaskProgressChanged : Event<Void>;
     public var onEditingFileChanged : Event<FileDetail>;
     public var onSave : Event<Void>;
     
@@ -45,7 +46,8 @@ class Session {
             setAllFiles(Util.dynamicToHash(initialInfoDto.allFiles));
         });
         socket.on('taskProgress', function(taskProgress : Dynamic) {//TODO ここじゃない
-            that.setCompileErrors(taskProgress.compileErrors);
+            that.lastTaskProgress = taskProgress;
+            onLastTaskProgressChanged.pub(null);
         });
         socket.on('connect', function(_) {
             trace("connected.");//View
@@ -55,7 +57,6 @@ class Session {
             trace("disconnected.");//View
             onSocketDisconnected.pub(null);
         });
-        this.compileErrors = [];
         this.editingFiles = editingFiles;
         this.allFiles = new Hash();
         
@@ -63,7 +64,7 @@ class Session {
         this.onSocketDisconnected = new Event();
         this.onInitialInfoReceived = new Event();
         this.onAllFilesChanged = new Event();
-        this.onCompileErrorsChanged = new Event();
+        this.onLastTaskProgressChanged = new Event();
         this.onEditingFileChanged = new Event();
         this.onSave = new Event();
         
@@ -72,16 +73,12 @@ class Session {
         });
     }
     
-    //-> Backbone#get/set/onChange
-    private function setCompileErrors(compileErrors : Array<CompileError>){
-        this.compileErrors = compileErrors;
-        this.onCompileErrorsChanged.pub(null);
-    }
+
     public function getCompileErrors() : Array<CompileError> {
-        return compileErrors;
+        return if(lastTaskProgress != null) lastTaskProgress.compileErrors else [];
     }
     
-    //-> Backbone#get/set/onChange
+
     private function setAllFiles(allFiles : Hash<SourceFile>){
         this.allFiles = allFiles;
         this.onAllFilesChanged.pub(null);

@@ -813,7 +813,8 @@ org.jinjor.haxemine.client.Session = function(socket,editingFiles) {
 		_g.setAllFiles(org.jinjor.util.Util.dynamicToHash(initialInfoDto.allFiles));
 	});
 	socket.on("taskProgress",function(taskProgress) {
-		that.setCompileErrors(taskProgress.compileErrors);
+		that.lastTaskProgress = taskProgress;
+		_g.onLastTaskProgressChanged.pub(null);
 	});
 	socket.on("connect",function(_) {
 		console.log("connected.");
@@ -823,14 +824,13 @@ org.jinjor.haxemine.client.Session = function(socket,editingFiles) {
 		console.log("disconnected.");
 		_g.onSocketDisconnected.pub(null);
 	});
-	this.compileErrors = [];
 	this.editingFiles = editingFiles;
 	this.allFiles = new Hash();
 	this.onSocketConnected = new org.jinjor.util.Event();
 	this.onSocketDisconnected = new org.jinjor.util.Event();
 	this.onInitialInfoReceived = new org.jinjor.util.Event();
 	this.onAllFilesChanged = new org.jinjor.util.Event();
-	this.onCompileErrorsChanged = new org.jinjor.util.Event();
+	this.onLastTaskProgressChanged = new org.jinjor.util.Event();
 	this.onEditingFileChanged = new org.jinjor.util.Event();
 	this.onSave = new org.jinjor.util.Event();
 	this.onSocketConnected.sub(function(_) {
@@ -886,11 +886,7 @@ org.jinjor.haxemine.client.Session.prototype = {
 		this.onAllFilesChanged.pub(null);
 	}
 	,getCompileErrors: function() {
-		return this.compileErrors;
-	}
-	,setCompileErrors: function(compileErrors) {
-		this.compileErrors = compileErrors;
-		this.onCompileErrorsChanged.pub(null);
+		return this.lastTaskProgress != null?this.lastTaskProgress.compileErrors:[];
 	}
 	,__class__: org.jinjor.haxemine.client.Session
 }
@@ -935,7 +931,7 @@ org.jinjor.haxemine.client.view.AceEditorView = function(editor,session) {
 		editor.getSession().setMode("ace/mode/" + detail.mode);
 		org.jinjor.haxemine.client.view.AceEditorView.annotateCompileError(editor,session);
 	});
-	session.onCompileErrorsChanged.sub(function(_) {
+	session.onLastTaskProgressChanged.sub(function(_) {
 		org.jinjor.haxemine.client.view.AceEditorView.annotateCompileError(editor,session);
 	});
 	editor.commands.addCommands([{ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor1) {
@@ -978,7 +974,7 @@ org.jinjor.haxemine.client.view.CompileErrorPanel = function(socket,session) {
 	});
 	var taskListViewContainer = new org.jinjor.haxemine.client.view.TaskListView(socket,session).container;
 	this.container.append(taskListViewContainer).append(this.errorContainer);
-	session.onCompileErrorsChanged.sub(function(_) {
+	session.onLastTaskProgressChanged.sub(function(_) {
 		_g.render(session);
 	});
 };
