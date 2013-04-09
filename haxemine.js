@@ -1732,6 +1732,7 @@ org.jinjor.haxemine.server.Main.compileHaxe = function(childProcess,socket,proje
 			var msg = stderr;
 			var messages = msg.split("\n");
 			var compileErrors1 = Lambda.array(Lambda.map(messages,function(message) {
+				if(StringTools.startsWith(message,"./")) message = message.substring("./".length);
 				return new org.jinjor.haxemine.model.CompileError(message);
 			}));
 			$r = compileErrors1;

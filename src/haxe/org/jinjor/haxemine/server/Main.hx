@@ -227,6 +227,9 @@ class Main {
             var msg = stderr;
             var messages = msg.split('\n');
             var compileErrors = messages.map(function(message){
+                if(message.startsWith('./')){
+                    message = message.substring('./'.length);
+                }
                 return new CompileError(message);
             }).array();
             compileErrors;
