@@ -1139,7 +1139,10 @@ org.jinjor.haxemine.client.view.TaskView = function(session,task) {
 		_g.render(task);
 	});
 	this.container = $("<a class=\"task-view\"/>").click(function() {
-		if(task.state == org.jinjor.haxemine.client.TaskModelState.READY) session.doTask(task.name);
+		if(task.state == org.jinjor.haxemine.client.TaskModelState.READY) {
+			task.state = org.jinjor.haxemine.client.TaskModelState.WAITING;
+			session.doTask(task.name);
+		}
 	});
 	this.render(task);
 };

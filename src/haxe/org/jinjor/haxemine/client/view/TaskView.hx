@@ -20,6 +20,7 @@ class TaskView {
         
         this.container = JQ('<a class="task-view"/>').click(function(){
             if(task.state == TaskModelState.READY){
+                task.state = TaskModelState.WAITING;
                 session.doTask(task.name);
             }
         });
