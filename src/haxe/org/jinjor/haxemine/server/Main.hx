@@ -87,9 +87,9 @@ class Main {
         
         var taskInfos = conf.hxml.map(function(hxml){
             var name = hxml.path;
-            return new TaskInfo(name, if(hxml.auto == null) true else hxml.auto);
+            var content = fs.readFileSync(projectRoot + '/' + hxml.path, 'utf8');
+            return new TaskInfo(name, content, if(hxml.auto == null) true else hxml.auto);
         }).array();
-        
         
         var app : Dynamic = express();
         

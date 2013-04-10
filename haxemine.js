@@ -1617,7 +1617,8 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 	org.jinjor.haxemine.server.Main.print("port:" + port);
 	var taskInfos = Lambda.array(Lambda.map(conf.hxml,function(hxml) {
 		var name = hxml.path;
-		return new org.jinjor.haxemine.server.TaskInfo(name,hxml.auto == null?true:hxml.auto);
+		var content = fs.readFileSync(projectRoot + "/" + hxml.path,"utf8");
+		return new org.jinjor.haxemine.server.TaskInfo(name,content,hxml.auto == null?true:hxml.auto);
 	}));
 	var app = express();
 	console.log(__dirname + "/public/favicon.ico");
@@ -1810,14 +1811,16 @@ org.jinjor.haxemine.server.SaveFileDto.prototype = {
 	,fileName: null
 	,__class__: org.jinjor.haxemine.server.SaveFileDto
 }
-org.jinjor.haxemine.server.TaskInfo = function(taskName,auto) {
+org.jinjor.haxemine.server.TaskInfo = function(taskName,content,auto) {
 	this.taskName = taskName;
+	this.content = content;
 	this.auto = auto;
 };
 $hxClasses["org.jinjor.haxemine.server.TaskInfo"] = org.jinjor.haxemine.server.TaskInfo;
 org.jinjor.haxemine.server.TaskInfo.__name__ = ["org","jinjor","haxemine","server","TaskInfo"];
 org.jinjor.haxemine.server.TaskInfo.prototype = {
 	auto: null
+	,content: null
 	,taskName: null
 	,__class__: org.jinjor.haxemine.server.TaskInfo
 }

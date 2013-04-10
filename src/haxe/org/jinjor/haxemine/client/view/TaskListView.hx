@@ -17,7 +17,7 @@ class TaskListView {
         session.onInitialInfoReceived.sub(function(info : InitialInfoDto) {
             
             var tasks = info.taskInfos.map(function(taskInfo) {
-                return new TaskModel(taskInfo.taskName, taskInfo.auto, socket);
+                return new TaskModel(taskInfo.taskName, taskInfo.content, taskInfo.auto, socket);
             });
             var taskViewContainers = tasks.map(function(task){
                 return new TaskView(session, task);

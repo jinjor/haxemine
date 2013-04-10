@@ -890,7 +890,7 @@ org.jinjor.haxemine.client.Session.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.client.Session
 }
-org.jinjor.haxemine.client.TaskModel = function(name,auto,socket) {
+org.jinjor.haxemine.client.TaskModel = function(name,content,auto,socket) {
 	var _g = this;
 	console.log(auto);
 	var that = this;
@@ -900,6 +900,7 @@ org.jinjor.haxemine.client.TaskModel = function(name,auto,socket) {
 		_g.onUpdate.pub(null);
 	});
 	this.name = name;
+	this.content = content;
 	this.auto = auto;
 	this.onUpdate = new org.jinjor.util.Event();
 	this.reset();
@@ -1104,7 +1105,7 @@ org.jinjor.haxemine.client.view.TaskListView = function(socket,session) {
 	var _g = this;
 	session.onInitialInfoReceived.sub(function(info) {
 		var tasks = Lambda.map(info.taskInfos,function(taskInfo) {
-			return new org.jinjor.haxemine.client.TaskModel(taskInfo.taskName,taskInfo.auto,socket);
+			return new org.jinjor.haxemine.client.TaskModel(taskInfo.taskName,taskInfo.content,taskInfo.auto,socket);
 		});
 		var taskViewContainers = tasks.map(function(task) {
 			return new org.jinjor.haxemine.client.view.TaskView(session,task);
@@ -1135,7 +1136,7 @@ org.jinjor.haxemine.client.view.TaskView = function(session,task) {
 		task.reset();
 		_g.render(task);
 	});
-	this.container = $("<a class=\"task-view\"/>").click(function() {
+	this.container = $("<a class=\"task-view\"/>").attr("title",task.content).click(function() {
 		if(task.state == org.jinjor.haxemine.client.TaskModelState.READY) session.doTask(task.name);
 	});
 	this.render(task);
@@ -1273,8 +1274,9 @@ org.jinjor.haxemine.server.SaveFileDto.__name__ = true;
 org.jinjor.haxemine.server.SaveFileDto.prototype = {
 	__class__: org.jinjor.haxemine.server.SaveFileDto
 }
-org.jinjor.haxemine.server.TaskInfo = function(taskName,auto) {
+org.jinjor.haxemine.server.TaskInfo = function(taskName,content,auto) {
 	this.taskName = taskName;
+	this.content = content;
 	this.auto = auto;
 };
 org.jinjor.haxemine.server.TaskInfo.__name__ = true;

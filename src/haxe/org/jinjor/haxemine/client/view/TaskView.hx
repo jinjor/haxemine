@@ -17,8 +17,7 @@ class TaskView {
             task.reset();
             render(task);
         });
-        
-        this.container = JQ('<a class="task-view"/>').click(function(){
+        this.container = JQ('<a class="task-view"/>').attr('title', task.content).click(function(){
             if(task.state == TaskModelState.READY){
                 session.doTask(task.name);
             }
