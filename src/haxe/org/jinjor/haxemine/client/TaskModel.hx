@@ -8,11 +8,12 @@ using Lambda;
 class TaskModel {
     
     public var name : String;
+    public var content : String;
     public var auto : Bool;
     public var state : TaskModelState;
     public var onUpdate : Event<Void>;
     
-    public function new(name : String, auto : Bool, socket : Dynamic) {
+    public function new(name : String, content : String, auto : Bool, socket : Dynamic) {
         untyped console.log(auto);
         var that = this;
         socket.on('taskProgress', function(progress : TaskProgress) {
@@ -31,6 +32,7 @@ class TaskModel {
             onUpdate.pub(null);
         });
         this.name = name;
+        this.content = content;
         this.auto = auto;
         onUpdate = new Event();
         reset();
