@@ -1200,15 +1200,16 @@ org.jinjor.haxemine.client.view.View.prototype = {
 		var viewPanel = new org.jinjor.haxemine.client.view.ViewPanel(viewDefs,"Tasks");
 		var menuContainer = new org.jinjor.haxemine.client.Menu(this.session).container;
 		var fileSelectorContainer = new org.jinjor.haxemine.client.view.FileSelector(this.session).container;
-		container.append(menuContainer).append(fileSelectorContainer).append($("<div id=\"editor\"/>")).append($("<hr/>")).append(viewPanel.container);
+		var rightPanel = $("<div id=\"right\"/>").append($("<div id=\"editor\"/>")).append($("<hr/>")).append(viewPanel.container);
+		container.append(menuContainer).append(fileSelectorContainer).append(rightPanel);
 		var editor = this.ace.edit("editor");
 		new org.jinjor.haxemine.client.view.AceEditorView(editor,this.session);
 	}
 	,__class__: org.jinjor.haxemine.client.view.View
 }
 org.jinjor.haxemine.client.view.ViewPanel = function(defs,selected) {
-	var container = $("<div/>");
-	var tabsContainer = $("<div/>");
+	var container = $("<div id=\"viewPanel\"/>");
+	var tabsContainer = $("<div id=\"tabsContainer\"/>");
 	var panelsContainer = $("<div/>");
 	var _g = 0;
 	while(_g < defs.length) {

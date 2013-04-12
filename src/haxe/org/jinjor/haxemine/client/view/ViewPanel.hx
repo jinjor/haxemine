@@ -14,8 +14,8 @@ class ViewPanel {
     public var container : JQuery;
 
     public function new(defs : Array<ViewPanelDef>, selected : String) {
-        var container = JQ('<div/>');
-        var tabsContainer = JQ('<div/>');
+        var container = JQ('<div id="viewPanel"/>');
+        var tabsContainer = JQ('<div id="tabsContainer"/>');
         var panelsContainer = JQ('<div/>');
         
         for(def in defs) {
