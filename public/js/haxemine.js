@@ -1104,6 +1104,12 @@ org.jinjor.haxemine.client.view.Folder.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.client.view.Folder
 }
+org.jinjor.haxemine.client.view.SearchPanel = function(socket,session) {
+};
+org.jinjor.haxemine.client.view.SearchPanel.__name__ = true;
+org.jinjor.haxemine.client.view.SearchPanel.prototype = {
+	__class__: org.jinjor.haxemine.client.view.SearchPanel
+}
 org.jinjor.haxemine.client.view.TaskListView = function(socket,session) {
 	var _g = this;
 	session.onInitialInfoReceived.sub(function(info) {
@@ -1188,14 +1194,51 @@ org.jinjor.haxemine.client.view.View.JQ = function(s) {
 }
 org.jinjor.haxemine.client.view.View.prototype = {
 	render: function(container) {
-		var compileErrorPanelContainer = new org.jinjor.haxemine.client.view.CompileErrorPanel(this.socket,this.session).container;
+		var compileErrorPanel = new org.jinjor.haxemine.client.view.CompileErrorPanel(this.socket,this.session);
+		var searchPanel = new org.jinjor.haxemine.client.view.SearchPanel(this.socket,this.session);
+		var viewDefs = [{ name : "Tasks", container : compileErrorPanel.container},{ name : "Search", container : searchPanel.container}];
+		var viewPanel = new org.jinjor.haxemine.client.view.ViewPanel(viewDefs,"Tasks");
 		var menuContainer = new org.jinjor.haxemine.client.Menu(this.session).container;
 		var fileSelectorContainer = new org.jinjor.haxemine.client.view.FileSelector(this.session).container;
-		container.append(menuContainer).append(fileSelectorContainer).append($("<div id=\"editor\"/>")).append($("<hr/>")).append(compileErrorPanelContainer);
+		container.append(menuContainer).append(fileSelectorContainer).append($("<div id=\"editor\"/>")).append($("<hr/>")).append(viewPanel.container);
 		var editor = this.ace.edit("editor");
 		new org.jinjor.haxemine.client.view.AceEditorView(editor,this.session);
 	}
 	,__class__: org.jinjor.haxemine.client.view.View
+}
+org.jinjor.haxemine.client.view.ViewPanel = function(defs,selected) {
+	var container = $("<div/>");
+	var tabsContainer = $("<div/>");
+	var panelsContainer = $("<div/>");
+	var _g = 0;
+	while(_g < defs.length) {
+		var def = defs[_g];
+		++_g;
+		var panel = [$("<div/>").html(def.container)];
+		var tab = $("<span class=\"view-tab\"/>").text(def.name).click((function(panel) {
+			return function() {
+				$(this).addClass("selected").siblings().removeClass("selected");
+				panel[0].show().siblings().hide();
+			};
+		})(panel));
+		if(def.name == selected) {
+			tab.addClass("selected");
+			panel[0].show();
+		} else {
+			tab.removeClass("selected");
+			panel[0].hide();
+		}
+		tabsContainer.append(tab);
+		panelsContainer.append(panel[0]);
+	}
+	this.container = container.append(tabsContainer).append(panelsContainer);
+};
+org.jinjor.haxemine.client.view.ViewPanel.__name__ = true;
+org.jinjor.haxemine.client.view.ViewPanel.JQ = function(s) {
+	return $(s);
+}
+org.jinjor.haxemine.client.view.ViewPanel.prototype = {
+	__class__: org.jinjor.haxemine.client.view.ViewPanel
 }
 if(!org.jinjor.haxemine.model) org.jinjor.haxemine.model = {}
 org.jinjor.haxemine.model.CompileError = function(originalMessage) {

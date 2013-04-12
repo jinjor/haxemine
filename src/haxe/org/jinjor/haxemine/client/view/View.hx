@@ -18,7 +18,14 @@ class View {
     }
     
     public function render(container : JQuery) {
-        var compileErrorPanelContainer = new CompileErrorPanel(socket, session).container;
+        var compileErrorPanel = new CompileErrorPanel(socket, session);
+        var searchPanel = new SearchPanel(socket, session);
+        var viewDefs = [
+            {name:'Tasks', container:compileErrorPanel.container},
+            {name:'Search', container:searchPanel.container}
+        ];
+        var viewPanel = new ViewPanel(viewDefs, 'Tasks');
+        
         var menuContainer = new Menu(session).container;
         var fileSelectorContainer = new FileSelector(session).container;
                 
@@ -27,7 +34,7 @@ class View {
         .append(fileSelectorContainer)
         .append(JQ('<div id="editor"/>'))
         .append(JQ('<hr/>'))
-        .append(compileErrorPanelContainer);
+        .append(viewPanel.container);
         
         var editor = ace.edit("editor");
         new AceEditorView(editor, session);//ACEだけは後
