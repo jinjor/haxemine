@@ -1105,8 +1105,37 @@ org.jinjor.haxemine.client.view.Folder.prototype = {
 	,__class__: org.jinjor.haxemine.client.view.Folder
 }
 org.jinjor.haxemine.client.view.SearchPanel = function(socket,session) {
+	var input = $("<input type=\"text\"/>");
+	var button = $("<input type=\"submit\">").val("Search");
+	var form = $("<form/>").append(input).append(button);
+	org.jinjor.util.ClientUtil.fixedSubmit(form,function(_) {
+		var word = input.val();
+		socket.emit("search",word);
+		form.attr("disabled","disabled");
+	});
+	var resultsContainer = $("<div/>");
+	socket.on("search-result",function(results) {
+		resultsContainer.empty();
+		var _g = 0;
+		while(_g < results.length) {
+			var result = [results[_g]];
+			++_g;
+			var resultElm = $("<a/>").text(result[0].message).click((function(result) {
+				return function() {
+					var file = session.getAllFiles().get(result[0].fileName);
+					session.selectNextFile(file);
+				};
+			})(result));
+			resultsContainer.append(resultElm);
+		}
+		form.removeAttr("disabled");
+	});
+	this.container = $("<div/>").append(form).append(resultsContainer);
 };
 org.jinjor.haxemine.client.view.SearchPanel.__name__ = true;
+org.jinjor.haxemine.client.view.SearchPanel.JQ = function(s) {
+	return $(s);
+}
 org.jinjor.haxemine.client.view.SearchPanel.prototype = {
 	__class__: org.jinjor.haxemine.client.view.SearchPanel
 }
@@ -1194,10 +1223,7 @@ org.jinjor.haxemine.client.view.View.JQ = function(s) {
 }
 org.jinjor.haxemine.client.view.View.prototype = {
 	render: function(container) {
-		var compileErrorPanel = new org.jinjor.haxemine.client.view.CompileErrorPanel(this.socket,this.session);
-		var searchPanel = new org.jinjor.haxemine.client.view.SearchPanel(this.socket,this.session);
-		var viewDefs = [{ name : "Tasks", container : compileErrorPanel.container},{ name : "Search", container : searchPanel.container}];
-		var viewPanel = new org.jinjor.haxemine.client.view.ViewPanel(viewDefs,"Tasks");
+		var viewPanel = new org.jinjor.haxemine.client.view.ViewPanel(this.socket,this.session);
 		var menuContainer = new org.jinjor.haxemine.client.Menu(this.session).container;
 		var fileSelectorContainer = new org.jinjor.haxemine.client.view.FileSelector(this.session).container;
 		var rightPanel = $("<div id=\"right\"/>").append($("<div id=\"editor\"/>")).append($("<hr/>")).append(viewPanel.container);
@@ -1207,31 +1233,38 @@ org.jinjor.haxemine.client.view.View.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.client.view.View
 }
-org.jinjor.haxemine.client.view.ViewPanel = function(defs,selected) {
+org.jinjor.haxemine.client.view.ViewPanel = function(socket,session) {
 	var container = $("<div id=\"viewPanel\"/>");
 	var tabsContainer = $("<div id=\"tabsContainer\"/>");
 	var panelsContainer = $("<div/>");
-	var _g = 0;
-	while(_g < defs.length) {
-		var def = defs[_g];
-		++_g;
-		var panel = [$("<div/>").html(def.container)];
-		var tab = $("<span class=\"view-tab\"/>").text(def.name).click((function(panel) {
-			return function() {
-				$(this).addClass("selected").siblings().removeClass("selected");
-				panel[0].show().siblings().hide();
-			};
-		})(panel));
-		if(def.name == selected) {
-			tab.addClass("selected");
-			panel[0].show();
-		} else {
-			tab.removeClass("selected");
-			panel[0].hide();
+	session.onInitialInfoReceived.sub(function(info) {
+		var compileErrorPanel = new org.jinjor.haxemine.client.view.CompileErrorPanel(socket,session);
+		var searchPanel = new org.jinjor.haxemine.client.view.SearchPanel(socket,session);
+		var selected = "Tasks";
+		var defs = [{ name : "Tasks", container : compileErrorPanel.container}];
+		if(info.searchEnabled) defs.push({ name : "Search", container : searchPanel.container});
+		var _g = 0;
+		while(_g < defs.length) {
+			var def = defs[_g];
+			++_g;
+			var panel = [$("<div/>").html(def.container)];
+			var tab = $("<span class=\"view-tab\"/>").text(def.name).click((function(panel) {
+				return function() {
+					$(this).addClass("selected").siblings().removeClass("selected");
+					panel[0].show().siblings().hide();
+				};
+			})(panel));
+			if(def.name == selected) {
+				tab.addClass("selected");
+				panel[0].show();
+			} else {
+				tab.removeClass("selected");
+				panel[0].hide();
+			}
+			tabsContainer.append(tab);
+			panelsContainer.append(panel[0]);
 		}
-		tabsContainer.append(tab);
-		panelsContainer.append(panel[0]);
-	}
+	});
 	this.container = container.append(tabsContainer).append(panelsContainer);
 };
 org.jinjor.haxemine.client.view.ViewPanel.__name__ = true;
@@ -1288,6 +1321,14 @@ org.jinjor.haxemine.model.HistoryArray.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.model.HistoryArray
 }
+org.jinjor.haxemine.model.SearchResult = function(fileName,message) {
+	this.fileName = fileName;
+	this.message = message;
+};
+org.jinjor.haxemine.model.SearchResult.__name__ = true;
+org.jinjor.haxemine.model.SearchResult.prototype = {
+	__class__: org.jinjor.haxemine.model.SearchResult
+}
 org.jinjor.haxemine.model.SourceFile = function(pathFromProjectRoot) {
 	this.pathFromProjectRoot = pathFromProjectRoot;
 	var splitted = pathFromProjectRoot.split("/");
@@ -1310,10 +1351,11 @@ org.jinjor.haxemine.model.TaskProgress.prototype = {
 	__class__: org.jinjor.haxemine.model.TaskProgress
 }
 if(!org.jinjor.haxemine.server) org.jinjor.haxemine.server = {}
-org.jinjor.haxemine.server.InitialInfoDto = function(projectRoot,allFiles,taskInfos) {
+org.jinjor.haxemine.server.InitialInfoDto = function(projectRoot,allFiles,taskInfos,searchEnabled) {
 	this.projectRoot = projectRoot;
 	this.allFiles = allFiles;
 	this.taskInfos = taskInfos;
+	this.searchEnabled = searchEnabled;
 };
 org.jinjor.haxemine.server.InitialInfoDto.__name__ = true;
 org.jinjor.haxemine.server.InitialInfoDto.prototype = {
@@ -1337,6 +1379,12 @@ org.jinjor.haxemine.server.TaskInfo.prototype = {
 	__class__: org.jinjor.haxemine.server.TaskInfo
 }
 if(!org.jinjor.util) org.jinjor.util = {}
+org.jinjor.util.ClientUtil = function() { }
+org.jinjor.util.ClientUtil.__name__ = true;
+org.jinjor.util.ClientUtil.fixedSubmit = function(jquery,f) {
+	eval("\r\n            jquery.submit(function(){\r\n                f($(this));\r\n                return false;\r\n            });\r\n        ");
+	return jquery;
+}
 org.jinjor.util.Event = function() {
 	this.events = [];
 };

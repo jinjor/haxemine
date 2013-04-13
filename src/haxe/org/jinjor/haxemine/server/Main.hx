@@ -7,6 +7,7 @@ import org.jinjor.haxemine.model.HistoryArray;
 import org.jinjor.haxemine.model.SourceFile;
 import org.jinjor.haxemine.model.FileDetail;
 import org.jinjor.haxemine.model.TaskProgress;
+import org.jinjor.haxemine.model.SearchResult;
 
 using Lambda;
 using StringTools;
@@ -140,7 +141,7 @@ class Main {
                     trace(err);
                     throw err;
                 }
-                socket.emit('initial-info', new InitialInfoDto(projectRoot, files, taskInfos));
+                socket.emit('initial-info', new InitialInfoDto(projectRoot, files, taskInfos, true));//TODO
             });
           
           var doTask = function(taskName : String){
@@ -193,10 +194,34 @@ class Main {
           socket.on('disconnect', function(){
             print("disconnect");
           });
+          socket.on('search', function(word){
+            searchWord(childProcess, word, function(err, result){
+                socket.emit('search-result', result);
+            });
+          });
         });        
     }
     
     //logics---------------------------
+    
+    static function searchWord(childProcess, word : String, cb : Dynamic -> Array<SearchResult> -> Void) {
+        var command = 'findstr /S ' + word + ' *.hx';
+        print(command);
+        childProcess.exec(command, function(err, stdout:String, stderr){
+            if(err != null){
+                cb(null, []);
+            }else{
+                var messages = stdout.split('\n');
+                var results = messages.filter(function(message){
+                    return message != '';
+                }).map(function(message){
+                    var fileName = message.split(':')[0].replace('\\', '/');
+                    return new SearchResult(fileName, message);
+                }).array();
+                cb(null, results);
+            }
+        });
+    }
     
     static function findFromSrc(fs, fileName) : FileDetail {
       untyped console.log(fileName);

@@ -1510,6 +1510,17 @@ org.jinjor.haxemine.model.HistoryArray.prototype = {
 	,array: null
 	,__class__: org.jinjor.haxemine.model.HistoryArray
 }
+org.jinjor.haxemine.model.SearchResult = function(fileName,message) {
+	this.fileName = fileName;
+	this.message = message;
+};
+$hxClasses["org.jinjor.haxemine.model.SearchResult"] = org.jinjor.haxemine.model.SearchResult;
+org.jinjor.haxemine.model.SearchResult.__name__ = ["org","jinjor","haxemine","model","SearchResult"];
+org.jinjor.haxemine.model.SearchResult.prototype = {
+	message: null
+	,fileName: null
+	,__class__: org.jinjor.haxemine.model.SearchResult
+}
 org.jinjor.haxemine.model.SourceFile = function(pathFromProjectRoot) {
 	this.pathFromProjectRoot = pathFromProjectRoot;
 	var splitted = pathFromProjectRoot.split("/");
@@ -1549,15 +1560,17 @@ org.jinjor.haxemine.server.HaxemineConfig.prototype = {
 	,port: null
 	,__class__: org.jinjor.haxemine.server.HaxemineConfig
 }
-org.jinjor.haxemine.server.InitialInfoDto = function(projectRoot,allFiles,taskInfos) {
+org.jinjor.haxemine.server.InitialInfoDto = function(projectRoot,allFiles,taskInfos,searchEnabled) {
 	this.projectRoot = projectRoot;
 	this.allFiles = allFiles;
 	this.taskInfos = taskInfos;
+	this.searchEnabled = searchEnabled;
 };
 $hxClasses["org.jinjor.haxemine.server.InitialInfoDto"] = org.jinjor.haxemine.server.InitialInfoDto;
 org.jinjor.haxemine.server.InitialInfoDto.__name__ = ["org","jinjor","haxemine","server","InitialInfoDto"];
 org.jinjor.haxemine.server.InitialInfoDto.prototype = {
-	taskInfos: null
+	searchEnabled: null
+	,taskInfos: null
 	,allFiles: null
 	,projectRoot: null
 	,__class__: org.jinjor.haxemine.server.InitialInfoDto
@@ -1661,7 +1674,7 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 				console.log(err);
 				throw err;
 			}
-			socket.emit("initial-info",new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files,taskInfos));
+			socket.emit("initial-info",new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files,taskInfos,true));
 		});
 		var doTask = function(taskName) {
 			var tasks = Lambda.array(Lambda.filter(conf.hxml,function(hxml) {
@@ -1710,6 +1723,27 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 		socket.on("disconnect",function() {
 			org.jinjor.haxemine.server.Main.print("disconnect");
 		});
+		socket.on("search",function(word) {
+			org.jinjor.haxemine.server.Main.searchWord(childProcess,word,function(err,result) {
+				socket.emit("search-result",result);
+			});
+		});
+	});
+}
+org.jinjor.haxemine.server.Main.searchWord = function(childProcess,word,cb) {
+	var command = "findstr /S " + word + " *.hx";
+	org.jinjor.haxemine.server.Main.print(command);
+	childProcess.exec(command,function(err,stdout,stderr) {
+		if(err != null) cb(null,[]); else {
+			var messages = stdout.split("\n");
+			var results = Lambda.array(Lambda.filter(messages,function(message) {
+				return message != "";
+			}).map(function(message) {
+				var fileName = StringTools.replace(message.split(":")[0],"\\","/");
+				return new org.jinjor.haxemine.model.SearchResult(fileName,message);
+			}));
+			cb(null,results);
+		}
 	});
 }
 org.jinjor.haxemine.server.Main.findFromSrc = function(fs,fileName) {

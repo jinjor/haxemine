@@ -1,6 +1,7 @@
 package org.jinjor.util;
 
 import js.Lib;
+
 using Lambda;
 
 class Util{
@@ -20,4 +21,6 @@ class Util{
     }
     return hash;
   }
+  
+  
 }
