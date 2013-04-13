@@ -1674,7 +1674,7 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 				console.log(err);
 				throw err;
 			}
-			socket.emit("initial-info",new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files,taskInfos,true));
+			socket.emit("initial-info",new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files,taskInfos,org.jinjor.haxemine.server.OS.isWin()));
 		});
 		var doTask = function(taskName) {
 			var tasks = Lambda.array(Lambda.filter(conf.hxml,function(hxml) {
@@ -1731,20 +1731,22 @@ org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,asy
 	});
 }
 org.jinjor.haxemine.server.Main.searchWord = function(childProcess,word,cb) {
-	var command = "findstr /S " + word + " *.hx";
-	org.jinjor.haxemine.server.Main.print(command);
-	childProcess.exec(command,function(err,stdout,stderr) {
-		if(err != null) cb(null,[]); else {
-			var messages = stdout.split("\n");
-			var results = Lambda.array(Lambda.filter(messages,function(message) {
-				return message != "";
-			}).map(function(message) {
-				var fileName = StringTools.replace(message.split(":")[0],"\\","/");
-				return new org.jinjor.haxemine.model.SearchResult(fileName,message);
-			}));
-			cb(null,results);
-		}
-	});
+	if(!org.jinjor.haxemine.server.OS.isWin()) throw "not supported search."; else {
+		var command = "findstr /S " + word + " *.hx";
+		org.jinjor.haxemine.server.Main.print(command);
+		childProcess.exec(command,function(err,stdout,stderr) {
+			if(err != null) cb(null,[]); else {
+				var messages = stdout.split("\n");
+				var results = Lambda.array(Lambda.filter(messages,function(message) {
+					return message != "";
+				}).map(function(message) {
+					var fileName = StringTools.replace(message.split(":")[0],"\\","/");
+					return new org.jinjor.haxemine.model.SearchResult(fileName,message);
+				}));
+				cb(null,results);
+			}
+		});
+	}
 }
 org.jinjor.haxemine.server.Main.findFromSrc = function(fs,fileName) {
 	console.log(fileName);
@@ -1834,6 +1836,15 @@ org.jinjor.haxemine.server.Main.getAllMatchedFiles = function(async,fs,root,filt
 			_callback(null,all);
 		}
 	});
+}
+org.jinjor.haxemine.server.OS = function() { }
+$hxClasses["org.jinjor.haxemine.server.OS"] = org.jinjor.haxemine.server.OS;
+org.jinjor.haxemine.server.OS.__name__ = ["org","jinjor","haxemine","server","OS"];
+org.jinjor.haxemine.server.OS.isWin = function() {
+	return StringTools.startsWith(org.jinjor.haxemine.server.OS.type().toLowerCase(),"win");
+}
+org.jinjor.haxemine.server.OS.type = function() {
+	return org.jinjor.haxemine.server.OS.os.type();
 }
 org.jinjor.haxemine.server.SaveFileDto = function(fileName,text) {
 	this.fileName = fileName;
@@ -2000,6 +2011,7 @@ js.NodeC.FILE_WRITE_APPEND = "a+";
 js.NodeC.FILE_READWRITE = "a";
 js.NodeC.FILE_READWRITE_APPEND = "a+";
 org.jinjor.haxemine.server.Main.CONF_FILE = "haxemine.json";
+org.jinjor.haxemine.server.OS.os = js.Node.require("os");
 org.jinjor.haxemine.server.Main.main();
 })();
 
