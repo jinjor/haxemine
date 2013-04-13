@@ -2334,7 +2334,6 @@ org.jinjor.haxemine.server.Main.startApp = function(projectRoot) {
 			initialInfoM.pub(new org.jinjor.haxemine.messages.InitialInfoDto(projectRoot,files,taskInfos,org.jinjor.haxemine.server.OS.isWin()));
 		});
 		saveM.sub(function(saveFileDto) {
-			console.log(saveFileDto);
 			if(saveFileDto.fileName == null) {
 				console.log(saveFileDto);
 				throw "bad request.";

@@ -157,7 +157,6 @@ class Main {
             });
             
             saveM.sub(function(saveFileDto){
-                trace(saveFileDto);
                 if(saveFileDto.fileName == null){
                   trace(saveFileDto);
                   throw "bad request.";
