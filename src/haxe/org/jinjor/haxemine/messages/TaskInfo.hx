@@ -1,4 +1,4 @@
-package org.jinjor.haxemine.server;
+package org.jinjor.haxemine.messages;
 
 class TaskInfo {
     

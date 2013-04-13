@@ -1,7 +1,7 @@
 package org.jinjor.haxemine.client;
 
 import js.JQuery;
-import org.jinjor.haxemine.server.InitialInfoDto;
+import org.jinjor.haxemine.messages.InitialInfoDto;
 
 class Menu {
     

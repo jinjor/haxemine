@@ -1,14 +1,17 @@
 package org.jinjor.haxemine.client.view;
 
 import js.JQuery;
+import org.jinjor.haxemine.messages.SaveFileDto;
+import org.jinjor.haxemine.messages.SaveM;
+
 using Lambda;
 
 class AceEditorView {
     
-    public function new(editor : Dynamic, session : Session){
+    public function new(editor : Dynamic, socket : Dynamic, session : Session){
+        var saveM = new SaveM(socket); 
         session.onEditingFileChanged.sub(function(detail){
             editor.getSession().setValue(detail.text);
-            //untyped console.log(detail.text);
             editor.getSession().setMode("ace/mode/" + detail.mode);
             annotateCompileError(editor, session);
         });
@@ -24,7 +27,7 @@ class AceEditorView {
                 mac : "Command-S"
             },
             exec: function(editor) {
-                session.saveFile(editor.getSession().getValue());
+                saveFile(saveM, session, editor.getSession().getValue());
             }
         },{//TODO Ctrl-Click
             Name : "savefile",
@@ -74,7 +77,10 @@ class AceEditorView {
         editor.getSession().setAnnotations(annotations);
         
     }
-    
+    private static function saveFile(saveM : SaveM, session : Session, text : String){
+        session.onSave.pub(null);
+        saveM.pub(new SaveFileDto(session.getCurrentFile().pathFromProjectRoot, text));
+    }
     
     private function render(editor, theme : String) {
         editor.setTheme(theme); 

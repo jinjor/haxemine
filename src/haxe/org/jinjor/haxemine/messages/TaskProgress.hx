@@ -1,4 +1,4 @@
-package org.jinjor.haxemine.model;
+package org.jinjor.haxemine.messages;
 
 class TaskProgress {
 

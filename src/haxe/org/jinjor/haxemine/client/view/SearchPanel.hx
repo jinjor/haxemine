@@ -1,7 +1,9 @@
 package org.jinjor.haxemine.client.view;
 
 import js.JQuery;
-import org.jinjor.haxemine.model.SearchResult;
+import org.jinjor.haxemine.messages.SearchM;
+import org.jinjor.haxemine.messages.SearchResult;
+import org.jinjor.haxemine.messages.SearchResultM;
 
 using org.jinjor.util.ClientUtil;
 
@@ -11,18 +13,20 @@ class SearchPanel {
     public var container : JQuery;
 
     public function new(socket : Dynamic, session : Session) {
+        var searchM = new SearchM(socket);
+        var searchResultM = new SearchResultM(socket);
         
         var input = JQ('<input type="text"/>');
         var button = JQ('<input type="submit">').val('Search');
         var form = JQ('<form/>').append(input).append(button);
         form.fixedSubmit(function(_){
             var word = input.val();
-            socket.emit('search', word);
+            searchM.pub(word);
             form.attr("disabled", "disabled");
         });
         var resultsContainer = JQ('<div/>');
         
-        socket.on('search-result', function(results : Array<SearchResult>){
+        searchResultM.sub(function(results : Array<SearchResult>){
             resultsContainer.empty();
             for(result in results){
                 var link = JQ('<a/>').text(result.message).click(function(){

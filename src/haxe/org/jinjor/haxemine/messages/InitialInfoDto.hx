@@ -1,7 +1,4 @@
-package org.jinjor.haxemine.server;
-
-import org.jinjor.haxemine.model.SourceFile;
-import org.jinjor.haxemine.model.TaskProgress;
+package org.jinjor.haxemine.messages;
 
 class InitialInfoDto {
     

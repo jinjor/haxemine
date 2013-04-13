@@ -2,12 +2,18 @@ package org.jinjor.haxemine.server;
 
 import haxe.Json;
 import js.Node;
-import org.jinjor.haxemine.model.CompileError;
-import org.jinjor.haxemine.model.HistoryArray;
-import org.jinjor.haxemine.model.SourceFile;
-import org.jinjor.haxemine.model.FileDetail;
-import org.jinjor.haxemine.model.TaskProgress;
-import org.jinjor.haxemine.model.SearchResult;
+import org.jinjor.haxemine.messages.SourceFile;
+import org.jinjor.haxemine.messages.TaskInfo;
+import org.jinjor.haxemine.messages.InitialInfoDto;
+import org.jinjor.haxemine.messages.SaveM;
+import org.jinjor.haxemine.messages.SearchM;
+import org.jinjor.haxemine.messages.SearchResultM;
+import org.jinjor.haxemine.messages.InitialInfoM;
+import org.jinjor.haxemine.messages.SaveFileDto;
+import org.jinjor.haxemine.messages.AllHaxeFilesM;
+import org.jinjor.haxemine.messages.DoTaskM;
+import org.jinjor.haxemine.messages.DoTasksM;
+import org.jinjor.haxemine.messages.TaskProgressM;
 
 using Lambda;
 using StringTools;
@@ -17,35 +23,29 @@ class Main {
     
     static inline var CONF_FILE = 'haxemine.json';
     
-    static function print(s, ?author : String){
-      untyped console.log(author.or('haxemine') + ' > ' + s);
-    }
+    static var express : Dynamic = Node.require('express');
+    static var fs  : Dynamic    = Node.require('fs');
+    static var sys     = Node.require('sys');
+    static var http = Node.require('http');
+    static var path = Node.require('path');
+    static var readline = Node.require('readline');
+    static var socketio = Node.require('socket.io');
+    static var childProcess : Dynamic = Node.require('child_process');
+    static var async : Dynamic = Node.require('async');
     
     public static function main(){
-        
-        var express : Dynamic = Node.require('express');
-        var fs  : Dynamic    = Node.require('fs');
-        var sys     = Node.require('sys');
-        var http = Node.require('http');
-        var path = Node.require('path');
-        var readline = Node.require('readline');
-        var socketio = Node.require('socket.io');
-        //var watch = Node.require('./lib/watch.js');
-        var childProcess = Node.require('child_process');
-        var async : Dynamic = Node.require('async');
-        //var process : Dynamic = untyped process;
         
         var projectRoot = '.';
         var confPath = projectRoot + '/' + CONF_FILE;
         if(!path.existsSync(confPath)){
-            print(CONF_FILE + 'is required in current directory.');
-            print('create ' + CONF_FILE + ' here? [y/n]');
+            Console.print(CONF_FILE + 'is required in current directory.');
+            Console.print('create ' + CONF_FILE + ' here? [y/n]');
             
             var rli = readline.createInterface(untyped process.stdin, untyped process.stdout);
     
             rli.on('line', function(cmd) {
                 if(cmd == 'y'){
-                    getAllHxmlFiles(async, fs, projectRoot, function(err, files : Array<String>){
+                    Service.getAllHxmlFiles(projectRoot, function(err, files : Array<String>){
                         if(err){
                             untyped console.log(err);
                             throw(err);
@@ -63,8 +63,8 @@ class Main {
                         var conf = new HaxemineConfig(8765, xhml);
                         var confJson = untyped JSON.stringify(conf, null, " ");
                         fs.writeFileSync(confPath, confJson, "utf8");
-                        print('created haxemine.conf\n' + confJson);
-                        print('modify haxemine.conf and restart haxemine.');
+                        Console.print('created haxemine.conf\n' + confJson);
+                        Console.print('modify haxemine.conf and restart haxemine.');
                         untyped process.exit(0);
                     });
                 }else if(cmd == 'n'){
@@ -76,15 +76,15 @@ class Main {
             });
             rli.prompt();
         }else{
-            startApp(sys, fs, path, childProcess, async, http, socketio, express, projectRoot);
+            startApp(projectRoot);
         }
     }
     
-    static function startApp(sys, fs : Dynamic, path : Dynamic, childProcess : Dynamic, async : Dynamic, http, socketio, express : Dynamic, projectRoot : String){
+    static function startApp(projectRoot : String){
         var conf : HaxemineConfig = Json.parse(fs.readFileSync(projectRoot + '/' + CONF_FILE, 'utf8'));
         var port = conf.port.or(8765);
-        print('projectRoot:' + projectRoot);
-        print('port:' + port);
+        Console.print('projectRoot:' + projectRoot);
+        Console.print('port:' + port);
         
         var taskInfos = conf.hxml.map(function(hxml){
             var name = hxml.path;
@@ -92,6 +92,8 @@ class Main {
             return new TaskInfo(name, content, if(hxml.auto == null) true else hxml.auto);
         }).array();
         
+        var _path = path;
+        var _express = express;
         var app : Dynamic = express();
         
         untyped console.log(untyped __dirname + '/public/favicon.ico');
@@ -103,7 +105,7 @@ class Main {
           app.use(express.bodyParser());
           app.use(express.methodOverride());
           app.use(app.router);
-          app.use(js.Lib.eval("express.static(path.join(__dirname, 'public'))"));
+          app.use(js.Lib.eval("_express.static(_path.join(__dirname, 'public'))"));
         });
         
         app.get('/', function(req, res){
@@ -123,230 +125,62 @@ class Main {
           }else{
             res.contentType('application/json');
             trace(req.query.fileName);
-            res.send(Json.stringify(findFromSrc(fs, projectRoot + '/' + fileName)));
+            res.send(Json.stringify(Service.findFromSrc(projectRoot + '/' + fileName)));
           }
         });
         
         var server : Dynamic = http.createServer(app);
         server.listen(app.get('port'), function(){
-          print("haxemine listening on port " + app.get('port'));
+          Console.print("haxemine listening on port " + app.get('port'));
         });
+        
         
         var io = socketio.listen(server, {'log level': 1});
         
         io.sockets.on('connection', function(socket : Dynamic) {
-            print("connection");
-            getAllHaxeFiles(async, fs, projectRoot, function(err, files : Dynamic<SourceFile>){
+            var initialInfoM = new InitialInfoM(socket);
+            var allHaxeFilesM = new AllHaxeFilesM(socket);
+            var searchResultM = new SearchResultM(socket);
+            var searchM = new SearchM(socket);
+            var saveM = new SaveM(socket);
+            var doTaskM = new DoTaskM(socket);
+            var doTasksM = new DoTasksM(socket);
+            var taskProgressM = new TaskProgressM(socket);
+            
+            Console.print("connection");
+            Service.getAllHaxeFiles(projectRoot, function(err, files : Dynamic<SourceFile>){
                 if(err != null){
                     trace(err);
                     throw err;
                 }
-                socket.emit('initial-info', new InitialInfoDto(projectRoot, files, taskInfos, OS.isWin()));
+                initialInfoM.pub(new InitialInfoDto(projectRoot, files, taskInfos, OS.isWin()));
             });
-          
-          var doTask = function(taskName : String){
-            var tasks = conf.hxml.filter(function(hxml){
-                return hxml.path == taskName;
-            }).map(function(hxml){
-              var task = createCompileHaxeTask(childProcess, socket, projectRoot, hxml.path);
-              return task;
-            }).array();
-            async.series(tasks, function(){});
-          };
-          
-          var doAutoTasks = function(){
-            var tasks = conf.hxml.filter(function(hxml){
-                return hxml.auto != null && hxml.auto;
-            }).map(function(hxml){
-              var task = createCompileHaxeTask(childProcess, socket, projectRoot, hxml.path);
-              return task;
-            }).array();
-            async.series(tasks, function(){});
-          };
-          
-          socket.on('save', function(data : SaveFileDto) {
-            if(data.fileName == null){
-              trace(data);
-              throw "bad request.";
-            }
-            var _path = projectRoot + '/'+ data.fileName;
-            var isNew = !path.existsSync(_path);
-            saveToSrc(fs, _path, data.text);
-            if(isNew){
-                getAllHaxeFiles(async, fs, projectRoot, function(err, files : Dynamic<SourceFile>){
-                    if(err != null){
-                        trace(err);
-                        throw err;
-                    }
-                    socket.emit('all-haxe-files', files);
-                });
-            }
             
-            socket.emit('stdout', 'saved');
-            doAutoTasks();
-          });
-          socket.on('doTask', function(e) {
-            doTask(e.taskName);
-          });
-          socket.on('doTasks', function() {
-            doAutoTasks();
-          });
-          socket.on('disconnect', function(){
-            print("disconnect");
-          });
-          socket.on('search', function(word){
-            searchWord(childProcess, word, function(err, result){
-                socket.emit('search-result', result);
+            saveM.sub(function(saveFileDto){
+                if(saveFileDto.fileName == null){
+                  trace(saveFileDto);
+                  throw "bad request.";
+                }
+                Service.save(projectRoot, saveFileDto, allHaxeFilesM, socket);
+                Service.doAutoTasks(conf, projectRoot, socket, taskProgressM);
             });
-          });
+            doTaskM.sub(function(taskName) {
+                Service.doTask(conf, projectRoot, socket, taskProgressM, taskName);
+            });
+            doTasksM.sub(function(_) {
+                Service.doAutoTasks(conf, projectRoot, socket, taskProgressM);
+            });
+            socket.on('disconnect', function(){
+                Console.print("disconnect");
+            });
+            
+            searchM.sub(function(word){
+                Service.searchWord(word, function(err, result){
+                    searchResultM.pub(result);
+                });
+            });
         });        
     }
     
-    //logics---------------------------
     
-    static function searchWord(childProcess, word : String, cb : Dynamic -> Array<SearchResult> -> Void) {
-        if(!OS.isWin()){
-            throw 'not supported search.';
-        }else{
-            var command = 'findstr /S ' + word + ' *.hx';
-            print(command);
-            childProcess.exec(command, function(err, stdout:String, stderr){
-                if(err != null){
-                    cb(null, []);
-                }else{
-                    var messages = stdout.split('\n');
-                    var results = messages.filter(function(message){
-                        return message != '';
-                    }).map(function(message){
-                        var fileName = message.split(':')[0].replace('\\', '/');
-                        return new SearchResult(fileName, message);
-                    }).array();
-                    cb(null, results);
-                }
-            });
-        }
-    }
-    
-    static function findFromSrc(fs, fileName) : FileDetail {
-      untyped console.log(fileName);
-      return new FileDetail(fs.readFileSync(fileName, "utf8"), 'haxe');
-    }
-    static function saveToSrc(fs, fileName, text){
-        fs.writeFileSync(fileName, text, "utf8");
-    }
-    
-    static function createCompileHaxeTask(childProcess, socket, projectRoot, hxmlPath){
-      return function(callBack){
-        compileHaxe(childProcess, socket, projectRoot, hxmlPath, callBack);
-      };
-    }
-    
-    static function compileHaxe(childProcess, socket, projectRoot, hxmlPath, callBack){
-      childProcess.exec('haxe ' + hxmlPath, {
-        cwd: projectRoot
-      },function(err, stdout, stderr){
-          if(err != null){
-              print(stderr, hxmlPath);
-          }
-        //err.or(print(stdout, hxmlPath));
-        //err.and(print(stderr, hxmlPath));
-        socket.emit('stdout', stdout);
-        
-        var compileErrors = if(err){
-            var msg = stderr;
-            var messages = msg.split('\n');
-            var compileErrors = messages.map(function(message){
-                if(message.startsWith('./')){
-                    message = message.substring('./'.length);
-                }
-                return new CompileError(message);
-            }).array();
-            compileErrors;
-        }else{
-            [];
-        }
-        socket.emit('taskProgress', new TaskProgress(hxmlPath, compileErrors));
-       
-        callBack(err);
-      });
-    }
-    
-    
-    
-    
-    //---------------------------
-
-    static function walk(fs, dir, done) : Void {
-      var results = [];
-      fs.readdir(dir, function(err, list) {
-        if (err != null) return done(err, null);
-        var pending : Int = list.length;
-        if (pending == 0) return done(null, results);
-        list.forEach(function(file) {
-          file = dir + '/' + file;
-          fs.stat(file, function(err, stat) {
-            if (stat != null && stat.isDirectory()) {
-              walk(fs, file, function(err, res) {
-                results = results.concat(res);
-                if (--pending == 0) done(null, results);
-              });
-            } else {
-              results.push(file);
-              if (--pending == 0) done(null, results);
-            }
-          });
-          return true;
-        });
-        return;
-      });
-    }
-    
-    static function getAllHaxeFiles(async, fs, projectRoot : String, _callback : Dynamic -> Dynamic<SourceFile> -> Void){
-        var filter = function(item : String){
-            return item.endsWith('.hx');
-        };
-        getAllMatchedFiles(async, fs, projectRoot, filter, function(err, filePaths){
-            if(err){
-                _callback(err, null);
-            }else{
-                var files : Dynamic<SourceFile> = {};
-                filePaths.foreach(function(f){
-                    untyped {files[f] = new SourceFile(f);}
-                    return true;
-                });
-                _callback(null, files);
-            }
-        });
-    }
-    static function getAllHxmlFiles(async, fs, projectRoot : String, _callback){
-        var filter = function(item : String){
-            return item.endsWith('.hxml');
-        };
-        getAllMatchedFiles(async, fs, projectRoot, filter, _callback);
-    }
-    
-    static function getAllMatchedFiles(async, fs, root : String, filter:String -> Bool, _callback){
-      walk(fs, root, function(err, results) {
-        if (err != null) {
-          _callback(err, null);
-        }else{
-          var all = [];
-          async.map(results, function(item : String, cb) {
-            if(filter(item)){
-              cb(null, item.split(root + '/')[1]);
-            }else{
-              cb(null, null);
-            }
-          },
-          function(err, items) {
-            items.forEach(function(item){
-              if(item != null){
-                all.push(item);
-              }
-            });
-          });
-          _callback(null, all);
-        }
-      });
-    }
 }

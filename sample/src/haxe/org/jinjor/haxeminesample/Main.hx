@@ -7,7 +7,8 @@ import org.jinjor.haxeminesample.util.Util3;
 class Main{
   
   public static function main() {
-    trace('Hello.');
+      
+    trace('Hello.');//TODO
     sub();
     new Util3();
   }

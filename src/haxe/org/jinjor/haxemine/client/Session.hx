@@ -1,13 +1,20 @@
 package org.jinjor.haxemine.client;
 
 import js.Lib;
-import org.jinjor.haxemine.model.CompileError;
-import org.jinjor.haxemine.model.SourceFile;
-import org.jinjor.haxemine.model.HistoryArray;
-import org.jinjor.haxemine.model.FileDetail;
-import org.jinjor.haxemine.server.SaveFileDto;
-import org.jinjor.haxemine.server.InitialInfoDto;
-import org.jinjor.haxemine.model.TaskProgress;
+import org.jinjor.haxemine.messages.CompileError;
+import org.jinjor.haxemine.messages.SourceFile;
+import org.jinjor.haxemine.messages.HistoryArray;
+import org.jinjor.haxemine.messages.FileDetail;
+import org.jinjor.haxemine.messages.SaveFileDto;
+import org.jinjor.haxemine.messages.InitialInfoDto;
+import org.jinjor.haxemine.messages.TaskProgress;
+
+import org.jinjor.haxemine.messages.SaveM;
+import org.jinjor.haxemine.messages.InitialInfoM;
+import org.jinjor.haxemine.messages.AllHaxeFilesM;
+import org.jinjor.haxemine.messages.DoTaskM;
+import org.jinjor.haxemine.messages.DoTasksM;
+import org.jinjor.haxemine.messages.TaskProgressM;
 
 using Lambda;
 using org.jinjor.util.Util;
@@ -34,19 +41,24 @@ class Session {
     public function new(socket, editingFiles){
         var that = this;
         this.socket = socket;
+        var initialInfoM = new InitialInfoM(socket);
+        var allHaxeFilesM = new AllHaxeFilesM(socket);
+        var doTasksM = new DoTasksM(socket);
+        var taskProgressM = new TaskProgressM(socket);
+        
         socket.on('stdout', function(msg : Dynamic) {
             if(msg != ''){
                 trace(msg);//View
             }
         });
-        socket.on('all-haxe-files', function(files : Dynamic<SourceFile>) {
+        allHaxeFilesM.sub(function(files : Dynamic<SourceFile>) {
             setAllFiles(Util.dynamicToHash(files));
         });
-        socket.on('initial-info', function(initialInfoDto : InitialInfoDto) {
-            onInitialInfoReceived.pub(initialInfoDto);
-            setAllFiles(Util.dynamicToHash(initialInfoDto.allFiles));
+        initialInfoM.sub(function(initialInfo) {
+            onInitialInfoReceived.pub(initialInfo);
+            setAllFiles(Util.dynamicToHash(initialInfo.allFiles));
         });
-        socket.on('taskProgress', function(taskProgress : Dynamic) {//TODO ここじゃない
+        taskProgressM.sub(function(taskProgress) {//TODO ここじゃない
             that.lastTaskProgress = taskProgress;
             onLastTaskProgressChanged.pub(null);
         });
@@ -71,7 +83,7 @@ class Session {
         this.onSelectView = new Event();
         
         this.onSocketConnected.sub(function(_){
-            doAllAutoTasks();//TODO ここじゃないきがする
+            doTasksM.pub(null);
         });
     }
     
@@ -112,35 +124,6 @@ class Session {
             return error.originalMessage.indexOf(file.pathFromProjectRoot) == 0
             || error.originalMessage.indexOf('./' + file.pathFromProjectRoot) == 0;
         });
-    }
-    
-    public function doTask(taskName : String){
-        socket.emit('doTask', {
-            taskName: taskName
-        });
-    }
-    public function doAllAutoTasks(){
-        socket.emit('doTasks', {});
-    }
-    
-    public function saveFile(text : String){
-        onSave.pub(null);
-        socket.emit('save', new SaveFileDto(getCurrentFile().pathFromProjectRoot, text));
-    }
-    
-    public function saveNewFile(pathFromProjectRoot : String, text : String){
-        var dup = false;
-        for(file in getAllFiles()){
-            if(file.pathFromProjectRoot == pathFromProjectRoot){
-                dup = true;
-                break;
-            }
-        }
-        if(dup){
-            Lib.alert(pathFromProjectRoot + ' already exists.');
-        }else{
-            socket.emit('save', new SaveFileDto(pathFromProjectRoot, text));
-        }
     }
     
 }

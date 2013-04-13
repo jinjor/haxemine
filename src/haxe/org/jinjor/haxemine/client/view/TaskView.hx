@@ -1,6 +1,7 @@
 package org.jinjor.haxemine.client.view;
 
 import js.JQuery;
+import org.jinjor.haxemine.messages.DoTaskM;
 
 class TaskView {
     
@@ -8,7 +9,7 @@ class TaskView {
 
     public var container : JQuery;
     
-    public function new(session : Session, task : TaskModel) {
+    public function new(doTaskM: DoTaskM, session : Session, task : TaskModel) {
         
         task.onUpdate.sub(function(_) {
             render(task);
@@ -20,7 +21,7 @@ class TaskView {
         this.container = JQ('<a class="task-view"/>').attr('title', task.content).click(function(){
             if(task.state == TaskModelState.READY){
                 task.state = TaskModelState.WAITING;
-                session.doTask(task.name);
+                doTaskM.pub(task.name);
             }
         });
         render(task);

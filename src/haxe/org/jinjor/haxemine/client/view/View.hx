@@ -22,7 +22,7 @@ class View {
         var viewPanel = new ViewPanel(socket, session);
         
         var menuContainer = new Menu(session).container;
-        var fileSelectorContainer = new FileSelector(session).container;
+        var fileSelectorContainer = new FileSelector(socket, session).container;
         var rightPanel = JQ('<div id="right"/>')
             .append(JQ('<div id="editor"/>'))
             .append(JQ('<hr/>'))
@@ -34,8 +34,7 @@ class View {
         .append(rightPanel);
         
         var editor = ace.edit("editor");
-        new AceEditorView(editor, session);//ACEだけは後
-        
+        new AceEditorView(editor, socket, session);//ACEだけは後
     }
     
     

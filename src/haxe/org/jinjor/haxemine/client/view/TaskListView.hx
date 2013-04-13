@@ -1,7 +1,8 @@
 package org.jinjor.haxemine.client.view;
 
 import js.JQuery;
-import org.jinjor.haxemine.server.InitialInfoDto;
+import org.jinjor.haxemine.messages.InitialInfoDto;
+import org.jinjor.haxemine.messages.DoTaskM;
 
 using Lambda;
 
@@ -14,13 +15,15 @@ class TaskListView {
 
     public function new(socket : Dynamic, session : Session) {
         
+        var doTaskM = new DoTaskM(socket);
+        
         session.onInitialInfoReceived.sub(function(info : InitialInfoDto) {
             
             var tasks = info.taskInfos.map(function(taskInfo) {
                 return new TaskModel(taskInfo.taskName, taskInfo.content, taskInfo.auto, socket);
             });
             var taskViewContainers = tasks.map(function(task){
-                return new TaskView(session, task);
+                return new TaskView(doTaskM, session, task);
             }).map(function(view){
                 return view.container;
             });

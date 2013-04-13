@@ -2,7 +2,9 @@ package org.jinjor.haxemine.client.view;
 
 import js.Lib;
 import js.JQuery;
-import org.jinjor.haxemine.model.SourceFile;
+import org.jinjor.haxemine.messages.SourceFile;
+import org.jinjor.haxemine.messages.SaveFileDto;
+import org.jinjor.haxemine.messages.SaveM;
 
 using StringTools;
 using Lambda;
@@ -34,9 +36,9 @@ class {{_class}} {
     
     public var container : JQuery;
     
-    public function new(session : Session){
+    public function new(socket : Dynamic, session : Session){
         var that = this;
-        
+        var saveM = new SaveM(socket);
         this.container = JQ('<div id="all-haxe-files"/>').on('click', 'a', function(){
             var file = session.getAllFiles().get(JQuery.cur.attr('data-filePath'));
             session.selectNextFile(file);
@@ -54,7 +56,7 @@ class {{_class}} {
                         _package: classPath.substring(0, classPath.length - className.length - 1),
                         _class: className
                     });
-                    session.saveNewFile(path + '/' + className + '.hx', text);
+                    saveNewFile(saveM, session, path + '/' + className + '.hx', text);
                 }
             }
             
@@ -75,6 +77,21 @@ class {{_class}} {
             return true;
         });
         return found;
+    }
+    
+    private static function saveNewFile(saveM, session : Session, pathFromProjectRoot : String, text : String){
+        var dup = false;
+        for(file in session.getAllFiles()){
+            if(file.pathFromProjectRoot == pathFromProjectRoot){
+                dup = true;
+                break;
+            }
+        }
+        if(dup){
+            Lib.alert(pathFromProjectRoot + ' already exists.');
+        }else{
+            saveM.pub(new SaveFileDto(pathFromProjectRoot, text));
+        }
     }
     
     public function render(session : Session){

@@ -1,5 +1,10 @@
 (function () { "use strict";
 var $hxClasses = {},$estr = function() { return js.Boot.__string_rec(this,''); };
+function $extend(from, fields) {
+	function inherit() {}; inherit.prototype = from; var proto = new inherit();
+	for (var name in fields) proto[name] = fields[name];
+	return proto;
+}
 var EReg = function(r,opt) {
 	opt = opt.split("u").join("");
 	this.r = new RegExp(r,opt);
@@ -1451,104 +1456,210 @@ js.Node.newSocket = function(options) {
 var org = {}
 org.jinjor = {}
 org.jinjor.haxemine = {}
-org.jinjor.haxemine.model = {}
-org.jinjor.haxemine.model.CompileError = function(originalMessage) {
+org.jinjor.haxemine.messages = {}
+org.jinjor.haxemine.messages.SocketMessage = function(socket,key) {
+	this.pub = function(data) {
+		socket.emit(key,data);
+	};
+	this.sub = function(f) {
+		socket.on(key,f);
+	};
+};
+$hxClasses["org.jinjor.haxemine.messages.SocketMessage"] = org.jinjor.haxemine.messages.SocketMessage;
+org.jinjor.haxemine.messages.SocketMessage.__name__ = ["org","jinjor","haxemine","messages","SocketMessage"];
+org.jinjor.haxemine.messages.SocketMessage.prototype = {
+	sub: null
+	,pub: null
+	,__class__: org.jinjor.haxemine.messages.SocketMessage
+}
+org.jinjor.haxemine.messages.AllHaxeFilesM = function(socket) {
+	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"search");
+};
+$hxClasses["org.jinjor.haxemine.messages.AllHaxeFilesM"] = org.jinjor.haxemine.messages.AllHaxeFilesM;
+org.jinjor.haxemine.messages.AllHaxeFilesM.__name__ = ["org","jinjor","haxemine","messages","AllHaxeFilesM"];
+org.jinjor.haxemine.messages.AllHaxeFilesM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
+org.jinjor.haxemine.messages.AllHaxeFilesM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
+	__class__: org.jinjor.haxemine.messages.AllHaxeFilesM
+});
+org.jinjor.haxemine.messages.CompileError = function(originalMessage) {
 	this.originalMessage = originalMessage;
-	var parsed = org.jinjor.haxemine.model.CompileError.parseCompileErrorMessage(originalMessage);
+	var parsed = org.jinjor.haxemine.messages.CompileError.parseCompileErrorMessage(originalMessage);
 	this.path = parsed.path;
 	this.row = parsed.row;
 	this.message = parsed.message;
 };
-$hxClasses["org.jinjor.haxemine.model.CompileError"] = org.jinjor.haxemine.model.CompileError;
-org.jinjor.haxemine.model.CompileError.__name__ = ["org","jinjor","haxemine","model","CompileError"];
-org.jinjor.haxemine.model.CompileError.parseCompileErrorMessage = function(message) {
+$hxClasses["org.jinjor.haxemine.messages.CompileError"] = org.jinjor.haxemine.messages.CompileError;
+org.jinjor.haxemine.messages.CompileError.__name__ = ["org","jinjor","haxemine","messages","CompileError"];
+org.jinjor.haxemine.messages.CompileError.parseCompileErrorMessage = function(message) {
 	var elms = message.split(":");
 	console.log(elms);
 	return { path : elms[0], row : Std.parseInt(elms[1]), message : elms[elms.length - 1]};
 }
-org.jinjor.haxemine.model.CompileError.prototype = {
+org.jinjor.haxemine.messages.CompileError.prototype = {
 	message: null
 	,row: null
 	,path: null
 	,originalMessage: null
-	,__class__: org.jinjor.haxemine.model.CompileError
+	,__class__: org.jinjor.haxemine.messages.CompileError
 }
-org.jinjor.haxemine.model.FileDetail = function(text,mode) {
+org.jinjor.haxemine.messages.DoTaskM = function(socket) {
+	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"doTask");
+};
+$hxClasses["org.jinjor.haxemine.messages.DoTaskM"] = org.jinjor.haxemine.messages.DoTaskM;
+org.jinjor.haxemine.messages.DoTaskM.__name__ = ["org","jinjor","haxemine","messages","DoTaskM"];
+org.jinjor.haxemine.messages.DoTaskM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
+org.jinjor.haxemine.messages.DoTaskM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
+	__class__: org.jinjor.haxemine.messages.DoTaskM
+});
+org.jinjor.haxemine.messages.DoTasksM = function(socket) {
+	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"doTasks");
+};
+$hxClasses["org.jinjor.haxemine.messages.DoTasksM"] = org.jinjor.haxemine.messages.DoTasksM;
+org.jinjor.haxemine.messages.DoTasksM.__name__ = ["org","jinjor","haxemine","messages","DoTasksM"];
+org.jinjor.haxemine.messages.DoTasksM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
+org.jinjor.haxemine.messages.DoTasksM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
+	__class__: org.jinjor.haxemine.messages.DoTasksM
+});
+org.jinjor.haxemine.messages.FileDetail = function(text,mode) {
 	this.text = text;
 	this.mode = mode;
 };
-$hxClasses["org.jinjor.haxemine.model.FileDetail"] = org.jinjor.haxemine.model.FileDetail;
-org.jinjor.haxemine.model.FileDetail.__name__ = ["org","jinjor","haxemine","model","FileDetail"];
-org.jinjor.haxemine.model.FileDetail.prototype = {
+$hxClasses["org.jinjor.haxemine.messages.FileDetail"] = org.jinjor.haxemine.messages.FileDetail;
+org.jinjor.haxemine.messages.FileDetail.__name__ = ["org","jinjor","haxemine","messages","FileDetail"];
+org.jinjor.haxemine.messages.FileDetail.prototype = {
 	mode: null
 	,text: null
-	,__class__: org.jinjor.haxemine.model.FileDetail
+	,__class__: org.jinjor.haxemine.messages.FileDetail
 }
-org.jinjor.haxemine.model.HistoryArray = function(max,equals) {
-	this.array = [];
-	this.max = max;
-	this.equals = equals;
+org.jinjor.haxemine.messages.InitialInfoDto = function(projectRoot,allFiles,taskInfos,searchEnabled) {
+	this.projectRoot = projectRoot;
+	this.allFiles = allFiles;
+	this.taskInfos = taskInfos;
+	this.searchEnabled = searchEnabled;
 };
-$hxClasses["org.jinjor.haxemine.model.HistoryArray"] = org.jinjor.haxemine.model.HistoryArray;
-org.jinjor.haxemine.model.HistoryArray.__name__ = ["org","jinjor","haxemine","model","HistoryArray"];
-org.jinjor.haxemine.model.HistoryArray.prototype = {
-	add: function(elm) {
-		var i = 0;
-		while(i < this.array.length) {
-			if(this.equals(this.array[i],elm)) {
-				this.array.splice(i,1);
-				break;
-			}
-			i++;
-		}
-		this.array.unshift(elm);
-		i = this.array.length - 1;
-		while(i > this.max) this.array.pop();
-	}
-	,equals: null
-	,max: null
-	,array: null
-	,__class__: org.jinjor.haxemine.model.HistoryArray
+$hxClasses["org.jinjor.haxemine.messages.InitialInfoDto"] = org.jinjor.haxemine.messages.InitialInfoDto;
+org.jinjor.haxemine.messages.InitialInfoDto.__name__ = ["org","jinjor","haxemine","messages","InitialInfoDto"];
+org.jinjor.haxemine.messages.InitialInfoDto.prototype = {
+	searchEnabled: null
+	,taskInfos: null
+	,allFiles: null
+	,projectRoot: null
+	,__class__: org.jinjor.haxemine.messages.InitialInfoDto
 }
-org.jinjor.haxemine.model.SearchResult = function(fileName,message) {
+org.jinjor.haxemine.messages.InitialInfoM = function(socket) {
+	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"initialInfo");
+};
+$hxClasses["org.jinjor.haxemine.messages.InitialInfoM"] = org.jinjor.haxemine.messages.InitialInfoM;
+org.jinjor.haxemine.messages.InitialInfoM.__name__ = ["org","jinjor","haxemine","messages","InitialInfoM"];
+org.jinjor.haxemine.messages.InitialInfoM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
+org.jinjor.haxemine.messages.InitialInfoM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
+	__class__: org.jinjor.haxemine.messages.InitialInfoM
+});
+org.jinjor.haxemine.messages.SaveFileDto = function(fileName,text) {
+	this.fileName = fileName;
+	this.text = text;
+};
+$hxClasses["org.jinjor.haxemine.messages.SaveFileDto"] = org.jinjor.haxemine.messages.SaveFileDto;
+org.jinjor.haxemine.messages.SaveFileDto.__name__ = ["org","jinjor","haxemine","messages","SaveFileDto"];
+org.jinjor.haxemine.messages.SaveFileDto.prototype = {
+	text: null
+	,fileName: null
+	,__class__: org.jinjor.haxemine.messages.SaveFileDto
+}
+org.jinjor.haxemine.messages.SaveM = function(socket) {
+	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"save");
+};
+$hxClasses["org.jinjor.haxemine.messages.SaveM"] = org.jinjor.haxemine.messages.SaveM;
+org.jinjor.haxemine.messages.SaveM.__name__ = ["org","jinjor","haxemine","messages","SaveM"];
+org.jinjor.haxemine.messages.SaveM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
+org.jinjor.haxemine.messages.SaveM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
+	__class__: org.jinjor.haxemine.messages.SaveM
+});
+org.jinjor.haxemine.messages.SearchM = function(socket) {
+	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"search");
+};
+$hxClasses["org.jinjor.haxemine.messages.SearchM"] = org.jinjor.haxemine.messages.SearchM;
+org.jinjor.haxemine.messages.SearchM.__name__ = ["org","jinjor","haxemine","messages","SearchM"];
+org.jinjor.haxemine.messages.SearchM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
+org.jinjor.haxemine.messages.SearchM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
+	__class__: org.jinjor.haxemine.messages.SearchM
+});
+org.jinjor.haxemine.messages.SearchResult = function(fileName,message) {
 	this.fileName = fileName;
 	this.message = message;
 };
-$hxClasses["org.jinjor.haxemine.model.SearchResult"] = org.jinjor.haxemine.model.SearchResult;
-org.jinjor.haxemine.model.SearchResult.__name__ = ["org","jinjor","haxemine","model","SearchResult"];
-org.jinjor.haxemine.model.SearchResult.prototype = {
+$hxClasses["org.jinjor.haxemine.messages.SearchResult"] = org.jinjor.haxemine.messages.SearchResult;
+org.jinjor.haxemine.messages.SearchResult.__name__ = ["org","jinjor","haxemine","messages","SearchResult"];
+org.jinjor.haxemine.messages.SearchResult.prototype = {
 	message: null
 	,fileName: null
-	,__class__: org.jinjor.haxemine.model.SearchResult
+	,__class__: org.jinjor.haxemine.messages.SearchResult
 }
-org.jinjor.haxemine.model.SourceFile = function(pathFromProjectRoot) {
+org.jinjor.haxemine.messages.SearchResultM = function(socket) {
+	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"search-result");
+};
+$hxClasses["org.jinjor.haxemine.messages.SearchResultM"] = org.jinjor.haxemine.messages.SearchResultM;
+org.jinjor.haxemine.messages.SearchResultM.__name__ = ["org","jinjor","haxemine","messages","SearchResultM"];
+org.jinjor.haxemine.messages.SearchResultM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
+org.jinjor.haxemine.messages.SearchResultM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
+	__class__: org.jinjor.haxemine.messages.SearchResultM
+});
+org.jinjor.haxemine.messages.SourceFile = function(pathFromProjectRoot) {
 	this.pathFromProjectRoot = pathFromProjectRoot;
 	var splitted = pathFromProjectRoot.split("/");
 	this.shortName = splitted[splitted.length - 1];
 };
-$hxClasses["org.jinjor.haxemine.model.SourceFile"] = org.jinjor.haxemine.model.SourceFile;
-org.jinjor.haxemine.model.SourceFile.__name__ = ["org","jinjor","haxemine","model","SourceFile"];
-org.jinjor.haxemine.model.SourceFile.equals = function(o1,o2) {
+$hxClasses["org.jinjor.haxemine.messages.SourceFile"] = org.jinjor.haxemine.messages.SourceFile;
+org.jinjor.haxemine.messages.SourceFile.__name__ = ["org","jinjor","haxemine","messages","SourceFile"];
+org.jinjor.haxemine.messages.SourceFile.equals = function(o1,o2) {
 	if(o1 == null || o2 == null) return false;
 	return o1.pathFromProjectRoot == o2.pathFromProjectRoot;
 }
-org.jinjor.haxemine.model.SourceFile.prototype = {
+org.jinjor.haxemine.messages.SourceFile.prototype = {
 	shortName: null
 	,pathFromProjectRoot: null
-	,__class__: org.jinjor.haxemine.model.SourceFile
+	,__class__: org.jinjor.haxemine.messages.SourceFile
 }
-org.jinjor.haxemine.model.TaskProgress = function(taskName,compileErrors) {
+org.jinjor.haxemine.messages.TaskInfo = function(taskName,content,auto) {
+	this.taskName = taskName;
+	this.content = content;
+	this.auto = auto;
+};
+$hxClasses["org.jinjor.haxemine.messages.TaskInfo"] = org.jinjor.haxemine.messages.TaskInfo;
+org.jinjor.haxemine.messages.TaskInfo.__name__ = ["org","jinjor","haxemine","messages","TaskInfo"];
+org.jinjor.haxemine.messages.TaskInfo.prototype = {
+	auto: null
+	,content: null
+	,taskName: null
+	,__class__: org.jinjor.haxemine.messages.TaskInfo
+}
+org.jinjor.haxemine.messages.TaskProgress = function(taskName,compileErrors) {
 	this.taskName = taskName;
 	this.compileErrors = compileErrors;
 };
-$hxClasses["org.jinjor.haxemine.model.TaskProgress"] = org.jinjor.haxemine.model.TaskProgress;
-org.jinjor.haxemine.model.TaskProgress.__name__ = ["org","jinjor","haxemine","model","TaskProgress"];
-org.jinjor.haxemine.model.TaskProgress.prototype = {
+$hxClasses["org.jinjor.haxemine.messages.TaskProgress"] = org.jinjor.haxemine.messages.TaskProgress;
+org.jinjor.haxemine.messages.TaskProgress.__name__ = ["org","jinjor","haxemine","messages","TaskProgress"];
+org.jinjor.haxemine.messages.TaskProgress.prototype = {
 	compileErrors: null
 	,taskName: null
-	,__class__: org.jinjor.haxemine.model.TaskProgress
+	,__class__: org.jinjor.haxemine.messages.TaskProgress
 }
+org.jinjor.haxemine.messages.TaskProgressM = function(socket) {
+	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"taskProgress");
+};
+$hxClasses["org.jinjor.haxemine.messages.TaskProgressM"] = org.jinjor.haxemine.messages.TaskProgressM;
+org.jinjor.haxemine.messages.TaskProgressM.__name__ = ["org","jinjor","haxemine","messages","TaskProgressM"];
+org.jinjor.haxemine.messages.TaskProgressM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
+org.jinjor.haxemine.messages.TaskProgressM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
+	__class__: org.jinjor.haxemine.messages.TaskProgressM
+});
 org.jinjor.haxemine.server = {}
+org.jinjor.haxemine.server.Console = function() { }
+$hxClasses["org.jinjor.haxemine.server.Console"] = org.jinjor.haxemine.server.Console;
+org.jinjor.haxemine.server.Console.__name__ = ["org","jinjor","haxemine","server","Console"];
+org.jinjor.haxemine.server.Console.print = function(s,author) {
+	console.log((author || "haxemine") + " > " + s);
+}
 org.jinjor.haxemine.server.HaxemineConfig = function(port,hxml) {
 	this.port = port;
 	this.hxml = hxml;
@@ -1560,45 +1671,18 @@ org.jinjor.haxemine.server.HaxemineConfig.prototype = {
 	,port: null
 	,__class__: org.jinjor.haxemine.server.HaxemineConfig
 }
-org.jinjor.haxemine.server.InitialInfoDto = function(projectRoot,allFiles,taskInfos,searchEnabled) {
-	this.projectRoot = projectRoot;
-	this.allFiles = allFiles;
-	this.taskInfos = taskInfos;
-	this.searchEnabled = searchEnabled;
-};
-$hxClasses["org.jinjor.haxemine.server.InitialInfoDto"] = org.jinjor.haxemine.server.InitialInfoDto;
-org.jinjor.haxemine.server.InitialInfoDto.__name__ = ["org","jinjor","haxemine","server","InitialInfoDto"];
-org.jinjor.haxemine.server.InitialInfoDto.prototype = {
-	searchEnabled: null
-	,taskInfos: null
-	,allFiles: null
-	,projectRoot: null
-	,__class__: org.jinjor.haxemine.server.InitialInfoDto
-}
 org.jinjor.haxemine.server.Main = function() { }
 $hxClasses["org.jinjor.haxemine.server.Main"] = org.jinjor.haxemine.server.Main;
 org.jinjor.haxemine.server.Main.__name__ = ["org","jinjor","haxemine","server","Main"];
-org.jinjor.haxemine.server.Main.print = function(s,author) {
-	console.log((author || "haxemine") + " > " + s);
-}
 org.jinjor.haxemine.server.Main.main = function() {
-	var express = js.Node.require("express");
-	var fs = js.Node.require("fs");
-	var sys = js.Node.require("sys");
-	var http = js.Node.require("http");
-	var path = js.Node.require("path");
-	var readline = js.Node.require("readline");
-	var socketio = js.Node.require("socket.io");
-	var childProcess = js.Node.require("child_process");
-	var async = js.Node.require("async");
 	var projectRoot = ".";
 	var confPath = projectRoot + "/" + "haxemine.json";
-	if(!path.existsSync(confPath)) {
-		org.jinjor.haxemine.server.Main.print("haxemine.json" + "is required in current directory.");
-		org.jinjor.haxemine.server.Main.print("create " + "haxemine.json" + " here? [y/n]");
-		var rli = readline.createInterface(process.stdin,process.stdout);
+	if(!org.jinjor.haxemine.server.Main.path.existsSync(confPath)) {
+		org.jinjor.haxemine.server.Console.print("haxemine.json" + "is required in current directory.");
+		org.jinjor.haxemine.server.Console.print("create " + "haxemine.json" + " here? [y/n]");
+		var rli = org.jinjor.haxemine.server.Main.readline.createInterface(process.stdin,process.stdout);
 		rli.on("line",function(cmd) {
-			if(cmd == "y") org.jinjor.haxemine.server.Main.getAllHxmlFiles(async,fs,projectRoot,function(err,files) {
+			if(cmd == "y") org.jinjor.haxemine.server.Service.getAllHxmlFiles(projectRoot,function(err,files) {
 				if(err) {
 					console.log(err);
 					throw err;
@@ -1611,9 +1695,9 @@ org.jinjor.haxemine.server.Main.main = function() {
 				}));
 				var conf = new org.jinjor.haxemine.server.HaxemineConfig(8765,xhml);
 				var confJson = JSON.stringify(conf,null," ");
-				fs.writeFileSync(confPath,confJson,"utf8");
-				org.jinjor.haxemine.server.Main.print("created haxemine.conf\n" + confJson);
-				org.jinjor.haxemine.server.Main.print("modify haxemine.conf and restart haxemine.");
+				org.jinjor.haxemine.server.Main.fs.writeFileSync(confPath,confJson,"utf8");
+				org.jinjor.haxemine.server.Console.print("created haxemine.conf\n" + confJson);
+				org.jinjor.haxemine.server.Console.print("modify haxemine.conf and restart haxemine.");
 				process.exit(0);
 			}); else if(cmd == "n") process.stdin.destroy();
 			rli.prompt();
@@ -1621,148 +1705,174 @@ org.jinjor.haxemine.server.Main.main = function() {
 			process.stdin.destroy();
 		});
 		rli.prompt();
-	} else org.jinjor.haxemine.server.Main.startApp(sys,fs,path,childProcess,async,http,socketio,express,projectRoot);
+	} else org.jinjor.haxemine.server.Main.startApp(projectRoot);
 }
-org.jinjor.haxemine.server.Main.startApp = function(sys,fs,path,childProcess,async,http,socketio,express,projectRoot) {
-	var conf = haxe.Json.parse(fs.readFileSync(projectRoot + "/" + "haxemine.json","utf8"));
+org.jinjor.haxemine.server.Main.startApp = function(projectRoot) {
+	var conf = haxe.Json.parse(org.jinjor.haxemine.server.Main.fs.readFileSync(projectRoot + "/" + "haxemine.json","utf8"));
 	var port = conf.port || 8765;
-	org.jinjor.haxemine.server.Main.print("projectRoot:" + projectRoot);
-	org.jinjor.haxemine.server.Main.print("port:" + port);
+	org.jinjor.haxemine.server.Console.print("projectRoot:" + projectRoot);
+	org.jinjor.haxemine.server.Console.print("port:" + port);
 	var taskInfos = Lambda.array(Lambda.map(conf.hxml,function(hxml) {
 		var name = hxml.path;
-		var content = fs.readFileSync(projectRoot + "/" + hxml.path,"utf8");
-		return new org.jinjor.haxemine.server.TaskInfo(name,content,hxml.auto == null?true:hxml.auto);
+		var content = org.jinjor.haxemine.server.Main.fs.readFileSync(projectRoot + "/" + hxml.path,"utf8");
+		return new org.jinjor.haxemine.messages.TaskInfo(name,content,hxml.auto == null?true:hxml.auto);
 	}));
-	var app = express();
+	var _path = org.jinjor.haxemine.server.Main.path;
+	var _express = org.jinjor.haxemine.server.Main.express;
+	var app = org.jinjor.haxemine.server.Main.express();
 	console.log(__dirname + "/public/favicon.ico");
 	app.configure(function() {
 		app.set("port",port);
-		app["use"](express.favicon(__dirname + "/public/favicon.ico"));
-		app["use"](express.logger("dev"));
-		app["use"](express.bodyParser());
-		app["use"](express.methodOverride());
+		app["use"](org.jinjor.haxemine.server.Main.express.favicon(__dirname + "/public/favicon.ico"));
+		app["use"](org.jinjor.haxemine.server.Main.express.logger("dev"));
+		app["use"](org.jinjor.haxemine.server.Main.express.bodyParser());
+		app["use"](org.jinjor.haxemine.server.Main.express.methodOverride());
 		app["use"](app.router);
-		app["use"](eval("express.static(path.join(__dirname, 'public'))"));
+		app["use"](eval("_express.static(_path.join(__dirname, 'public'))"));
 	});
 	app.get("/",function(req,res) {
 		res.writeHead(200,{ 'Content-Type' : "text/html"});
-		var rs = fs.createReadStream(__dirname + "/index.html");
-		sys.pump(rs,res);
+		var rs = org.jinjor.haxemine.server.Main.fs.createReadStream(__dirname + "/index.html");
+		org.jinjor.haxemine.server.Main.sys.pump(rs,res);
 	});
 	app.get("/test",function(req,res) {
 		res.writeHead(200,{ 'Content-Type' : "text/html"});
-		var rs = fs.createReadStream("SpecRunner.html");
-		sys.pump(rs,res);
+		var rs = org.jinjor.haxemine.server.Main.fs.createReadStream("SpecRunner.html");
+		org.jinjor.haxemine.server.Main.sys.pump(rs,res);
 	});
 	app.get("/src",function(req,res) {
 		var fileName = req.query.fileName;
 		if(fileName == null) res.send(); else {
 			res.contentType("application/json");
 			console.log(req.query.fileName);
-			res.send(haxe.Json.stringify(org.jinjor.haxemine.server.Main.findFromSrc(fs,projectRoot + "/" + fileName)));
+			res.send(haxe.Json.stringify(org.jinjor.haxemine.server.Service.findFromSrc(projectRoot + "/" + fileName)));
 		}
 	});
-	var server = http.createServer(app);
+	var server = org.jinjor.haxemine.server.Main.http.createServer(app);
 	server.listen(app.get("port"),function() {
-		org.jinjor.haxemine.server.Main.print("haxemine listening on port " + Std.string(app.get("port")));
+		org.jinjor.haxemine.server.Console.print("haxemine listening on port " + Std.string(app.get("port")));
 	});
-	var io = socketio.listen(server,{ 'log level' : 1});
+	var io = org.jinjor.haxemine.server.Main.socketio.listen(server,{ 'log level' : 1});
 	io.sockets.on("connection",function(socket) {
-		org.jinjor.haxemine.server.Main.print("connection");
-		org.jinjor.haxemine.server.Main.getAllHaxeFiles(async,fs,projectRoot,function(err,files) {
+		var initialInfoM = new org.jinjor.haxemine.messages.InitialInfoM(socket);
+		var allHaxeFilesM = new org.jinjor.haxemine.messages.AllHaxeFilesM(socket);
+		var searchResultM = new org.jinjor.haxemine.messages.SearchResultM(socket);
+		var searchM = new org.jinjor.haxemine.messages.SearchM(socket);
+		var saveM = new org.jinjor.haxemine.messages.SaveM(socket);
+		var doTaskM = new org.jinjor.haxemine.messages.DoTaskM(socket);
+		var doTasksM = new org.jinjor.haxemine.messages.DoTasksM(socket);
+		var taskProgressM = new org.jinjor.haxemine.messages.TaskProgressM(socket);
+		org.jinjor.haxemine.server.Console.print("connection");
+		org.jinjor.haxemine.server.Service.getAllHaxeFiles(projectRoot,function(err,files) {
 			if(err != null) {
 				console.log(err);
 				throw err;
 			}
-			socket.emit("initial-info",new org.jinjor.haxemine.server.InitialInfoDto(projectRoot,files,taskInfos,org.jinjor.haxemine.server.OS.isWin()));
+			initialInfoM.pub(new org.jinjor.haxemine.messages.InitialInfoDto(projectRoot,files,taskInfos,org.jinjor.haxemine.server.OS.isWin()));
 		});
-		var doTask = function(taskName) {
-			var tasks = Lambda.array(Lambda.filter(conf.hxml,function(hxml) {
-				return hxml.path == taskName;
-			}).map(function(hxml) {
-				var task = org.jinjor.haxemine.server.Main.createCompileHaxeTask(childProcess,socket,projectRoot,hxml.path);
-				return task;
-			}));
-			async.series(tasks,function() {
-			});
-		};
-		var doAutoTasks = function() {
-			var tasks = Lambda.array(Lambda.filter(conf.hxml,function(hxml) {
-				return hxml.auto != null && hxml.auto;
-			}).map(function(hxml) {
-				var task = org.jinjor.haxemine.server.Main.createCompileHaxeTask(childProcess,socket,projectRoot,hxml.path);
-				return task;
-			}));
-			async.series(tasks,function() {
-			});
-		};
-		socket.on("save",function(data) {
-			if(data.fileName == null) {
-				console.log(data);
+		saveM.sub(function(saveFileDto) {
+			if(saveFileDto.fileName == null) {
+				console.log(saveFileDto);
 				throw "bad request.";
 			}
-			var _path = projectRoot + "/" + data.fileName;
-			var isNew = !path.existsSync(_path);
-			org.jinjor.haxemine.server.Main.saveToSrc(fs,_path,data.text);
-			if(isNew) org.jinjor.haxemine.server.Main.getAllHaxeFiles(async,fs,projectRoot,function(err,files) {
-				if(err != null) {
-					console.log(err);
-					throw err;
-				}
-				socket.emit("all-haxe-files",files);
-			});
-			socket.emit("stdout","saved");
-			doAutoTasks();
+			org.jinjor.haxemine.server.Service.save(projectRoot,saveFileDto,allHaxeFilesM,socket);
+			org.jinjor.haxemine.server.Service.doAutoTasks(conf,projectRoot,socket,taskProgressM);
 		});
-		socket.on("doTask",function(e) {
-			doTask(e.taskName);
+		doTaskM.sub(function(taskName) {
+			org.jinjor.haxemine.server.Service.doTask(conf,projectRoot,socket,taskProgressM,taskName);
 		});
-		socket.on("doTasks",function() {
-			doAutoTasks();
+		doTasksM.sub(function(_) {
+			org.jinjor.haxemine.server.Service.doAutoTasks(conf,projectRoot,socket,taskProgressM);
 		});
 		socket.on("disconnect",function() {
-			org.jinjor.haxemine.server.Main.print("disconnect");
+			org.jinjor.haxemine.server.Console.print("disconnect");
 		});
-		socket.on("search",function(word) {
-			org.jinjor.haxemine.server.Main.searchWord(childProcess,word,function(err,result) {
-				socket.emit("search-result",result);
+		searchM.sub(function(word) {
+			org.jinjor.haxemine.server.Service.searchWord(word,function(err,result) {
+				searchResultM.pub(result);
 			});
 		});
 	});
 }
-org.jinjor.haxemine.server.Main.searchWord = function(childProcess,word,cb) {
+org.jinjor.haxemine.server.OS = function() { }
+$hxClasses["org.jinjor.haxemine.server.OS"] = org.jinjor.haxemine.server.OS;
+org.jinjor.haxemine.server.OS.__name__ = ["org","jinjor","haxemine","server","OS"];
+org.jinjor.haxemine.server.OS.isWin = function() {
+	return StringTools.startsWith(org.jinjor.haxemine.server.OS.type().toLowerCase(),"win");
+}
+org.jinjor.haxemine.server.OS.type = function() {
+	return org.jinjor.haxemine.server.OS.os.type();
+}
+org.jinjor.haxemine.server.Service = function() {
+};
+$hxClasses["org.jinjor.haxemine.server.Service"] = org.jinjor.haxemine.server.Service;
+org.jinjor.haxemine.server.Service.__name__ = ["org","jinjor","haxemine","server","Service"];
+org.jinjor.haxemine.server.Service.save = function(projectRoot,data,allHaxeFilesM,socket) {
+	var _path = projectRoot + "/" + data.fileName;
+	var isNew = !org.jinjor.haxemine.server.Service.path.existsSync(_path);
+	org.jinjor.haxemine.server.Service.saveToSrc(org.jinjor.haxemine.server.Service.fs,_path,data.text);
+	if(isNew) org.jinjor.haxemine.server.Service.getAllHaxeFiles(projectRoot,function(err,files) {
+		if(err != null) {
+			console.log(err);
+			throw err;
+		}
+		allHaxeFilesM.pub(files);
+	});
+	socket.emit("stdout","saved");
+}
+org.jinjor.haxemine.server.Service.doTask = function(conf,projectRoot,socket,taskProgressM,taskName) {
+	var tasks = Lambda.array(Lambda.filter(conf.hxml,function(hxml) {
+		return hxml.path == taskName;
+	}).map(function(hxml) {
+		var task = org.jinjor.haxemine.server.Service.createCompileHaxeTask(socket,taskProgressM,projectRoot,hxml.path);
+		return task;
+	}));
+	org.jinjor.haxemine.server.Service.async.series(tasks,function() {
+	});
+}
+org.jinjor.haxemine.server.Service.doAutoTasks = function(conf,projectRoot,socket,taskProgressM) {
+	var tasks = Lambda.array(Lambda.filter(conf.hxml,function(hxml) {
+		return hxml.auto != null && hxml.auto;
+	}).map(function(hxml) {
+		var task = org.jinjor.haxemine.server.Service.createCompileHaxeTask(socket,taskProgressM,projectRoot,hxml.path);
+		return task;
+	}));
+	org.jinjor.haxemine.server.Service.async.series(tasks,function() {
+	});
+}
+org.jinjor.haxemine.server.Service.searchWord = function(word,cb) {
 	if(!org.jinjor.haxemine.server.OS.isWin()) throw "not supported search."; else {
 		var command = "findstr /S " + word + " *.hx";
-		org.jinjor.haxemine.server.Main.print(command);
-		childProcess.exec(command,function(err,stdout,stderr) {
+		org.jinjor.haxemine.server.Console.print(command);
+		org.jinjor.haxemine.server.Service.childProcess.exec(command,function(err,stdout,stderr) {
 			if(err != null) cb(null,[]); else {
 				var messages = stdout.split("\n");
 				var results = Lambda.array(Lambda.filter(messages,function(message) {
 					return message != "";
 				}).map(function(message) {
 					var fileName = StringTools.replace(message.split(":")[0],"\\","/");
-					return new org.jinjor.haxemine.model.SearchResult(fileName,message);
+					return new org.jinjor.haxemine.messages.SearchResult(fileName,message);
 				}));
 				cb(null,results);
 			}
 		});
 	}
 }
-org.jinjor.haxemine.server.Main.findFromSrc = function(fs,fileName) {
+org.jinjor.haxemine.server.Service.findFromSrc = function(fileName) {
 	console.log(fileName);
-	return new org.jinjor.haxemine.model.FileDetail(fs.readFileSync(fileName,"utf8"),"haxe");
+	return new org.jinjor.haxemine.messages.FileDetail(org.jinjor.haxemine.server.Service.fs.readFileSync(fileName,"utf8"),"haxe");
 }
-org.jinjor.haxemine.server.Main.saveToSrc = function(fs,fileName,text) {
+org.jinjor.haxemine.server.Service.saveToSrc = function(fs,fileName,text) {
 	fs.writeFileSync(fileName,text,"utf8");
 }
-org.jinjor.haxemine.server.Main.createCompileHaxeTask = function(childProcess,socket,projectRoot,hxmlPath) {
+org.jinjor.haxemine.server.Service.createCompileHaxeTask = function(socket,taskProgressM,projectRoot,hxmlPath) {
 	return function(callBack) {
-		org.jinjor.haxemine.server.Main.compileHaxe(childProcess,socket,projectRoot,hxmlPath,callBack);
+		org.jinjor.haxemine.server.Service.compileHaxe(socket,taskProgressM,projectRoot,hxmlPath,callBack);
 	};
 }
-org.jinjor.haxemine.server.Main.compileHaxe = function(childProcess,socket,projectRoot,hxmlPath,callBack) {
-	childProcess.exec("haxe " + hxmlPath,{ cwd : projectRoot},function(err,stdout,stderr) {
-		if(err != null) org.jinjor.haxemine.server.Main.print(stderr,hxmlPath);
+org.jinjor.haxemine.server.Service.compileHaxe = function(socket,taskProgressM,projectRoot,hxmlPath,callBack) {
+	org.jinjor.haxemine.server.Service.childProcess.exec("haxe " + hxmlPath,{ cwd : projectRoot},function(err,stdout,stderr) {
+		if(err != null) org.jinjor.haxemine.server.Console.print(stderr,hxmlPath);
 		socket.emit("stdout",stdout);
 		var compileErrors = err?(function($this) {
 			var $r;
@@ -1770,25 +1880,25 @@ org.jinjor.haxemine.server.Main.compileHaxe = function(childProcess,socket,proje
 			var messages = msg.split("\n");
 			var compileErrors1 = Lambda.array(Lambda.map(messages,function(message) {
 				if(StringTools.startsWith(message,"./")) message = message.substring("./".length);
-				return new org.jinjor.haxemine.model.CompileError(message);
+				return new org.jinjor.haxemine.messages.CompileError(message);
 			}));
 			$r = compileErrors1;
 			return $r;
 		}(this)):[];
-		socket.emit("taskProgress",new org.jinjor.haxemine.model.TaskProgress(hxmlPath,compileErrors));
+		taskProgressM.pub(new org.jinjor.haxemine.messages.TaskProgress(hxmlPath,compileErrors));
 		callBack(err);
 	});
 }
-org.jinjor.haxemine.server.Main.walk = function(fs,dir,done) {
+org.jinjor.haxemine.server.Service.walk = function(dir,done) {
 	var results = [];
-	fs.readdir(dir,function(err,list) {
+	org.jinjor.haxemine.server.Service.fs.readdir(dir,function(err,list) {
 		if(err != null) return done(err,null);
 		var pending = list.length;
 		if(pending == 0) return done(null,results);
 		list.forEach(function(file) {
 			file = dir + "/" + file;
-			fs.stat(file,function(err1,stat) {
-				if(stat != null && stat.isDirectory()) org.jinjor.haxemine.server.Main.walk(fs,file,function(err2,res) {
+			org.jinjor.haxemine.server.Service.fs.stat(file,function(err1,stat) {
+				if(stat != null && stat.isDirectory()) org.jinjor.haxemine.server.Service.walk(file,function(err2,res) {
 					results = results.concat(res);
 					if(--pending == 0) done(null,results);
 				}); else {
@@ -1801,32 +1911,32 @@ org.jinjor.haxemine.server.Main.walk = function(fs,dir,done) {
 		return;
 	});
 }
-org.jinjor.haxemine.server.Main.getAllHaxeFiles = function(async,fs,projectRoot,_callback) {
+org.jinjor.haxemine.server.Service.getAllHaxeFiles = function(projectRoot,_callback) {
 	var filter = function(item) {
 		return StringTools.endsWith(item,".hx");
 	};
-	org.jinjor.haxemine.server.Main.getAllMatchedFiles(async,fs,projectRoot,filter,function(err,filePaths) {
+	org.jinjor.haxemine.server.Service.getAllMatchedFiles(projectRoot,filter,function(err,filePaths) {
 		if(err) _callback(err,null); else {
 			var files = { };
 			Lambda.foreach(filePaths,function(f) {
-				files[f] = new org.jinjor.haxemine.model.SourceFile(f);
+				files[f] = new org.jinjor.haxemine.messages.SourceFile(f);
 				return true;
 			});
 			_callback(null,files);
 		}
 	});
 }
-org.jinjor.haxemine.server.Main.getAllHxmlFiles = function(async,fs,projectRoot,_callback) {
+org.jinjor.haxemine.server.Service.getAllHxmlFiles = function(projectRoot,_callback) {
 	var filter = function(item) {
 		return StringTools.endsWith(item,".hxml");
 	};
-	org.jinjor.haxemine.server.Main.getAllMatchedFiles(async,fs,projectRoot,filter,_callback);
+	org.jinjor.haxemine.server.Service.getAllMatchedFiles(projectRoot,filter,_callback);
 }
-org.jinjor.haxemine.server.Main.getAllMatchedFiles = function(async,fs,root,filter,_callback) {
-	org.jinjor.haxemine.server.Main.walk(fs,root,function(err,results) {
+org.jinjor.haxemine.server.Service.getAllMatchedFiles = function(root,filter,_callback) {
+	org.jinjor.haxemine.server.Service.walk(root,function(err,results) {
 		if(err != null) _callback(err,null); else {
 			var all = [];
-			async.map(results,function(item,cb) {
+			org.jinjor.haxemine.server.Service.async.map(results,function(item,cb) {
 				if(filter(item)) cb(null,item.split(root + "/")[1]); else cb(null,null);
 			},function(err1,items) {
 				items.forEach(function(item) {
@@ -1837,38 +1947,8 @@ org.jinjor.haxemine.server.Main.getAllMatchedFiles = function(async,fs,root,filt
 		}
 	});
 }
-org.jinjor.haxemine.server.OS = function() { }
-$hxClasses["org.jinjor.haxemine.server.OS"] = org.jinjor.haxemine.server.OS;
-org.jinjor.haxemine.server.OS.__name__ = ["org","jinjor","haxemine","server","OS"];
-org.jinjor.haxemine.server.OS.isWin = function() {
-	return StringTools.startsWith(org.jinjor.haxemine.server.OS.type().toLowerCase(),"win");
-}
-org.jinjor.haxemine.server.OS.type = function() {
-	return org.jinjor.haxemine.server.OS.os.type();
-}
-org.jinjor.haxemine.server.SaveFileDto = function(fileName,text) {
-	this.fileName = fileName;
-	this.text = text;
-};
-$hxClasses["org.jinjor.haxemine.server.SaveFileDto"] = org.jinjor.haxemine.server.SaveFileDto;
-org.jinjor.haxemine.server.SaveFileDto.__name__ = ["org","jinjor","haxemine","server","SaveFileDto"];
-org.jinjor.haxemine.server.SaveFileDto.prototype = {
-	text: null
-	,fileName: null
-	,__class__: org.jinjor.haxemine.server.SaveFileDto
-}
-org.jinjor.haxemine.server.TaskInfo = function(taskName,content,auto) {
-	this.taskName = taskName;
-	this.content = content;
-	this.auto = auto;
-};
-$hxClasses["org.jinjor.haxemine.server.TaskInfo"] = org.jinjor.haxemine.server.TaskInfo;
-org.jinjor.haxemine.server.TaskInfo.__name__ = ["org","jinjor","haxemine","server","TaskInfo"];
-org.jinjor.haxemine.server.TaskInfo.prototype = {
-	auto: null
-	,content: null
-	,taskName: null
-	,__class__: org.jinjor.haxemine.server.TaskInfo
+org.jinjor.haxemine.server.Service.prototype = {
+	__class__: org.jinjor.haxemine.server.Service
 }
 org.jinjor.util = {}
 org.jinjor.util.Util = function() { }
@@ -2011,7 +2091,20 @@ js.NodeC.FILE_WRITE_APPEND = "a+";
 js.NodeC.FILE_READWRITE = "a";
 js.NodeC.FILE_READWRITE_APPEND = "a+";
 org.jinjor.haxemine.server.Main.CONF_FILE = "haxemine.json";
+org.jinjor.haxemine.server.Main.express = js.Node.require("express");
+org.jinjor.haxemine.server.Main.fs = js.Node.require("fs");
+org.jinjor.haxemine.server.Main.sys = js.Node.require("sys");
+org.jinjor.haxemine.server.Main.http = js.Node.require("http");
+org.jinjor.haxemine.server.Main.path = js.Node.require("path");
+org.jinjor.haxemine.server.Main.readline = js.Node.require("readline");
+org.jinjor.haxemine.server.Main.socketio = js.Node.require("socket.io");
+org.jinjor.haxemine.server.Main.childProcess = js.Node.require("child_process");
+org.jinjor.haxemine.server.Main.async = js.Node.require("async");
 org.jinjor.haxemine.server.OS.os = js.Node.require("os");
+org.jinjor.haxemine.server.Service.fs = js.Node.require("fs");
+org.jinjor.haxemine.server.Service.childProcess = js.Node.require("child_process");
+org.jinjor.haxemine.server.Service.async = js.Node.require("async");
+org.jinjor.haxemine.server.Service.path = js.Node.require("path");
 org.jinjor.haxemine.server.Main.main();
 })();
 

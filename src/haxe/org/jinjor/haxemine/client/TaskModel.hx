@@ -1,6 +1,6 @@
 package org.jinjor.haxemine.client;
 
-import org.jinjor.haxemine.model.TaskProgress;
+import org.jinjor.haxemine.messages.TaskProgress;
 import org.jinjor.util.Event;
 
 using Lambda;
