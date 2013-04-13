@@ -1,6 +1,7 @@
 package org.jinjor.haxemine.client;
 
 import org.jinjor.haxemine.messages.TaskProgress;
+import org.jinjor.haxemine.messages.TaskProgressM;
 import org.jinjor.util.Event;
 
 using Lambda;
@@ -14,15 +15,12 @@ class TaskModel {
     public var onUpdate : Event<Void>;
     
     public function new(name : String, content : String, auto : Bool, socket : Dynamic) {
-        untyped console.log(auto);
+        var taskProgressM = new TaskProgressM(socket);
         var that = this;
-        socket.on('taskProgress', function(progress : TaskProgress) {
-            
+        taskProgressM.sub(function(progress) {
             if(name != progress.taskName){
                 return;
             }
-            //untyped console.log(progress);
-
             that.state = if(progress.compileErrors.length <= 0){
                 TaskModelState.SUCCESS;
             }else{

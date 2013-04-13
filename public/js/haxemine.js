@@ -1,13 +1,13 @@
-var $estr = function() { return js.Boot.__string_rec(this,''); };
+var $hxClasses = $hxClasses || {},$estr = function() { return js.Boot.__string_rec(this,''); };
 function $extend(from, fields) {
 	function inherit() {}; inherit.prototype = from; var proto = new inherit();
 	for (var name in fields) proto[name] = fields[name];
 	return proto;
 }
-var Hash = function() {
+var Hash = $hxClasses["Hash"] = function() {
 	this.h = { };
 };
-Hash.__name__ = true;
+Hash.__name__ = ["Hash"];
 Hash.prototype = {
 	toString: function() {
 		var s = new StringBuf();
@@ -53,10 +53,11 @@ Hash.prototype = {
 	,set: function(key,value) {
 		this.h["$" + key] = value;
 	}
+	,h: null
 	,__class__: Hash
 }
-var HxOverrides = function() { }
-HxOverrides.__name__ = true;
+var HxOverrides = $hxClasses["HxOverrides"] = function() { }
+HxOverrides.__name__ = ["HxOverrides"];
 HxOverrides.dateStr = function(date) {
 	var m = date.getMonth() + 1;
 	var d = date.getDate();
@@ -120,11 +121,62 @@ HxOverrides.iter = function(a) {
 		return this.arr[this.cur++];
 	}};
 }
-var IntIter = function(min,max) {
+var IntHash = $hxClasses["IntHash"] = function() {
+	this.h = { };
+};
+IntHash.__name__ = ["IntHash"];
+IntHash.prototype = {
+	toString: function() {
+		var s = new StringBuf();
+		s.b += Std.string("{");
+		var it = this.keys();
+		while( it.hasNext() ) {
+			var i = it.next();
+			s.b += Std.string(i);
+			s.b += Std.string(" => ");
+			s.b += Std.string(Std.string(this.get(i)));
+			if(it.hasNext()) s.b += Std.string(", ");
+		}
+		s.b += Std.string("}");
+		return s.b;
+	}
+	,iterator: function() {
+		return { ref : this.h, it : this.keys(), hasNext : function() {
+			return this.it.hasNext();
+		}, next : function() {
+			var i = this.it.next();
+			return this.ref[i];
+		}};
+	}
+	,keys: function() {
+		var a = [];
+		for( var key in this.h ) {
+		if(this.h.hasOwnProperty(key)) a.push(key | 0);
+		}
+		return HxOverrides.iter(a);
+	}
+	,remove: function(key) {
+		if(!this.h.hasOwnProperty(key)) return false;
+		delete(this.h[key]);
+		return true;
+	}
+	,exists: function(key) {
+		return this.h.hasOwnProperty(key);
+	}
+	,get: function(key) {
+		return this.h[key];
+	}
+	,set: function(key,value) {
+		this.h[key] = value;
+	}
+	,h: null
+	,__class__: IntHash
+}
+var IntIter = $hxClasses["IntIter"] = function(min,max) {
 	this.min = min;
 	this.max = max;
 };
-IntIter.__name__ = true;
+IntIter.__name__ = ["IntIter"];
 IntIter.prototype = {
 	next: function() {
 		return this.min++;
@@ -132,10 +184,12 @@ IntIter.prototype = {
 	,hasNext: function() {
 		return this.min < this.max;
 	}
+	,max: null
+	,min: null
 	,__class__: IntIter
 }
-var Lambda = function() { }
-Lambda.__name__ = true;
+var Lambda = $hxClasses["Lambda"] = function() { }
+Lambda.__name__ = ["Lambda"];
 Lambda.array = function(it) {
 	var a = new Array();
 	var $it0 = $iterator(it)();
@@ -273,10 +327,10 @@ Lambda.concat = function(a,b) {
 	}
 	return l;
 }
-var List = function() {
+var List = $hxClasses["List"] = function() {
 	this.length = 0;
 };
-List.__name__ = true;
+List.__name__ = ["List"];
 List.prototype = {
 	map: function(f) {
 		var b = new List();
@@ -381,10 +435,13 @@ List.prototype = {
 		this.q = x;
 		this.length++;
 	}
+	,length: null
+	,q: null
+	,h: null
 	,__class__: List
 }
-var Reflect = function() { }
-Reflect.__name__ = true;
+var Reflect = $hxClasses["Reflect"] = function() { }
+Reflect.__name__ = ["Reflect"];
 Reflect.hasField = function(o,field) {
 	return Object.prototype.hasOwnProperty.call(o,field);
 }
@@ -457,8 +514,8 @@ Reflect.makeVarArgs = function(f) {
 		return f(a);
 	};
 }
-var Std = function() { }
-Std.__name__ = true;
+var Std = $hxClasses["Std"] = function() { }
+Std.__name__ = ["Std"];
 Std["is"] = function(v,t) {
 	return js.Boot.__instanceof(v,t);
 }
@@ -480,10 +537,10 @@ Std.parseFloat = function(x) {
 Std.random = function(x) {
 	return Math.floor(Math.random() * x);
 }
-var StringBuf = function() {
+var StringBuf = $hxClasses["StringBuf"] = function() {
 	this.b = "";
 };
-StringBuf.__name__ = true;
+StringBuf.__name__ = ["StringBuf"];
 StringBuf.prototype = {
 	toString: function() {
 		return this.b;
@@ -497,10 +554,11 @@ StringBuf.prototype = {
 	,add: function(x) {
 		this.b += Std.string(x);
 	}
+	,b: null
 	,__class__: StringBuf
 }
-var StringTools = function() { }
-StringTools.__name__ = true;
+var StringTools = $hxClasses["StringTools"] = function() { }
+StringTools.__name__ = ["StringTools"];
 StringTools.urlEncode = function(s) {
 	return encodeURIComponent(s);
 }
@@ -585,9 +643,840 @@ StringTools.fastCodeAt = function(s,index) {
 StringTools.isEOF = function(c) {
 	return c != c;
 }
+var ValueType = $hxClasses["ValueType"] = { __ename__ : ["ValueType"], __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] }
+ValueType.TNull = ["TNull",0];
+ValueType.TNull.toString = $estr;
+ValueType.TNull.__enum__ = ValueType;
+ValueType.TInt = ["TInt",1];
+ValueType.TInt.toString = $estr;
+ValueType.TInt.__enum__ = ValueType;
+ValueType.TFloat = ["TFloat",2];
+ValueType.TFloat.toString = $estr;
+ValueType.TFloat.__enum__ = ValueType;
+ValueType.TBool = ["TBool",3];
+ValueType.TBool.toString = $estr;
+ValueType.TBool.__enum__ = ValueType;
+ValueType.TObject = ["TObject",4];
+ValueType.TObject.toString = $estr;
+ValueType.TObject.__enum__ = ValueType;
+ValueType.TFunction = ["TFunction",5];
+ValueType.TFunction.toString = $estr;
+ValueType.TFunction.__enum__ = ValueType;
+ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; }
+ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; }
+ValueType.TUnknown = ["TUnknown",8];
+ValueType.TUnknown.toString = $estr;
+ValueType.TUnknown.__enum__ = ValueType;
+var Type = $hxClasses["Type"] = function() { }
+Type.__name__ = ["Type"];
+Type.getClass = function(o) {
+	if(o == null) return null;
+	return o.__class__;
+}
+Type.getEnum = function(o) {
+	if(o == null) return null;
+	return o.__enum__;
+}
+Type.getSuperClass = function(c) {
+	return c.__super__;
+}
+Type.getClassName = function(c) {
+	var a = c.__name__;
+	return a.join(".");
+}
+Type.getEnumName = function(e) {
+	var a = e.__ename__;
+	return a.join(".");
+}
+Type.resolveClass = function(name) {
+	var cl = $hxClasses[name];
+	if(cl == null || !cl.__name__) return null;
+	return cl;
+}
+Type.resolveEnum = function(name) {
+	var e = $hxClasses[name];
+	if(e == null || !e.__ename__) return null;
+	return e;
+}
+Type.createInstance = function(cl,args) {
+	switch(args.length) {
+	case 0:
+		return new cl();
+	case 1:
+		return new cl(args[0]);
+	case 2:
+		return new cl(args[0],args[1]);
+	case 3:
+		return new cl(args[0],args[1],args[2]);
+	case 4:
+		return new cl(args[0],args[1],args[2],args[3]);
+	case 5:
+		return new cl(args[0],args[1],args[2],args[3],args[4]);
+	case 6:
+		return new cl(args[0],args[1],args[2],args[3],args[4],args[5]);
+	case 7:
+		return new cl(args[0],args[1],args[2],args[3],args[4],args[5],args[6]);
+	case 8:
+		return new cl(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7]);
+	default:
+		throw "Too many arguments";
+	}
+	return null;
+}
+Type.createEmptyInstance = function(cl) {
+	function empty() {}; empty.prototype = cl.prototype;
+	return new empty();
+}
+Type.createEnum = function(e,constr,params) {
+	var f = Reflect.field(e,constr);
+	if(f == null) throw "No such constructor " + constr;
+	if(Reflect.isFunction(f)) {
+		if(params == null) throw "Constructor " + constr + " need parameters";
+		return f.apply(e,params);
+	}
+	if(params != null && params.length != 0) throw "Constructor " + constr + " does not need parameters";
+	return f;
+}
+Type.createEnumIndex = function(e,index,params) {
+	var c = e.__constructs__[index];
+	if(c == null) throw index + " is not a valid enum constructor index";
+	return Type.createEnum(e,c,params);
+}
+Type.getInstanceFields = function(c) {
+	var a = [];
+	for(var i in c.prototype) a.push(i);
+	HxOverrides.remove(a,"__class__");
+	HxOverrides.remove(a,"__properties__");
+	return a;
+}
+Type.getClassFields = function(c) {
+	var a = Reflect.fields(c);
+	HxOverrides.remove(a,"__name__");
+	HxOverrides.remove(a,"__interfaces__");
+	HxOverrides.remove(a,"__properties__");
+	HxOverrides.remove(a,"__super__");
+	HxOverrides.remove(a,"prototype");
+	return a;
+}
+Type.getEnumConstructs = function(e) {
+	var a = e.__constructs__;
+	return a.slice();
+}
+Type["typeof"] = function(v) {
+	switch(typeof(v)) {
+	case "boolean":
+		return ValueType.TBool;
+	case "string":
+		return ValueType.TClass(String);
+	case "number":
+		if(Math.ceil(v) == v % 2147483648.0) return ValueType.TInt;
+		return ValueType.TFloat;
+	case "object":
+		if(v == null) return ValueType.TNull;
+		var e = v.__enum__;
+		if(e != null) return ValueType.TEnum(e);
+		var c = v.__class__;
+		if(c != null) return ValueType.TClass(c);
+		return ValueType.TObject;
+	case "function":
+		if(v.__name__ || v.__ename__) return ValueType.TObject;
+		return ValueType.TFunction;
+	case "undefined":
+		return ValueType.TNull;
+	default:
+		return ValueType.TUnknown;
+	}
+}
+Type.enumEq = function(a,b) {
+	if(a == b) return true;
+	try {
+		if(a[0] != b[0]) return false;
+		var _g1 = 2, _g = a.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(!Type.enumEq(a[i],b[i])) return false;
+		}
+		var e = a.__enum__;
+		if(e != b.__enum__ || e == null) return false;
+	} catch( e ) {
+		return false;
+	}
+	return true;
+}
+Type.enumConstructor = function(e) {
+	return e[0];
+}
+Type.enumParameters = function(e) {
+	return e.slice(2);
+}
+Type.enumIndex = function(e) {
+	return e[1];
+}
+Type.allEnums = function(e) {
+	var all = [];
+	var cst = e.__constructs__;
+	var _g = 0;
+	while(_g < cst.length) {
+		var c = cst[_g];
+		++_g;
+		var v = Reflect.field(e,c);
+		if(!Reflect.isFunction(v)) all.push(v);
+	}
+	return all;
+}
+var haxe = haxe || {}
+haxe.Serializer = $hxClasses["haxe.Serializer"] = function() {
+	this.buf = new StringBuf();
+	this.cache = new Array();
+	this.useCache = haxe.Serializer.USE_CACHE;
+	this.useEnumIndex = haxe.Serializer.USE_ENUM_INDEX;
+	this.shash = new Hash();
+	this.scount = 0;
+};
+haxe.Serializer.__name__ = ["haxe","Serializer"];
+haxe.Serializer.run = function(v) {
+	var s = new haxe.Serializer();
+	s.serialize(v);
+	return s.toString();
+}
+haxe.Serializer.prototype = {
+	serializeException: function(e) {
+		this.buf.b += Std.string("x");
+		this.serialize(e);
+	}
+	,serialize: function(v) {
+		var $e = (Type["typeof"](v));
+		switch( $e[1] ) {
+		case 0:
+			this.buf.b += Std.string("n");
+			break;
+		case 1:
+			if(v == 0) {
+				this.buf.b += Std.string("z");
+				return;
+			}
+			this.buf.b += Std.string("i");
+			this.buf.b += Std.string(v);
+			break;
+		case 2:
+			if(Math.isNaN(v)) this.buf.b += Std.string("k"); else if(!Math.isFinite(v)) this.buf.b += Std.string(v < 0?"m":"p"); else {
+				this.buf.b += Std.string("d");
+				this.buf.b += Std.string(v);
+			}
+			break;
+		case 3:
+			this.buf.b += Std.string(v?"t":"f");
+			break;
+		case 6:
+			var c = $e[2];
+			if(c == String) {
+				this.serializeString(v);
+				return;
+			}
+			if(this.useCache && this.serializeRef(v)) return;
+			switch(c) {
+			case Array:
+				var ucount = 0;
+				this.buf.b += Std.string("a");
+				var l = v.length;
+				var _g = 0;
+				while(_g < l) {
+					var i = _g++;
+					if(v[i] == null) ucount++; else {
+						if(ucount > 0) {
+							if(ucount == 1) this.buf.b += Std.string("n"); else {
+								this.buf.b += Std.string("u");
+								this.buf.b += Std.string(ucount);
+							}
+							ucount = 0;
+						}
+						this.serialize(v[i]);
+					}
+				}
+				if(ucount > 0) {
+					if(ucount == 1) this.buf.b += Std.string("n"); else {
+						this.buf.b += Std.string("u");
+						this.buf.b += Std.string(ucount);
+					}
+				}
+				this.buf.b += Std.string("h");
+				break;
+			case List:
+				this.buf.b += Std.string("l");
+				var v1 = v;
+				var $it0 = v1.iterator();
+				while( $it0.hasNext() ) {
+					var i = $it0.next();
+					this.serialize(i);
+				}
+				this.buf.b += Std.string("h");
+				break;
+			case Date:
+				var d = v;
+				this.buf.b += Std.string("v");
+				this.buf.b += Std.string(HxOverrides.dateStr(d));
+				break;
+			case Hash:
+				this.buf.b += Std.string("b");
+				var v1 = v;
+				var $it1 = v1.keys();
+				while( $it1.hasNext() ) {
+					var k = $it1.next();
+					this.serializeString(k);
+					this.serialize(v1.get(k));
+				}
+				this.buf.b += Std.string("h");
+				break;
+			case IntHash:
+				this.buf.b += Std.string("q");
+				var v1 = v;
+				var $it2 = v1.keys();
+				while( $it2.hasNext() ) {
+					var k = $it2.next();
+					this.buf.b += Std.string(":");
+					this.buf.b += Std.string(k);
+					this.serialize(v1.get(k));
+				}
+				this.buf.b += Std.string("h");
+				break;
+			case haxe.io.Bytes:
+				var v1 = v;
+				var i = 0;
+				var max = v1.length - 2;
+				var charsBuf = new StringBuf();
+				var b64 = haxe.Serializer.BASE64;
+				while(i < max) {
+					var b1 = v1.b[i++];
+					var b2 = v1.b[i++];
+					var b3 = v1.b[i++];
+					charsBuf.b += Std.string(b64.charAt(b1 >> 2));
+					charsBuf.b += Std.string(b64.charAt((b1 << 4 | b2 >> 4) & 63));
+					charsBuf.b += Std.string(b64.charAt((b2 << 2 | b3 >> 6) & 63));
+					charsBuf.b += Std.string(b64.charAt(b3 & 63));
+				}
+				if(i == max) {
+					var b1 = v1.b[i++];
+					var b2 = v1.b[i++];
+					charsBuf.b += Std.string(b64.charAt(b1 >> 2));
+					charsBuf.b += Std.string(b64.charAt((b1 << 4 | b2 >> 4) & 63));
+					charsBuf.b += Std.string(b64.charAt(b2 << 2 & 63));
+				} else if(i == max + 1) {
+					var b1 = v1.b[i++];
+					charsBuf.b += Std.string(b64.charAt(b1 >> 2));
+					charsBuf.b += Std.string(b64.charAt(b1 << 4 & 63));
+				}
+				var chars = charsBuf.b;
+				this.buf.b += Std.string("s");
+				this.buf.b += Std.string(chars.length);
+				this.buf.b += Std.string(":");
+				this.buf.b += Std.string(chars);
+				break;
+			default:
+				this.cache.pop();
+				if(v.hxSerialize != null) {
+					this.buf.b += Std.string("C");
+					this.serializeString(Type.getClassName(c));
+					this.cache.push(v);
+					v.hxSerialize(this);
+					this.buf.b += Std.string("g");
+				} else {
+					this.buf.b += Std.string("c");
+					this.serializeString(Type.getClassName(c));
+					this.cache.push(v);
+					this.serializeFields(v);
+				}
+			}
+			break;
+		case 4:
+			if(this.useCache && this.serializeRef(v)) return;
+			this.buf.b += Std.string("o");
+			this.serializeFields(v);
+			break;
+		case 7:
+			var e = $e[2];
+			if(this.useCache && this.serializeRef(v)) return;
+			this.cache.pop();
+			this.buf.b += Std.string(this.useEnumIndex?"j":"w");
+			this.serializeString(Type.getEnumName(e));
+			if(this.useEnumIndex) {
+				this.buf.b += Std.string(":");
+				this.buf.b += Std.string(v[1]);
+			} else this.serializeString(v[0]);
+			this.buf.b += Std.string(":");
+			var l = v.length;
+			this.buf.b += Std.string(l - 2);
+			var _g = 2;
+			while(_g < l) {
+				var i = _g++;
+				this.serialize(v[i]);
+			}
+			this.cache.push(v);
+			break;
+		case 5:
+			throw "Cannot serialize function";
+			break;
+		default:
+			throw "Cannot serialize " + Std.string(v);
+		}
+	}
+	,serializeFields: function(v) {
+		var _g = 0, _g1 = Reflect.fields(v);
+		while(_g < _g1.length) {
+			var f = _g1[_g];
+			++_g;
+			this.serializeString(f);
+			this.serialize(Reflect.field(v,f));
+		}
+		this.buf.b += Std.string("g");
+	}
+	,serializeRef: function(v) {
+		var vt = typeof(v);
+		var _g1 = 0, _g = this.cache.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var ci = this.cache[i];
+			if(typeof(ci) == vt && ci == v) {
+				this.buf.b += Std.string("r");
+				this.buf.b += Std.string(i);
+				return true;
+			}
+		}
+		this.cache.push(v);
+		return false;
+	}
+	,serializeString: function(s) {
+		var x = this.shash.get(s);
+		if(x != null) {
+			this.buf.b += Std.string("R");
+			this.buf.b += Std.string(x);
+			return;
+		}
+		this.shash.set(s,this.scount++);
+		this.buf.b += Std.string("y");
+		s = StringTools.urlEncode(s);
+		this.buf.b += Std.string(s.length);
+		this.buf.b += Std.string(":");
+		this.buf.b += Std.string(s);
+	}
+	,toString: function() {
+		return this.buf.b;
+	}
+	,useEnumIndex: null
+	,useCache: null
+	,scount: null
+	,shash: null
+	,cache: null
+	,buf: null
+	,__class__: haxe.Serializer
+}
+haxe.Unserializer = $hxClasses["haxe.Unserializer"] = function(buf) {
+	this.buf = buf;
+	this.length = buf.length;
+	this.pos = 0;
+	this.scache = new Array();
+	this.cache = new Array();
+	var r = haxe.Unserializer.DEFAULT_RESOLVER;
+	if(r == null) {
+		r = Type;
+		haxe.Unserializer.DEFAULT_RESOLVER = r;
+	}
+	this.setResolver(r);
+};
+haxe.Unserializer.__name__ = ["haxe","Unserializer"];
+haxe.Unserializer.initCodes = function() {
+	var codes = new Array();
+	var _g1 = 0, _g = haxe.Unserializer.BASE64.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		codes[haxe.Unserializer.BASE64.charCodeAt(i)] = i;
+	}
+	return codes;
+}
+haxe.Unserializer.run = function(v) {
+	return new haxe.Unserializer(v).unserialize();
+}
+haxe.Unserializer.prototype = {
+	unserialize: function() {
+		switch(this.buf.charCodeAt(this.pos++)) {
+		case 110:
+			return null;
+		case 116:
+			return true;
+		case 102:
+			return false;
+		case 122:
+			return 0;
+		case 105:
+			return this.readDigits();
+		case 100:
+			var p1 = this.pos;
+			while(true) {
+				var c = this.buf.charCodeAt(this.pos);
+				if(c >= 43 && c < 58 || c == 101 || c == 69) this.pos++; else break;
+			}
+			return Std.parseFloat(HxOverrides.substr(this.buf,p1,this.pos - p1));
+		case 121:
+			var len = this.readDigits();
+			if(this.buf.charCodeAt(this.pos++) != 58 || this.length - this.pos < len) throw "Invalid string length";
+			var s = HxOverrides.substr(this.buf,this.pos,len);
+			this.pos += len;
+			s = StringTools.urlDecode(s);
+			this.scache.push(s);
+			return s;
+		case 107:
+			return Math.NaN;
+		case 109:
+			return Math.NEGATIVE_INFINITY;
+		case 112:
+			return Math.POSITIVE_INFINITY;
+		case 97:
+			var buf = this.buf;
+			var a = new Array();
+			this.cache.push(a);
+			while(true) {
+				var c = this.buf.charCodeAt(this.pos);
+				if(c == 104) {
+					this.pos++;
+					break;
+				}
+				if(c == 117) {
+					this.pos++;
+					var n = this.readDigits();
+					a[a.length + n - 1] = null;
+				} else a.push(this.unserialize());
+			}
+			return a;
+		case 111:
+			var o = { };
+			this.cache.push(o);
+			this.unserializeObject(o);
+			return o;
+		case 114:
+			var n = this.readDigits();
+			if(n < 0 || n >= this.cache.length) throw "Invalid reference";
+			return this.cache[n];
+		case 82:
+			var n = this.readDigits();
+			if(n < 0 || n >= this.scache.length) throw "Invalid string reference";
+			return this.scache[n];
+		case 120:
+			throw this.unserialize();
+			break;
+		case 99:
+			var name = this.unserialize();
+			var cl = this.resolver.resolveClass(name);
+			if(cl == null) throw "Class not found " + name;
+			var o = Type.createEmptyInstance(cl);
+			this.cache.push(o);
+			this.unserializeObject(o);
+			return o;
+		case 119:
+			var name = this.unserialize();
+			var edecl = this.resolver.resolveEnum(name);
+			if(edecl == null) throw "Enum not found " + name;
+			var e = this.unserializeEnum(edecl,this.unserialize());
+			this.cache.push(e);
+			return e;
+		case 106:
+			var name = this.unserialize();
+			var edecl = this.resolver.resolveEnum(name);
+			if(edecl == null) throw "Enum not found " + name;
+			this.pos++;
+			var index = this.readDigits();
+			var tag = Type.getEnumConstructs(edecl)[index];
+			if(tag == null) throw "Unknown enum index " + name + "@" + index;
+			var e = this.unserializeEnum(edecl,tag);
+			this.cache.push(e);
+			return e;
+		case 108:
+			var l = new List();
+			this.cache.push(l);
+			var buf = this.buf;
+			while(this.buf.charCodeAt(this.pos) != 104) l.add(this.unserialize());
+			this.pos++;
+			return l;
+		case 98:
+			var h = new Hash();
+			this.cache.push(h);
+			var buf = this.buf;
+			while(this.buf.charCodeAt(this.pos) != 104) {
+				var s = this.unserialize();
+				h.set(s,this.unserialize());
+			}
+			this.pos++;
+			return h;
+		case 113:
+			var h = new IntHash();
+			this.cache.push(h);
+			var buf = this.buf;
+			var c = this.buf.charCodeAt(this.pos++);
+			while(c == 58) {
+				var i = this.readDigits();
+				h.set(i,this.unserialize());
+				c = this.buf.charCodeAt(this.pos++);
+			}
+			if(c != 104) throw "Invalid IntHash format";
+			return h;
+		case 118:
+			var d = HxOverrides.strDate(HxOverrides.substr(this.buf,this.pos,19));
+			this.cache.push(d);
+			this.pos += 19;
+			return d;
+		case 115:
+			var len = this.readDigits();
+			var buf = this.buf;
+			if(this.buf.charCodeAt(this.pos++) != 58 || this.length - this.pos < len) throw "Invalid bytes length";
+			var codes = haxe.Unserializer.CODES;
+			if(codes == null) {
+				codes = haxe.Unserializer.initCodes();
+				haxe.Unserializer.CODES = codes;
+			}
+			var i = this.pos;
+			var rest = len & 3;
+			var size = (len >> 2) * 3 + (rest >= 2?rest - 1:0);
+			var max = i + (len - rest);
+			var bytes = haxe.io.Bytes.alloc(size);
+			var bpos = 0;
+			while(i < max) {
+				var c1 = codes[buf.charCodeAt(i++)];
+				var c2 = codes[buf.charCodeAt(i++)];
+				bytes.b[bpos++] = (c1 << 2 | c2 >> 4) & 255;
+				var c3 = codes[buf.charCodeAt(i++)];
+				bytes.b[bpos++] = (c2 << 4 | c3 >> 2) & 255;
+				var c4 = codes[buf.charCodeAt(i++)];
+				bytes.b[bpos++] = (c3 << 6 | c4) & 255;
+			}
+			if(rest >= 2) {
+				var c1 = codes[buf.charCodeAt(i++)];
+				var c2 = codes[buf.charCodeAt(i++)];
+				bytes.b[bpos++] = (c1 << 2 | c2 >> 4) & 255;
+				if(rest == 3) {
+					var c3 = codes[buf.charCodeAt(i++)];
+					bytes.b[bpos++] = (c2 << 4 | c3 >> 2) & 255;
+				}
+			}
+			this.pos += len;
+			this.cache.push(bytes);
+			return bytes;
+		case 67:
+			var name = this.unserialize();
+			var cl = this.resolver.resolveClass(name);
+			if(cl == null) throw "Class not found " + name;
+			var o = Type.createEmptyInstance(cl);
+			this.cache.push(o);
+			o.hxUnserialize(this);
+			if(this.buf.charCodeAt(this.pos++) != 103) throw "Invalid custom data";
+			return o;
+		default:
+		}
+		this.pos--;
+		throw "Invalid char " + this.buf.charAt(this.pos) + " at position " + this.pos;
+	}
+	,unserializeEnum: function(edecl,tag) {
+		if(this.buf.charCodeAt(this.pos++) != 58) throw "Invalid enum format";
+		var nargs = this.readDigits();
+		if(nargs == 0) return Type.createEnum(edecl,tag);
+		var args = new Array();
+		while(nargs-- > 0) args.push(this.unserialize());
+		return Type.createEnum(edecl,tag,args);
+	}
+	,unserializeObject: function(o) {
+		while(true) {
+			if(this.pos >= this.length) throw "Invalid object";
+			if(this.buf.charCodeAt(this.pos) == 103) break;
+			var k = this.unserialize();
+			if(!js.Boot.__instanceof(k,String)) throw "Invalid object key";
+			var v = this.unserialize();
+			o[k] = v;
+		}
+		this.pos++;
+	}
+	,readDigits: function() {
+		var k = 0;
+		var s = false;
+		var fpos = this.pos;
+		while(true) {
+			var c = this.buf.charCodeAt(this.pos);
+			if(c != c) break;
+			if(c == 45) {
+				if(this.pos != fpos) break;
+				s = true;
+				this.pos++;
+				continue;
+			}
+			if(c < 48 || c > 57) break;
+			k = k * 10 + (c - 48);
+			this.pos++;
+		}
+		if(s) k *= -1;
+		return k;
+	}
+	,get: function(p) {
+		return this.buf.charCodeAt(p);
+	}
+	,getResolver: function() {
+		return this.resolver;
+	}
+	,setResolver: function(r) {
+		if(r == null) this.resolver = { resolveClass : function(_) {
+			return null;
+		}, resolveEnum : function(_) {
+			return null;
+		}}; else this.resolver = r;
+	}
+	,resolver: null
+	,scache: null
+	,cache: null
+	,length: null
+	,pos: null
+	,buf: null
+	,__class__: haxe.Unserializer
+}
+if(!haxe.io) haxe.io = {}
+haxe.io.Bytes = $hxClasses["haxe.io.Bytes"] = function(length,b) {
+	this.length = length;
+	this.b = b;
+};
+haxe.io.Bytes.__name__ = ["haxe","io","Bytes"];
+haxe.io.Bytes.alloc = function(length) {
+	var a = new Array();
+	var _g = 0;
+	while(_g < length) {
+		var i = _g++;
+		a.push(0);
+	}
+	return new haxe.io.Bytes(length,a);
+}
+haxe.io.Bytes.ofString = function(s) {
+	var a = new Array();
+	var _g1 = 0, _g = s.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var c = s.charCodeAt(i);
+		if(c <= 127) a.push(c); else if(c <= 2047) {
+			a.push(192 | c >> 6);
+			a.push(128 | c & 63);
+		} else if(c <= 65535) {
+			a.push(224 | c >> 12);
+			a.push(128 | c >> 6 & 63);
+			a.push(128 | c & 63);
+		} else {
+			a.push(240 | c >> 18);
+			a.push(128 | c >> 12 & 63);
+			a.push(128 | c >> 6 & 63);
+			a.push(128 | c & 63);
+		}
+	}
+	return new haxe.io.Bytes(a.length,a);
+}
+haxe.io.Bytes.ofData = function(b) {
+	return new haxe.io.Bytes(b.length,b);
+}
+haxe.io.Bytes.prototype = {
+	getData: function() {
+		return this.b;
+	}
+	,toHex: function() {
+		var s = new StringBuf();
+		var chars = [];
+		var str = "0123456789abcdef";
+		var _g1 = 0, _g = str.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			chars.push(HxOverrides.cca(str,i));
+		}
+		var _g1 = 0, _g = this.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var c = this.b[i];
+			s.b += String.fromCharCode(chars[c >> 4]);
+			s.b += String.fromCharCode(chars[c & 15]);
+		}
+		return s.b;
+	}
+	,toString: function() {
+		return this.readString(0,this.length);
+	}
+	,readString: function(pos,len) {
+		if(pos < 0 || len < 0 || pos + len > this.length) throw haxe.io.Error.OutsideBounds;
+		var s = "";
+		var b = this.b;
+		var fcc = String.fromCharCode;
+		var i = pos;
+		var max = pos + len;
+		while(i < max) {
+			var c = b[i++];
+			if(c < 128) {
+				if(c == 0) break;
+				s += fcc(c);
+			} else if(c < 224) s += fcc((c & 63) << 6 | b[i++] & 127); else if(c < 240) {
+				var c2 = b[i++];
+				s += fcc((c & 31) << 12 | (c2 & 127) << 6 | b[i++] & 127);
+			} else {
+				var c2 = b[i++];
+				var c3 = b[i++];
+				s += fcc((c & 15) << 18 | (c2 & 127) << 12 | c3 << 6 & 127 | b[i++] & 127);
+			}
+		}
+		return s;
+	}
+	,compare: function(other) {
+		var b1 = this.b;
+		var b2 = other.b;
+		var len = this.length < other.length?this.length:other.length;
+		var _g = 0;
+		while(_g < len) {
+			var i = _g++;
+			if(b1[i] != b2[i]) return b1[i] - b2[i];
+		}
+		return this.length - other.length;
+	}
+	,sub: function(pos,len) {
+		if(pos < 0 || len < 0 || pos + len > this.length) throw haxe.io.Error.OutsideBounds;
+		return new haxe.io.Bytes(len,this.b.slice(pos,pos + len));
+	}
+	,blit: function(pos,src,srcpos,len) {
+		if(pos < 0 || srcpos < 0 || len < 0 || pos + len > this.length || srcpos + len > src.length) throw haxe.io.Error.OutsideBounds;
+		var b1 = this.b;
+		var b2 = src.b;
+		if(b1 == b2 && pos > srcpos) {
+			var i = len;
+			while(i > 0) {
+				i--;
+				b1[i + pos] = b2[i + srcpos];
+			}
+			return;
+		}
+		var _g = 0;
+		while(_g < len) {
+			var i = _g++;
+			b1[i + pos] = b2[i + srcpos];
+		}
+	}
+	,set: function(pos,v) {
+		this.b[pos] = v & 255;
+	}
+	,get: function(pos) {
+		return this.b[pos];
+	}
+	,b: null
+	,length: null
+	,__class__: haxe.io.Bytes
+}
+haxe.io.Error = $hxClasses["haxe.io.Error"] = { __ename__ : ["haxe","io","Error"], __constructs__ : ["Blocked","Overflow","OutsideBounds","Custom"] }
+haxe.io.Error.Blocked = ["Blocked",0];
+haxe.io.Error.Blocked.toString = $estr;
+haxe.io.Error.Blocked.__enum__ = haxe.io.Error;
+haxe.io.Error.Overflow = ["Overflow",1];
+haxe.io.Error.Overflow.toString = $estr;
+haxe.io.Error.Overflow.__enum__ = haxe.io.Error;
+haxe.io.Error.OutsideBounds = ["OutsideBounds",2];
+haxe.io.Error.OutsideBounds.toString = $estr;
+haxe.io.Error.OutsideBounds.__enum__ = haxe.io.Error;
+haxe.io.Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe.io.Error; $x.toString = $estr; return $x; }
 var js = js || {}
-js.Boot = function() { }
-js.Boot.__name__ = true;
+js.Boot = $hxClasses["js.Boot"] = function() { }
+js.Boot.__name__ = ["js","Boot"];
 js.Boot.__unhtml = function(s) {
 	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
 }
@@ -721,8 +1610,10 @@ js.Boot.__instanceof = function(o,cl) {
 js.Boot.__cast = function(o,t) {
 	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
 }
-js.Lib = function() { }
-js.Lib.__name__ = true;
+js.Lib = $hxClasses["js.Lib"] = function() { }
+js.Lib.__name__ = ["js","Lib"];
+js.Lib.document = null;
+js.Lib.window = null;
 js.Lib.debug = function() {
 	debugger;
 }
@@ -739,9 +1630,9 @@ var org = org || {}
 if(!org.jinjor) org.jinjor = {}
 if(!org.jinjor.haxemine) org.jinjor.haxemine = {}
 if(!org.jinjor.haxemine.client) org.jinjor.haxemine.client = {}
-org.jinjor.haxemine.client.FileDetailDao = function() {
+org.jinjor.haxemine.client.FileDetailDao = $hxClasses["org.jinjor.haxemine.client.FileDetailDao"] = function() {
 };
-org.jinjor.haxemine.client.FileDetailDao.__name__ = true;
+org.jinjor.haxemine.client.FileDetailDao.__name__ = ["org","jinjor","haxemine","client","FileDetailDao"];
 org.jinjor.haxemine.client.FileDetailDao.prototype = {
 	getFile: function(filePath,callBack) {
 		$.ajax({ url : "src", data : { fileName : filePath}, type : "GET", success : function(fileDetail) {
@@ -750,18 +1641,19 @@ org.jinjor.haxemine.client.FileDetailDao.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.client.FileDetailDao
 }
-org.jinjor.haxemine.client.HoganTemplate = function(s) {
+org.jinjor.haxemine.client.HoganTemplate = $hxClasses["org.jinjor.haxemine.client.HoganTemplate"] = function(s) {
 	this.template = Hogan.compile(s);
 };
-org.jinjor.haxemine.client.HoganTemplate.__name__ = true;
+org.jinjor.haxemine.client.HoganTemplate.__name__ = ["org","jinjor","haxemine","client","HoganTemplate"];
 org.jinjor.haxemine.client.HoganTemplate.prototype = {
 	render: function(data) {
 		return this.template.render(data);
 	}
+	,template: null
 	,__class__: org.jinjor.haxemine.client.HoganTemplate
 }
-org.jinjor.haxemine.client.Main = function() { }
-org.jinjor.haxemine.client.Main.__name__ = true;
+org.jinjor.haxemine.client.Main = $hxClasses["org.jinjor.haxemine.client.Main"] = function() { }
+org.jinjor.haxemine.client.Main.__name__ = ["org","jinjor","haxemine","client","Main"];
 org.jinjor.haxemine.client.Main.JQ = function(s) {
 	return $(s);
 }
@@ -774,7 +1666,7 @@ org.jinjor.haxemine.client.Main.main = function() {
 		view.render($("body"));
 	});
 }
-org.jinjor.haxemine.client.Menu = function(session) {
+org.jinjor.haxemine.client.Menu = $hxClasses["org.jinjor.haxemine.client.Menu"] = function(session) {
 	var _g = this;
 	this.container = $("<nav id=\"menu\"/>");
 	session.onInitialInfoReceived.sub(function(initialInfoDto) {
@@ -788,7 +1680,7 @@ org.jinjor.haxemine.client.Menu = function(session) {
 		_g.renderDisconnected();
 	});
 };
-org.jinjor.haxemine.client.Menu.__name__ = true;
+org.jinjor.haxemine.client.Menu.__name__ = ["org","jinjor","haxemine","client","Menu"];
 org.jinjor.haxemine.client.Menu.JQ = function(s) {
 	return $(s);
 }
@@ -801,9 +1693,11 @@ org.jinjor.haxemine.client.Menu.prototype = {
 		var html = org.jinjor.haxemine.client.Menu.template.render(this.initialInfoDto);
 		this.container.html(html);
 	}
+	,initialInfoDto: null
+	,container: null
 	,__class__: org.jinjor.haxemine.client.Menu
 }
-org.jinjor.haxemine.client.Session = function(socket,editingFiles) {
+org.jinjor.haxemine.client.Session = $hxClasses["org.jinjor.haxemine.client.Session"] = function(socket,editingFiles) {
 	var _g = this;
 	var that = this;
 	this.socket = socket;
@@ -815,11 +1709,11 @@ org.jinjor.haxemine.client.Session = function(socket,editingFiles) {
 		if(msg != "") console.log(msg);
 	});
 	allHaxeFilesM.sub(function(files) {
-		_g.setAllFiles(org.jinjor.util.Util.dynamicToHash(files));
+		_g.setAllFiles(files);
 	});
 	initialInfoM.sub(function(initialInfo) {
 		_g.onInitialInfoReceived.pub(initialInfo);
-		_g.setAllFiles(org.jinjor.util.Util.dynamicToHash(initialInfo.allFiles));
+		_g.setAllFiles(initialInfo.allFiles);
 	});
 	taskProgressM.sub(function(taskProgress) {
 		that.lastTaskProgress = taskProgress;
@@ -847,7 +1741,7 @@ org.jinjor.haxemine.client.Session = function(socket,editingFiles) {
 		doTasksM.pub(null);
 	});
 };
-org.jinjor.haxemine.client.Session.__name__ = true;
+org.jinjor.haxemine.client.Session.__name__ = ["org","jinjor","haxemine","client","Session"];
 org.jinjor.haxemine.client.Session.prototype = {
 	getCompileErrorsByFile: function(file) {
 		if(file == null) return new List();
@@ -876,13 +1770,26 @@ org.jinjor.haxemine.client.Session.prototype = {
 	,getCompileErrors: function() {
 		return this.lastTaskProgress != null?this.lastTaskProgress.compileErrors:[];
 	}
+	,onSelectView: null
+	,onSave: null
+	,onEditingFileChanged: null
+	,onLastTaskProgressChanged: null
+	,onAllFilesChanged: null
+	,onInitialInfoReceived: null
+	,onSocketDisconnected: null
+	,onSocketConnected: null
+	,lastTaskProgress: null
+	,fileToLoad: null
+	,allFiles: null
+	,editingFiles: null
+	,socket: null
 	,__class__: org.jinjor.haxemine.client.Session
 }
-org.jinjor.haxemine.client.TaskModel = function(name,content,auto,socket) {
+org.jinjor.haxemine.client.TaskModel = $hxClasses["org.jinjor.haxemine.client.TaskModel"] = function(name,content,auto,socket) {
 	var _g = this;
-	console.log(auto);
+	var taskProgressM = new org.jinjor.haxemine.messages.TaskProgressM(socket);
 	var that = this;
-	socket.on("taskProgress",function(progress) {
+	taskProgressM.sub(function(progress) {
 		if(name != progress.taskName) return;
 		that.state = progress.compileErrors.length <= 0?org.jinjor.haxemine.client.TaskModelState.SUCCESS:org.jinjor.haxemine.client.TaskModelState.FAILED;
 		_g.onUpdate.pub(null);
@@ -893,14 +1800,19 @@ org.jinjor.haxemine.client.TaskModel = function(name,content,auto,socket) {
 	this.onUpdate = new org.jinjor.util.Event();
 	this.reset();
 };
-org.jinjor.haxemine.client.TaskModel.__name__ = true;
+org.jinjor.haxemine.client.TaskModel.__name__ = ["org","jinjor","haxemine","client","TaskModel"];
 org.jinjor.haxemine.client.TaskModel.prototype = {
 	reset: function() {
 		this.state = this.auto?org.jinjor.haxemine.client.TaskModelState.NONE:org.jinjor.haxemine.client.TaskModelState.READY;
 	}
+	,onUpdate: null
+	,state: null
+	,auto: null
+	,content: null
+	,name: null
 	,__class__: org.jinjor.haxemine.client.TaskModel
 }
-org.jinjor.haxemine.client.TaskModelState = { __ename__ : true, __constructs__ : ["NONE","SUCCESS","FAILED","READY","WAITING"] }
+org.jinjor.haxemine.client.TaskModelState = $hxClasses["org.jinjor.haxemine.client.TaskModelState"] = { __ename__ : ["org","jinjor","haxemine","client","TaskModelState"], __constructs__ : ["NONE","SUCCESS","FAILED","READY","WAITING"] }
 org.jinjor.haxemine.client.TaskModelState.NONE = ["NONE",0];
 org.jinjor.haxemine.client.TaskModelState.NONE.toString = $estr;
 org.jinjor.haxemine.client.TaskModelState.NONE.__enum__ = org.jinjor.haxemine.client.TaskModelState;
@@ -917,7 +1829,7 @@ org.jinjor.haxemine.client.TaskModelState.WAITING = ["WAITING",4];
 org.jinjor.haxemine.client.TaskModelState.WAITING.toString = $estr;
 org.jinjor.haxemine.client.TaskModelState.WAITING.__enum__ = org.jinjor.haxemine.client.TaskModelState;
 if(!org.jinjor.haxemine.client.view) org.jinjor.haxemine.client.view = {}
-org.jinjor.haxemine.client.view.AceEditorView = function(editor,socket,session) {
+org.jinjor.haxemine.client.view.AceEditorView = $hxClasses["org.jinjor.haxemine.client.view.AceEditorView"] = function(editor,socket,session) {
 	var saveM = new org.jinjor.haxemine.messages.SaveM(socket);
 	session.onEditingFileChanged.sub(function(detail) {
 		editor.getSession().setValue(detail.text);
@@ -945,7 +1857,7 @@ org.jinjor.haxemine.client.view.AceEditorView = function(editor,socket,session) 
 	}}]);
 	this.render(editor,"ace/theme/eclipse");
 };
-org.jinjor.haxemine.client.view.AceEditorView.__name__ = true;
+org.jinjor.haxemine.client.view.AceEditorView.__name__ = ["org","jinjor","haxemine","client","view","AceEditorView"];
 org.jinjor.haxemine.client.view.AceEditorView.annotateCompileError = function(editor,session) {
 	var annotations = Lambda.array(session.getCompileErrorsByFile(session.getCurrentFile()).map(function(error) {
 		return { row : error.row - 1, text : error.message, type : "error"};
@@ -962,7 +1874,7 @@ org.jinjor.haxemine.client.view.AceEditorView.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.client.view.AceEditorView
 }
-org.jinjor.haxemine.client.view.CompileErrorPanel = function(socket,session) {
+org.jinjor.haxemine.client.view.CompileErrorPanel = $hxClasses["org.jinjor.haxemine.client.view.CompileErrorPanel"] = function(socket,session) {
 	var _g = this;
 	this.container = $("<div id=\"compile-error-panel\"/>");
 	this.errorContainer = $("<div id=\"compile-errors\"/>").on("click","a",function() {
@@ -975,7 +1887,7 @@ org.jinjor.haxemine.client.view.CompileErrorPanel = function(socket,session) {
 		_g.render(session);
 	});
 };
-org.jinjor.haxemine.client.view.CompileErrorPanel.__name__ = true;
+org.jinjor.haxemine.client.view.CompileErrorPanel.__name__ = ["org","jinjor","haxemine","client","view","CompileErrorPanel"];
 org.jinjor.haxemine.client.view.CompileErrorPanel.JQ = function(s) {
 	return $(s);
 }
@@ -983,9 +1895,11 @@ org.jinjor.haxemine.client.view.CompileErrorPanel.prototype = {
 	render: function(session) {
 		this.errorContainer.html(org.jinjor.haxemine.client.view.CompileErrorPanel.template.render({ errors : session.getCompileErrors()}));
 	}
+	,errorContainer: null
+	,container: null
 	,__class__: org.jinjor.haxemine.client.view.CompileErrorPanel
 }
-org.jinjor.haxemine.client.view.FileSelector = function(socket,session) {
+org.jinjor.haxemine.client.view.FileSelector = $hxClasses["org.jinjor.haxemine.client.view.FileSelector"] = function(socket,session) {
 	var that = this;
 	var saveM = new org.jinjor.haxemine.messages.SaveM(socket);
 	this.container = $("<div id=\"all-haxe-files\"/>").on("click","a",function() {
@@ -1008,7 +1922,7 @@ org.jinjor.haxemine.client.view.FileSelector = function(socket,session) {
 		that.render(session);
 	});
 };
-org.jinjor.haxemine.client.view.FileSelector.__name__ = true;
+org.jinjor.haxemine.client.view.FileSelector.__name__ = ["org","jinjor","haxemine","client","view","FileSelector"];
 org.jinjor.haxemine.client.view.FileSelector.JQ = function(s) {
 	return $(s);
 }
@@ -1068,18 +1982,21 @@ org.jinjor.haxemine.client.view.FileSelector.prototype = {
 			return true;
 		});
 	}
+	,container: null
 	,__class__: org.jinjor.haxemine.client.view.FileSelector
 }
 if(!org.jinjor.haxemine.client.view._FileSelector) org.jinjor.haxemine.client.view._FileSelector = {}
-org.jinjor.haxemine.client.view._FileSelector.Dir = function(name) {
+org.jinjor.haxemine.client.view._FileSelector.Dir = $hxClasses["org.jinjor.haxemine.client.view._FileSelector.Dir"] = function(name) {
 	this.name = name;
 	this.files = [];
 };
-org.jinjor.haxemine.client.view._FileSelector.Dir.__name__ = true;
+org.jinjor.haxemine.client.view._FileSelector.Dir.__name__ = ["org","jinjor","haxemine","client","view","_FileSelector","Dir"];
 org.jinjor.haxemine.client.view._FileSelector.Dir.prototype = {
-	__class__: org.jinjor.haxemine.client.view._FileSelector.Dir
+	files: null
+	,name: null
+	,__class__: org.jinjor.haxemine.client.view._FileSelector.Dir
 }
-org.jinjor.haxemine.client.view.Folder = function(dir,files) {
+org.jinjor.haxemine.client.view.Folder = $hxClasses["org.jinjor.haxemine.client.view.Folder"] = function(dir,files) {
 	var _g = this;
 	this.container = $("<div class=\"folder\"/>");
 	this.closedMark = $("<div class=\"closeMark\">-</div>").click(function() {
@@ -1093,7 +2010,7 @@ org.jinjor.haxemine.client.view.Folder = function(dir,files) {
 	this.container.append(dirContainer).append(this.fileContainer);
 	this.renderClose();
 };
-org.jinjor.haxemine.client.view.Folder.__name__ = true;
+org.jinjor.haxemine.client.view.Folder.__name__ = ["org","jinjor","haxemine","client","view","Folder"];
 org.jinjor.haxemine.client.view.Folder.JQ = function(s) {
 	return $(s);
 }
@@ -1108,9 +2025,13 @@ org.jinjor.haxemine.client.view.Folder.prototype = {
 		this.openMark.hide();
 		this.fileContainer.show();
 	}
+	,fileContainer: null
+	,openMark: null
+	,closedMark: null
+	,container: null
 	,__class__: org.jinjor.haxemine.client.view.Folder
 }
-org.jinjor.haxemine.client.view.SearchPanel = function(socket,session) {
+org.jinjor.haxemine.client.view.SearchPanel = $hxClasses["org.jinjor.haxemine.client.view.SearchPanel"] = function(socket,session) {
 	var searchM = new org.jinjor.haxemine.messages.SearchM(socket);
 	var searchResultM = new org.jinjor.haxemine.messages.SearchResultM(socket);
 	var input = $("<input type=\"text\"/>");
@@ -1141,14 +2062,15 @@ org.jinjor.haxemine.client.view.SearchPanel = function(socket,session) {
 	});
 	this.container = $("<div/>").append(form).append(resultsContainer);
 };
-org.jinjor.haxemine.client.view.SearchPanel.__name__ = true;
+org.jinjor.haxemine.client.view.SearchPanel.__name__ = ["org","jinjor","haxemine","client","view","SearchPanel"];
 org.jinjor.haxemine.client.view.SearchPanel.JQ = function(s) {
 	return $(s);
 }
 org.jinjor.haxemine.client.view.SearchPanel.prototype = {
-	__class__: org.jinjor.haxemine.client.view.SearchPanel
+	container: null
+	,__class__: org.jinjor.haxemine.client.view.SearchPanel
 }
-org.jinjor.haxemine.client.view.TaskListView = function(socket,session) {
+org.jinjor.haxemine.client.view.TaskListView = $hxClasses["org.jinjor.haxemine.client.view.TaskListView"] = function(socket,session) {
 	var _g = this;
 	var doTaskM = new org.jinjor.haxemine.messages.DoTaskM(socket);
 	session.onInitialInfoReceived.sub(function(info) {
@@ -1168,14 +2090,15 @@ org.jinjor.haxemine.client.view.TaskListView = function(socket,session) {
 	});
 	this.container = $("<div id=\"task-list-view\"/>");
 };
-org.jinjor.haxemine.client.view.TaskListView.__name__ = true;
+org.jinjor.haxemine.client.view.TaskListView.__name__ = ["org","jinjor","haxemine","client","view","TaskListView"];
 org.jinjor.haxemine.client.view.TaskListView.JQ = function(s) {
 	return $(s);
 }
 org.jinjor.haxemine.client.view.TaskListView.prototype = {
-	__class__: org.jinjor.haxemine.client.view.TaskListView
+	container: null
+	,__class__: org.jinjor.haxemine.client.view.TaskListView
 }
-org.jinjor.haxemine.client.view.TaskView = function(doTaskM,session,task) {
+org.jinjor.haxemine.client.view.TaskView = $hxClasses["org.jinjor.haxemine.client.view.TaskView"] = function(doTaskM,session,task) {
 	var _g = this;
 	task.onUpdate.sub(function(_) {
 		_g.render(task);
@@ -1192,7 +2115,7 @@ org.jinjor.haxemine.client.view.TaskView = function(doTaskM,session,task) {
 	});
 	this.render(task);
 };
-org.jinjor.haxemine.client.view.TaskView.__name__ = true;
+org.jinjor.haxemine.client.view.TaskView.__name__ = ["org","jinjor","haxemine","client","view","TaskView"];
 org.jinjor.haxemine.client.view.TaskView.JQ = function(s) {
 	return $(s);
 }
@@ -1220,14 +2143,15 @@ org.jinjor.haxemine.client.view.TaskView.prototype = {
 			return $r;
 		}(this)));
 	}
+	,container: null
 	,__class__: org.jinjor.haxemine.client.view.TaskView
 }
-org.jinjor.haxemine.client.view.View = function(ace,socket,session) {
+org.jinjor.haxemine.client.view.View = $hxClasses["org.jinjor.haxemine.client.view.View"] = function(ace,socket,session) {
 	this.ace = ace;
 	this.socket = socket;
 	this.session = session;
 };
-org.jinjor.haxemine.client.view.View.__name__ = true;
+org.jinjor.haxemine.client.view.View.__name__ = ["org","jinjor","haxemine","client","view","View"];
 org.jinjor.haxemine.client.view.View.JQ = function(s) {
 	return $(s);
 }
@@ -1241,9 +2165,12 @@ org.jinjor.haxemine.client.view.View.prototype = {
 		var editor = this.ace.edit("editor");
 		new org.jinjor.haxemine.client.view.AceEditorView(editor,this.socket,this.session);
 	}
+	,session: null
+	,socket: null
+	,ace: null
 	,__class__: org.jinjor.haxemine.client.view.View
 }
-org.jinjor.haxemine.client.view.ViewPanel = function(socket,session) {
+org.jinjor.haxemine.client.view.ViewPanel = $hxClasses["org.jinjor.haxemine.client.view.ViewPanel"] = function(socket,session) {
 	var container = $("<div id=\"viewPanel\"/>");
 	var tabsContainer = $("<div id=\"tabsContainer\"/>");
 	var panelsContainer = $("<div id=\"panelsContainer\"/>");
@@ -1282,80 +2209,91 @@ org.jinjor.haxemine.client.view.ViewPanel = function(socket,session) {
 	});
 	this.container = container.append(tabsContainer).append(panelsContainer);
 };
-org.jinjor.haxemine.client.view.ViewPanel.__name__ = true;
+org.jinjor.haxemine.client.view.ViewPanel.__name__ = ["org","jinjor","haxemine","client","view","ViewPanel"];
 org.jinjor.haxemine.client.view.ViewPanel.JQ = function(s) {
 	return $(s);
 }
 org.jinjor.haxemine.client.view.ViewPanel.prototype = {
-	__class__: org.jinjor.haxemine.client.view.ViewPanel
+	container: null
+	,__class__: org.jinjor.haxemine.client.view.ViewPanel
 }
 if(!org.jinjor.haxemine.messages) org.jinjor.haxemine.messages = {}
-org.jinjor.haxemine.messages.SocketMessage = function(socket,key) {
+org.jinjor.haxemine.messages.SocketMessage = $hxClasses["org.jinjor.haxemine.messages.SocketMessage"] = function(socket,key) {
 	this.pub = function(data) {
-		socket.emit(key,data);
+		socket.emit(key,haxe.Serializer.run(data));
 	};
 	this.sub = function(f) {
-		socket.on(key,f);
+		socket.on(key,function(data) {
+			f(haxe.Unserializer.run(data));
+		});
 	};
 };
-org.jinjor.haxemine.messages.SocketMessage.__name__ = true;
+org.jinjor.haxemine.messages.SocketMessage.__name__ = ["org","jinjor","haxemine","messages","SocketMessage"];
 org.jinjor.haxemine.messages.SocketMessage.prototype = {
-	__class__: org.jinjor.haxemine.messages.SocketMessage
+	sub: null
+	,pub: null
+	,__class__: org.jinjor.haxemine.messages.SocketMessage
 }
-org.jinjor.haxemine.messages.AllHaxeFilesM = function(socket) {
+org.jinjor.haxemine.messages.AllHaxeFilesM = $hxClasses["org.jinjor.haxemine.messages.AllHaxeFilesM"] = function(socket) {
 	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"search");
 };
-org.jinjor.haxemine.messages.AllHaxeFilesM.__name__ = true;
+org.jinjor.haxemine.messages.AllHaxeFilesM.__name__ = ["org","jinjor","haxemine","messages","AllHaxeFilesM"];
 org.jinjor.haxemine.messages.AllHaxeFilesM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
 org.jinjor.haxemine.messages.AllHaxeFilesM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
 	__class__: org.jinjor.haxemine.messages.AllHaxeFilesM
 });
-org.jinjor.haxemine.messages.CompileError = function(originalMessage) {
+org.jinjor.haxemine.messages.CompileError = $hxClasses["org.jinjor.haxemine.messages.CompileError"] = function(originalMessage) {
 	this.originalMessage = originalMessage;
 	var parsed = org.jinjor.haxemine.messages.CompileError.parseCompileErrorMessage(originalMessage);
 	this.path = parsed.path;
 	this.row = parsed.row;
 	this.message = parsed.message;
 };
-org.jinjor.haxemine.messages.CompileError.__name__ = true;
+org.jinjor.haxemine.messages.CompileError.__name__ = ["org","jinjor","haxemine","messages","CompileError"];
 org.jinjor.haxemine.messages.CompileError.parseCompileErrorMessage = function(message) {
 	var elms = message.split(":");
 	console.log(elms);
 	return { path : elms[0], row : Std.parseInt(elms[1]), message : elms[elms.length - 1]};
 }
 org.jinjor.haxemine.messages.CompileError.prototype = {
-	__class__: org.jinjor.haxemine.messages.CompileError
+	message: null
+	,row: null
+	,path: null
+	,originalMessage: null
+	,__class__: org.jinjor.haxemine.messages.CompileError
 }
-org.jinjor.haxemine.messages.DoTaskM = function(socket) {
+org.jinjor.haxemine.messages.DoTaskM = $hxClasses["org.jinjor.haxemine.messages.DoTaskM"] = function(socket) {
 	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"doTask");
 };
-org.jinjor.haxemine.messages.DoTaskM.__name__ = true;
+org.jinjor.haxemine.messages.DoTaskM.__name__ = ["org","jinjor","haxemine","messages","DoTaskM"];
 org.jinjor.haxemine.messages.DoTaskM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
 org.jinjor.haxemine.messages.DoTaskM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
 	__class__: org.jinjor.haxemine.messages.DoTaskM
 });
-org.jinjor.haxemine.messages.DoTasksM = function(socket) {
+org.jinjor.haxemine.messages.DoTasksM = $hxClasses["org.jinjor.haxemine.messages.DoTasksM"] = function(socket) {
 	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"doTasks");
 };
-org.jinjor.haxemine.messages.DoTasksM.__name__ = true;
+org.jinjor.haxemine.messages.DoTasksM.__name__ = ["org","jinjor","haxemine","messages","DoTasksM"];
 org.jinjor.haxemine.messages.DoTasksM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
 org.jinjor.haxemine.messages.DoTasksM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
 	__class__: org.jinjor.haxemine.messages.DoTasksM
 });
-org.jinjor.haxemine.messages.FileDetail = function(text,mode) {
+org.jinjor.haxemine.messages.FileDetail = $hxClasses["org.jinjor.haxemine.messages.FileDetail"] = function(text,mode) {
 	this.text = text;
 	this.mode = mode;
 };
-org.jinjor.haxemine.messages.FileDetail.__name__ = true;
+org.jinjor.haxemine.messages.FileDetail.__name__ = ["org","jinjor","haxemine","messages","FileDetail"];
 org.jinjor.haxemine.messages.FileDetail.prototype = {
-	__class__: org.jinjor.haxemine.messages.FileDetail
+	mode: null
+	,text: null
+	,__class__: org.jinjor.haxemine.messages.FileDetail
 }
-org.jinjor.haxemine.messages.HistoryArray = function(max,equals) {
+org.jinjor.haxemine.messages.HistoryArray = $hxClasses["org.jinjor.haxemine.messages.HistoryArray"] = function(max,equals) {
 	this.array = [];
 	this.max = max;
 	this.equals = equals;
 };
-org.jinjor.haxemine.messages.HistoryArray.__name__ = true;
+org.jinjor.haxemine.messages.HistoryArray.__name__ = ["org","jinjor","haxemine","messages","HistoryArray"];
 org.jinjor.haxemine.messages.HistoryArray.prototype = {
 	add: function(elm) {
 		var i = 0;
@@ -1370,115 +2308,133 @@ org.jinjor.haxemine.messages.HistoryArray.prototype = {
 		i = this.array.length - 1;
 		while(i > this.max) this.array.pop();
 	}
+	,equals: null
+	,max: null
+	,array: null
 	,__class__: org.jinjor.haxemine.messages.HistoryArray
 }
-org.jinjor.haxemine.messages.InitialInfoDto = function(projectRoot,allFiles,taskInfos,searchEnabled) {
+org.jinjor.haxemine.messages.InitialInfoDto = $hxClasses["org.jinjor.haxemine.messages.InitialInfoDto"] = function(projectRoot,allFiles,taskInfos,searchEnabled) {
 	this.projectRoot = projectRoot;
 	this.allFiles = allFiles;
 	this.taskInfos = taskInfos;
 	this.searchEnabled = searchEnabled;
 };
-org.jinjor.haxemine.messages.InitialInfoDto.__name__ = true;
+org.jinjor.haxemine.messages.InitialInfoDto.__name__ = ["org","jinjor","haxemine","messages","InitialInfoDto"];
 org.jinjor.haxemine.messages.InitialInfoDto.prototype = {
-	__class__: org.jinjor.haxemine.messages.InitialInfoDto
+	searchEnabled: null
+	,taskInfos: null
+	,allFiles: null
+	,projectRoot: null
+	,__class__: org.jinjor.haxemine.messages.InitialInfoDto
 }
-org.jinjor.haxemine.messages.InitialInfoM = function(socket) {
+org.jinjor.haxemine.messages.InitialInfoM = $hxClasses["org.jinjor.haxemine.messages.InitialInfoM"] = function(socket) {
 	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"initialInfo");
 };
-org.jinjor.haxemine.messages.InitialInfoM.__name__ = true;
+org.jinjor.haxemine.messages.InitialInfoM.__name__ = ["org","jinjor","haxemine","messages","InitialInfoM"];
 org.jinjor.haxemine.messages.InitialInfoM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
 org.jinjor.haxemine.messages.InitialInfoM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
 	__class__: org.jinjor.haxemine.messages.InitialInfoM
 });
-org.jinjor.haxemine.messages.SaveFileDto = function(fileName,text) {
+org.jinjor.haxemine.messages.SaveFileDto = $hxClasses["org.jinjor.haxemine.messages.SaveFileDto"] = function(fileName,text) {
 	this.fileName = fileName;
 	this.text = text;
 };
-org.jinjor.haxemine.messages.SaveFileDto.__name__ = true;
+org.jinjor.haxemine.messages.SaveFileDto.__name__ = ["org","jinjor","haxemine","messages","SaveFileDto"];
 org.jinjor.haxemine.messages.SaveFileDto.prototype = {
-	__class__: org.jinjor.haxemine.messages.SaveFileDto
+	text: null
+	,fileName: null
+	,__class__: org.jinjor.haxemine.messages.SaveFileDto
 }
-org.jinjor.haxemine.messages.SaveM = function(socket) {
+org.jinjor.haxemine.messages.SaveM = $hxClasses["org.jinjor.haxemine.messages.SaveM"] = function(socket) {
 	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"save");
 };
-org.jinjor.haxemine.messages.SaveM.__name__ = true;
+org.jinjor.haxemine.messages.SaveM.__name__ = ["org","jinjor","haxemine","messages","SaveM"];
 org.jinjor.haxemine.messages.SaveM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
 org.jinjor.haxemine.messages.SaveM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
 	__class__: org.jinjor.haxemine.messages.SaveM
 });
-org.jinjor.haxemine.messages.SearchM = function(socket) {
+org.jinjor.haxemine.messages.SearchM = $hxClasses["org.jinjor.haxemine.messages.SearchM"] = function(socket) {
 	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"search");
 };
-org.jinjor.haxemine.messages.SearchM.__name__ = true;
+org.jinjor.haxemine.messages.SearchM.__name__ = ["org","jinjor","haxemine","messages","SearchM"];
 org.jinjor.haxemine.messages.SearchM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
 org.jinjor.haxemine.messages.SearchM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
 	__class__: org.jinjor.haxemine.messages.SearchM
 });
-org.jinjor.haxemine.messages.SearchResult = function(fileName,message) {
+org.jinjor.haxemine.messages.SearchResult = $hxClasses["org.jinjor.haxemine.messages.SearchResult"] = function(fileName,message) {
 	this.fileName = fileName;
 	this.message = message;
 };
-org.jinjor.haxemine.messages.SearchResult.__name__ = true;
+org.jinjor.haxemine.messages.SearchResult.__name__ = ["org","jinjor","haxemine","messages","SearchResult"];
 org.jinjor.haxemine.messages.SearchResult.prototype = {
-	__class__: org.jinjor.haxemine.messages.SearchResult
+	message: null
+	,fileName: null
+	,__class__: org.jinjor.haxemine.messages.SearchResult
 }
-org.jinjor.haxemine.messages.SearchResultM = function(socket) {
+org.jinjor.haxemine.messages.SearchResultM = $hxClasses["org.jinjor.haxemine.messages.SearchResultM"] = function(socket) {
 	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"search-result");
 };
-org.jinjor.haxemine.messages.SearchResultM.__name__ = true;
+org.jinjor.haxemine.messages.SearchResultM.__name__ = ["org","jinjor","haxemine","messages","SearchResultM"];
 org.jinjor.haxemine.messages.SearchResultM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
 org.jinjor.haxemine.messages.SearchResultM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
 	__class__: org.jinjor.haxemine.messages.SearchResultM
 });
-org.jinjor.haxemine.messages.SourceFile = function(pathFromProjectRoot) {
+org.jinjor.haxemine.messages.SourceFile = $hxClasses["org.jinjor.haxemine.messages.SourceFile"] = function(pathFromProjectRoot) {
 	this.pathFromProjectRoot = pathFromProjectRoot;
 	var splitted = pathFromProjectRoot.split("/");
 	this.shortName = splitted[splitted.length - 1];
 };
-org.jinjor.haxemine.messages.SourceFile.__name__ = true;
+org.jinjor.haxemine.messages.SourceFile.__name__ = ["org","jinjor","haxemine","messages","SourceFile"];
 org.jinjor.haxemine.messages.SourceFile.equals = function(o1,o2) {
 	if(o1 == null || o2 == null) return false;
 	return o1.pathFromProjectRoot == o2.pathFromProjectRoot;
 }
 org.jinjor.haxemine.messages.SourceFile.prototype = {
-	__class__: org.jinjor.haxemine.messages.SourceFile
+	shortName: null
+	,pathFromProjectRoot: null
+	,__class__: org.jinjor.haxemine.messages.SourceFile
 }
-org.jinjor.haxemine.messages.TaskInfo = function(taskName,content,auto) {
+org.jinjor.haxemine.messages.TaskInfo = $hxClasses["org.jinjor.haxemine.messages.TaskInfo"] = function(taskName,content,auto) {
 	this.taskName = taskName;
 	this.content = content;
 	this.auto = auto;
 };
-org.jinjor.haxemine.messages.TaskInfo.__name__ = true;
+org.jinjor.haxemine.messages.TaskInfo.__name__ = ["org","jinjor","haxemine","messages","TaskInfo"];
 org.jinjor.haxemine.messages.TaskInfo.prototype = {
-	__class__: org.jinjor.haxemine.messages.TaskInfo
+	auto: null
+	,content: null
+	,taskName: null
+	,__class__: org.jinjor.haxemine.messages.TaskInfo
 }
-org.jinjor.haxemine.messages.TaskProgress = function(taskName,compileErrors) {
+org.jinjor.haxemine.messages.TaskProgress = $hxClasses["org.jinjor.haxemine.messages.TaskProgress"] = function(taskName,compileErrors) {
 	this.taskName = taskName;
 	this.compileErrors = compileErrors;
 };
-org.jinjor.haxemine.messages.TaskProgress.__name__ = true;
+org.jinjor.haxemine.messages.TaskProgress.__name__ = ["org","jinjor","haxemine","messages","TaskProgress"];
 org.jinjor.haxemine.messages.TaskProgress.prototype = {
-	__class__: org.jinjor.haxemine.messages.TaskProgress
+	compileErrors: null
+	,taskName: null
+	,__class__: org.jinjor.haxemine.messages.TaskProgress
 }
-org.jinjor.haxemine.messages.TaskProgressM = function(socket) {
+org.jinjor.haxemine.messages.TaskProgressM = $hxClasses["org.jinjor.haxemine.messages.TaskProgressM"] = function(socket) {
 	org.jinjor.haxemine.messages.SocketMessage.call(this,socket,"taskProgress");
 };
-org.jinjor.haxemine.messages.TaskProgressM.__name__ = true;
+org.jinjor.haxemine.messages.TaskProgressM.__name__ = ["org","jinjor","haxemine","messages","TaskProgressM"];
 org.jinjor.haxemine.messages.TaskProgressM.__super__ = org.jinjor.haxemine.messages.SocketMessage;
 org.jinjor.haxemine.messages.TaskProgressM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
 	__class__: org.jinjor.haxemine.messages.TaskProgressM
 });
 if(!org.jinjor.util) org.jinjor.util = {}
-org.jinjor.util.ClientUtil = function() { }
-org.jinjor.util.ClientUtil.__name__ = true;
+org.jinjor.util.ClientUtil = $hxClasses["org.jinjor.util.ClientUtil"] = function() { }
+org.jinjor.util.ClientUtil.__name__ = ["org","jinjor","util","ClientUtil"];
 org.jinjor.util.ClientUtil.fixedSubmit = function(jquery,f) {
 	eval("\r\n            jquery.submit(function(){\r\n                f($(this));\r\n                return false;\r\n            });\r\n        ");
 	return jquery;
 }
-org.jinjor.util.Event = function() {
+org.jinjor.util.Event = $hxClasses["org.jinjor.util.Event"] = function() {
 	this.events = [];
 };
-org.jinjor.util.Event.__name__ = true;
+org.jinjor.util.Event.__name__ = ["org","jinjor","util","Event"];
 org.jinjor.util.Event.prototype = {
 	pub: function(arg) {
 		Lambda.foreach(this.events,function(f) {
@@ -1489,10 +2445,11 @@ org.jinjor.util.Event.prototype = {
 	,sub: function(f) {
 		this.events.push(f);
 	}
+	,events: null
 	,__class__: org.jinjor.util.Event
 }
-org.jinjor.util.Util = function() { }
-org.jinjor.util.Util.__name__ = true;
+org.jinjor.util.Util = $hxClasses["org.jinjor.util.Util"] = function() { }
+org.jinjor.util.Util.__name__ = ["org","jinjor","util","Util"];
 org.jinjor.util.Util.or = function(a,b) {
 	return a || b;
 }
@@ -1501,16 +2458,6 @@ org.jinjor.util.Util.and = function(a,b) {
 }
 org.jinjor.util.Util.compareTo = function(a,b) {
 	return a < b?-1:a > b?1:0;
-}
-org.jinjor.util.Util.dynamicToHash = function(d) {
-	var hash = new Hash();
-	var _g = 0, _g1 = Reflect.fields(d);
-	while(_g < _g1.length) {
-		var field = _g1[_g];
-		++_g;
-		hash.set(field,Reflect.field(d,field));
-	}
-	return hash;
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_;
@@ -1525,27 +2472,28 @@ Math.__name__ = ["Math"];
 Math.NaN = Number.NaN;
 Math.NEGATIVE_INFINITY = Number.NEGATIVE_INFINITY;
 Math.POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
+$hxClasses.Math = Math;
 Math.isFinite = function(i) {
 	return isFinite(i);
 };
 Math.isNaN = function(i) {
 	return isNaN(i);
 };
-String.prototype.__class__ = String;
-String.__name__ = true;
-Array.prototype.__class__ = Array;
-Array.__name__ = true;
-Date.prototype.__class__ = Date;
+String.prototype.__class__ = $hxClasses.String = String;
+String.__name__ = ["String"];
+Array.prototype.__class__ = $hxClasses.Array = Array;
+Array.__name__ = ["Array"];
+Date.prototype.__class__ = $hxClasses.Date = Date;
 Date.__name__ = ["Date"];
-var Int = { __name__ : ["Int"]};
-var Dynamic = { __name__ : ["Dynamic"]};
-var Float = Number;
+var Int = $hxClasses.Int = { __name__ : ["Int"]};
+var Dynamic = $hxClasses.Dynamic = { __name__ : ["Dynamic"]};
+var Float = $hxClasses.Float = Number;
 Float.__name__ = ["Float"];
-var Bool = Boolean;
+var Bool = $hxClasses.Bool = Boolean;
 Bool.__ename__ = ["Bool"];
-var Class = { __name__ : ["Class"]};
+var Class = $hxClasses.Class = { __name__ : ["Class"]};
 var Enum = { };
-var Void = { __ename__ : ["Void"]};
+var Void = $hxClasses.Void = { __ename__ : ["Void"]};
 if(typeof($) == 'undefined') {
 	/*! jQuery v1.6.4 http://jquery.com/ | http://jquery.org/license */
 (function(a,b){function cu(a){return f.isWindow(a)?a:a.nodeType===9?a.defaultView||a.parentWindow:!1}function cr(a){if(!cg[a]){var b=c.body,d=f("<"+a+">").appendTo(b),e=d.css("display");d.remove();if(e==="none"||e===""){ch||(ch=c.createElement("iframe"),ch.frameBorder=ch.width=ch.height=0),b.appendChild(ch);if(!ci||!ch.createElement)ci=(ch.contentWindow||ch.contentDocument).document,ci.write((c.compatMode==="CSS1Compat"?"<!doctype html>":"")+"<html><body>"),ci.close();d=ci.createElement(a),ci.body.appendChild(d),e=f.css(d,"display"),b.removeChild(ch)}cg[a]=e}return cg[a]}function cq(a,b){var c={};f.each(cm.concat.apply([],cm.slice(0,b)),function(){c[this]=a});return c}function cp(){cn=b}function co(){setTimeout(cp,0);return cn=f.now()}function cf(){try{return new a.ActiveXObject("Microsoft.XMLHTTP")}catch(b){}}function ce(){try{return new a.XMLHttpRequest}catch(b){}}function b$(a,c){a.dataFilter&&(c=a.dataFilter(c,a.dataType));var d=a.dataTypes,e={},g,h,i=d.length,j,k=d[0],l,m,n,o,p;for(g=1;g<i;g++){if(g===1)for(h in a.converters)typeof h=="string"&&(e[h.toLowerCase()]=a.converters[h]);l=k,k=d[g];if(k==="*")k=l;else if(l!=="*"&&l!==k){m=l+" "+k,n=e[m]||e["* "+k];if(!n){p=b;for(o in e){j=o.split(" ");if(j[0]===l||j[0]==="*"){p=e[j[1]+" "+k];if(p){o=e[o],o===!0?n=p:p===!0&&(n=o);break}}}}!n&&!p&&f.error("No conversion from "+m.replace(" "," to ")),n!==!0&&(c=n?n(c):p(o(c)))}}return c}function bZ(a,c,d){var e=a.contents,f=a.dataTypes,g=a.responseFields,h,i,j,k;for(i in g)i in d&&(c[g[i]]=d[i]);while(f[0]==="*")f.shift(),h===b&&(h=a.mimeType||c.getResponseHeader("content-type"));if(h)for(i in e)if(e[i]&&e[i].test(h)){f.unshift(i);break}if(f[0]in d)j=f[0];else{for(i in d){if(!f[0]||a.converters[i+" "+f[0]]){j=i;break}k||(k=i)}j=j||k}if(j){j!==f[0]&&f.unshift(j);return d[j]}}function bY(a,b,c,d){if(f.isArray(b))f.each(b,function(b,e){c||bA.test(a)?d(a,e):bY(a+"["+(typeof e=="object"||f.isArray(e)?b:"")+"]",e,c,d)});else if(!c&&b!=null&&typeof b=="object")for(var e in b)bY(a+"["+e+"]",b[e],c,d);else d(a,b)}function bX(a,c){var d,e,g=f.ajaxSettings.flatOptions||{};for(d in c)c[d]!==b&&((g[d]?a:e||(e={}))[d]=c[d]);e&&f.extend(!0,a,e)}function bW(a,c,d,e,f,g){f=f||c.dataTypes[0],g=g||{},g[f]=!0;var h=a[f],i=0,j=h?h.length:0,k=a===bP,l;for(;i<j&&(k||!l);i++)l=h[i](c,d,e),typeof l=="string"&&(!k||g[l]?l=b:(c.dataTypes.unshift(l),l=bW(a,c,d,e,l,g)));(k||!l)&&!g["*"]&&(l=bW(a,c,d,e,"*",g));return l}function bV(a){return function(b,c){typeof b!="string"&&(c=b,b="*");if(f.isFunction(c)){var d=b.toLowerCase().split(bL),e=0,g=d.length,h,i,j;for(;e<g;e++)h=d[e],j=/^\+/.test(h),j&&(h=h.substr(1)||"*"),i=a[h]=a[h]||[],i[j?"unshift":"push"](c)}}}function by(a,b,c){var d=b==="width"?a.offsetWidth:a.offsetHeight,e=b==="width"?bt:bu;if(d>0){c!=="border"&&f.each(e,function(){c||(d-=parseFloat(f.css(a,"padding"+this))||0),c==="margin"?d+=parseFloat(f.css(a,c+this))||0:d-=parseFloat(f.css(a,"border"+this+"Width"))||0});return d+"px"}d=bv(a,b,b);if(d<0||d==null)d=a.style[b]||0;d=parseFloat(d)||0,c&&f.each(e,function(){d+=parseFloat(f.css(a,"padding"+this))||0,c!=="padding"&&(d+=parseFloat(f.css(a,"border"+this+"Width"))||0),c==="margin"&&(d+=parseFloat(f.css(a,c+this))||0)});return d+"px"}function bl(a,b){b.src?f.ajax({url:b.src,async:!1,dataType:"script"}):f.globalEval((b.text||b.textContent||b.innerHTML||"").replace(bd,"/*$0*/")),b.parentNode&&b.parentNode.removeChild(b)}function bk(a){f.nodeName(a,"input")?bj(a):"getElementsByTagName"in a&&f.grep(a.getElementsByTagName("input"),bj)}function bj(a){if(a.type==="checkbox"||a.type==="radio")a.defaultChecked=a.checked}function bi(a){return"getElementsByTagName"in a?a.getElementsByTagName("*"):"querySelectorAll"in a?a.querySelectorAll("*"):[]}function bh(a,b){var c;if(b.nodeType===1){b.clearAttributes&&b.clearAttributes(),b.mergeAttributes&&b.mergeAttributes(a),c=b.nodeName.toLowerCase();if(c==="object")b.outerHTML=a.outerHTML;else if(c!=="input"||a.type!=="checkbox"&&a.type!=="radio"){if(c==="option")b.selected=a.defaultSelected;else if(c==="input"||c==="textarea")b.defaultValue=a.defaultValue}else a.checked&&(b.defaultChecked=b.checked=a.checked),b.value!==a.value&&(b.value=a.value);b.removeAttribute(f.expando)}}function bg(a,b){if(b.nodeType===1&&!!f.hasData(a)){var c=f.expando,d=f.data(a),e=f.data(b,d);if(d=d[c]){var g=d.events;e=e[c]=f.extend({},d);if(g){delete e.handle,e.events={};for(var h in g)for(var i=0,j=g[h].length;i<j;i++)f.event.add(b,h+(g[h][i].namespace?".":"")+g[h][i].namespace,g[h][i],g[h][i].data)}}}}function bf(a,b){return f.nodeName(a,"table")?a.getElementsByTagName("tbody")[0]||a.appendChild(a.ownerDocument.createElement("tbody")):a}function V(a,b,c){b=b||0;if(f.isFunction(b))return f.grep(a,function(a,d){var e=!!b.call(a,d,a);return e===c});if(b.nodeType)return f.grep(a,function(a,d){return a===b===c});if(typeof b=="string"){var d=f.grep(a,function(a){return a.nodeType===1});if(Q.test(b))return f.filter(b,d,!c);b=f.filter(b,d)}return f.grep(a,function(a,d){return f.inArray(a,b)>=0===c})}function U(a){return!a||!a.parentNode||a.parentNode.nodeType===11}function M(a,b){return(a&&a!=="*"?a+".":"")+b.replace(y,"`").replace(z,"&")}function L(a){var b,c,d,e,g,h,i,j,k,l,m,n,o,p=[],q=[],r=f._data(this,"events");if(!(a.liveFired===this||!r||!r.live||a.target.disabled||a.button&&a.type==="click")){a.namespace&&(n=new RegExp("(^|\\.)"+a.namespace.split(".").join("\\.(?:.*\\.)?")+"(\\.|$)")),a.liveFired=this;var s=r.live.slice(0);for(i=0;i<s.length;i++)g=s[i],g.origType.replace(w,"")===a.type?q.push(g.selector):s.splice(i--,1);e=f(a.target).closest(q,a.currentTarget);for(j=0,k=e.length;j<k;j++){m=e[j];for(i=0;i<s.length;i++){g=s[i];if(m.selector===g.selector&&(!n||n.test(g.namespace))&&!m.elem.disabled){h=m.elem,d=null;if(g.preType==="mouseenter"||g.preType==="mouseleave")a.type=g.preType,d=f(a.relatedTarget).closest(g.selector)[0],d&&f.contains(h,d)&&(d=h);(!d||d!==h)&&p.push({elem:h,handleObj:g,level:m.level})}}}for(j=0,k=p.length;j<k;j++){e=p[j];if(c&&e.level>c)break;a.currentTarget=e.elem,a.data=e.handleObj.data,a.handleObj=e.handleObj,o=e.handleObj.origHandler.apply(e.elem,arguments);if(o===!1||a.isPropagationStopped()){c=e.level,o===!1&&(b=!1);if(a.isImmediatePropagationStopped())break}}return b}}function J(a,c,d){var e=f.extend({},d[0]);e.type=a,e.originalEvent={},e.liveFired=b,f.event.handle.call(c,e),e.isDefaultPrevented()&&d[0].preventDefault()}function D(){return!0}function C(){return!1}function m(a,c,d){var e=c+"defer",g=c+"queue",h=c+"mark",i=f.data(a,e,b,!0);i&&(d==="queue"||!f.data(a,g,b,!0))&&(d==="mark"||!f.data(a,h,b,!0))&&setTimeout(function(){!f.data(a,g,b,!0)&&!f.data(a,h,b,!0)&&(f.removeData(a,e,!0),i.resolve())},0)}function l(a){for(var b in a)if(b!=="toJSON")return!1;return!0}function k(a,c,d){if(d===b&&a.nodeType===1){var e="data-"+c.replace(j,"-$1").toLowerCase();d=a.getAttribute(e);if(typeof d=="string"){try{d=d==="true"?!0:d==="false"?!1:d==="null"?null:f.isNaN(d)?i.test(d)?f.parseJSON(d):d:parseFloat(d)}catch(g){}f.data(a,c,d)}else d=b}return d}var c=a.document,d=a.navigator,e=a.location,f=function(){function K(){if(!e.isReady){try{c.documentElement.doScroll("left")}catch(a){setTimeout(K,1);return}e.ready()}}var e=function(a,b){return new e.fn.init(a,b,h)},f=a.jQuery,g=a.$,h,i=/^(?:[^#<]*(<[\w\W]+>)[^>]*$|#([\w\-]*)$)/,j=/\S/,k=/^\s+/,l=/\s+$/,m=/\d/,n=/^<(\w+)\s*\/?>(?:<\/\1>)?$/,o=/^[\],:{}\s]*$/,p=/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g,q=/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,r=/(?:^|:|,)(?:\s*\[)+/g,s=/(webkit)[ \/]([\w.]+)/,t=/(opera)(?:.*version)?[ \/]([\w.]+)/,u=/(msie) ([\w.]+)/,v=/(mozilla)(?:.*? rv:([\w.]+))?/,w=/-([a-z]|[0-9])/ig,x=/^-ms-/,y=function(a,b){return(b+"").toUpperCase()},z=d.userAgent,A,B,C,D=Object.prototype.toString,E=Object.prototype.hasOwnProperty,F=Array.prototype.push,G=Array.prototype.slice,H=String.prototype.trim,I=Array.prototype.indexOf,J={};e.fn=e.prototype={constructor:e,init:function(a,d,f){var g,h,j,k;if(!a)return this;if(a.nodeType){this.context=this[0]=a,this.length=1;return this}if(a==="body"&&!d&&c.body){this.context=c,this[0]=c.body,this.selector=a,this.length=1;return this}if(typeof a=="string"){a.charAt(0)!=="<"||a.charAt(a.length-1)!==">"||a.length<3?g=i.exec(a):g=[null,a,null];if(g&&(g[1]||!d)){if(g[1]){d=d instanceof e?d[0]:d,k=d?d.ownerDocument||d:c,j=n.exec(a),j?e.isPlainObject(d)?(a=[c.createElement(j[1])],e.fn.attr.call(a,d,!0)):a=[k.createElement(j[1])]:(j=e.buildFragment([g[1]],[k]),a=(j.cacheable?e.clone(j.fragment):j.fragment).childNodes);return e.merge(this,a)}h=c.getElementById(g[2]);if(h&&h.parentNode){if(h.id!==g[2])return f.find(a);this.length=1,this[0]=h}this.context=c,this.selector=a;return this}return!d||d.jquery?(d||f).find(a):this.constructor(d).find(a)}if(e.isFunction(a))return f.ready(a);a.selector!==b&&(this.selector=a.selector,this.context=a.context);return e.makeArray(a,this)},selector:"",jquery:"1.6.4",length:0,size:function(){return this.length},toArray:function(){return G.call(this,0)},get:function(a){return a==null?this.toArray():a<0?this[this.length+a]:this[a]},pushStack:function(a,b,c){var d=this.constructor();e.isArray(a)?F.apply(d,a):e.merge(d,a),d.prevObject=this,d.context=this.context,b==="find"?d.selector=this.selector+(this.selector?" ":"")+c:b&&(d.selector=this.selector+"."+b+"("+c+")");return d},each:function(a,b){return e.each(this,a,b)},ready:function(a){e.bindReady(),B.done(a);return this},eq:function(a){return a===-1?this.slice(a):this.slice(a,+a+1)},first:function(){return this.eq(0)},last:function(){return this.eq(-1)},slice:function(){return this.pushStack(G.apply(this,arguments),"slice",G.call(arguments).join(","))},map:function(a){return this.pushStack(e.map(this,function(b,c){return a.call(b,c,b)}))},end:function(){return this.prevObject||this.constructor(null)},push:F,sort:[].sort,splice:[].splice},e.fn.init.prototype=e.fn,e.extend=e.fn.extend=function(){var a,c,d,f,g,h,i=arguments[0]||{},j=1,k=arguments.length,l=!1;typeof i=="boolean"&&(l=i,i=arguments[1]||{},j=2),typeof i!="object"&&!e.isFunction(i)&&(i={}),k===j&&(i=this,--j);for(;j<k;j++)if((a=arguments[j])!=null)for(c in a){d=i[c],f=a[c];if(i===f)continue;l&&f&&(e.isPlainObject(f)||(g=e.isArray(f)))?(g?(g=!1,h=d&&e.isArray(d)?d:[]):h=d&&e.isPlainObject(d)?d:{},i[c]=e.extend(l,h,f)):f!==b&&(i[c]=f)}return i},e.extend({noConflict:function(b){a.$===e&&(a.$=g),b&&a.jQuery===e&&(a.jQuery=f);return e},isReady:!1,readyWait:1,holdReady:function(a){a?e.readyWait++:e.ready(!0)},ready:function(a){if(a===!0&&!--e.readyWait||a!==!0&&!e.isReady){if(!c.body)return setTimeout(e.ready,1);e.isReady=!0;if(a!==!0&&--e.readyWait>0)return;B.resolveWith(c,[e]),e.fn.trigger&&e(c).trigger("ready").unbind("ready")}},bindReady:function(){if(!B){B=e._Deferred();if(c.readyState==="complete")return setTimeout(e.ready,1);if(c.addEventListener)c.addEventListener("DOMContentLoaded",C,!1),a.addEventListener("load",e.ready,!1);else if(c.attachEvent){c.attachEvent("onreadystatechange",C),a.attachEvent("onload",e.ready);var b=!1;try{b=a.frameElement==null}catch(d){}c.documentElement.doScroll&&b&&K()}}},isFunction:function(a){return e.type(a)==="function"},isArray:Array.isArray||function(a){return e.type(a)==="array"},isWindow:function(a){return a&&typeof a=="object"&&"setInterval"in a},isNaN:function(a){return a==null||!m.test(a)||isNaN(a)},type:function(a){return a==null?String(a):J[D.call(a)]||"object"},isPlainObject:function(a){if(!a||e.type(a)!=="object"||a.nodeType||e.isWindow(a))return!1;try{if(a.constructor&&!E.call(a,"constructor")&&!E.call(a.constructor.prototype,"isPrototypeOf"))return!1}catch(c){return!1}var d;for(d in a);return d===b||E.call(a,d)},isEmptyObject:function(a){for(var b in a)return!1;return!0},error:function(a){throw a},parseJSON:function(b){if(typeof b!="string"||!b)return null;b=e.trim(b);if(a.JSON&&a.JSON.parse)return a.JSON.parse(b);if(o.test(b.replace(p,"@").replace(q,"]").replace(r,"")))return(new Function("return "+b))();e.error("Invalid JSON: "+b)},parseXML:function(c){var d,f;try{a.DOMParser?(f=new DOMParser,d=f.parseFromString(c,"text/xml")):(d=new ActiveXObject("Microsoft.XMLDOM"),d.async="false",d.loadXML(c))}catch(g){d=b}(!d||!d.documentElement||d.getElementsByTagName("parsererror").length)&&e.error("Invalid XML: "+c);return d},noop:function(){},globalEval:function(b){b&&j.test(b)&&(a.execScript||function(b){a.eval.call(a,b)})(b)},camelCase:function(a){return a.replace(x,"ms-").replace(w,y)},nodeName:function(a,b){return a.nodeName&&a.nodeName.toUpperCase()===b.toUpperCase()},each:function(a,c,d){var f,g=0,h=a.length,i=h===b||e.isFunction(a);if(d){if(i){for(f in a)if(c.apply(a[f],d)===!1)break}else for(;g<h;)if(c.apply(a[g++],d)===!1)break}else if(i){for(f in a)if(c.call(a[f],f,a[f])===!1)break}else for(;g<h;)if(c.call(a[g],g,a[g++])===!1)break;return a},trim:H?function(a){return a==null?"":H.call(a)}:function(a){return a==null?"":(a+"").replace(k,"").replace(l,"")},makeArray:function(a,b){var c=b||[];if(a!=null){var d=e.type(a);a.length==null||d==="string"||d==="function"||d==="regexp"||e.isWindow(a)?F.call(c,a):e.merge(c,a)}return c},inArray:function(a,b){if(!b)return-1;if(I)return I.call(b,a);for(var c=0,d=b.length;c<d;c++)if(b[c]===a)return c;return-1},merge:function(a,c){var d=a.length,e=0;if(typeof c.length=="number")for(var f=c.length;e<f;e++)a[d++]=c[e];else while(c[e]!==b)a[d++]=c[e++];a.length=d;return a},grep:function(a,b,c){var d=[],e;c=!!c;for(var f=0,g=a.length;f<g;f++)e=!!b(a[f],f),c!==e&&d.push(a[f]);return d},map:function(a,c,d){var f,g,h=[],i=0,j=a.length,k=a instanceof e||j!==b&&typeof j=="number"&&(j>0&&a[0]&&a[j-1]||j===0||e.isArray(a));if(k)for(;i<j;i++)f=c(a[i],i,d),f!=null&&(h[h.length]=f);else for(g in a)f=c(a[g],g,d),f!=null&&(h[h.length]=f);return h.concat.apply([],h)},guid:1,proxy:function(a,c){if(typeof c=="string"){var d=a[c];c=a,a=d}if(!e.isFunction(a))return b;var f=G.call(arguments,2),g=function(){return a.apply(c,f.concat(G.call(arguments)))};g.guid=a.guid=a.guid||g.guid||e.guid++;return g},access:function(a,c,d,f,g,h){var i=a.length;if(typeof c=="object"){for(var j in c)e.access(a,j,c[j],f,g,d);return a}if(d!==b){f=!h&&f&&e.isFunction(d);for(var k=0;k<i;k++)g(a[k],c,f?d.call(a[k],k,g(a[k],c)):d,h);return a}return i?g(a[0],c):b},now:function(){return(new Date).getTime()},uaMatch:function(a){a=a.toLowerCase();var b=s.exec(a)||t.exec(a)||u.exec(a)||a.indexOf("compatible")<0&&v.exec(a)||[];return{browser:b[1]||"",version:b[2]||"0"}},sub:function(){function a(b,c){return new a.fn.init(b,c)}e.extend(!0,a,this),a.superclass=this,a.fn=a.prototype=this(),a.fn.constructor=a,a.sub=this.sub,a.fn.init=function(d,f){f&&f instanceof e&&!(f instanceof a)&&(f=a(f));return e.fn.init.call(this,d,f,b)},a.fn.init.prototype=a.fn;var b=a(c);return a},browser:{}}),e.each("Boolean Number String Function Array Date RegExp Object".split(" "),function(a,b){J["[object "+b+"]"]=b.toLowerCase()}),A=e.uaMatch(z),A.browser&&(e.browser[A.browser]=!0,e.browser.version=A.version),e.browser.webkit&&(e.browser.safari=!0),j.test(" ")&&(k=/^[\s\xA0]+/,l=/[\s\xA0]+$/),h=e(c),c.addEventListener?C=function(){c.removeEventListener("DOMContentLoaded",C,!1),e.ready()}:c.attachEvent&&(C=function(){c.readyState==="complete"&&(c.detachEvent("onreadystatechange",C),e.ready())});return e}(),g="done fail isResolved isRejected promise then always pipe".split(" "),h=[].slice;f.extend({_Deferred:function(){var a=[],b,c,d,e={done:function(){if(!d){var c=arguments,g,h,i,j,k;b&&(k=b,b=0);for(g=0,h=c.length;g<h;g++)i=c[g],j=f.type(i),j==="array"?e.done.apply(e,i):j==="function"&&a.push(i);k&&e.resolveWith(k[0],k[1])}return this},resolveWith:function(e,f){if(!d&&!b&&!c){f=f||[],c=1;try{while(a[0])a.shift().apply(e,f)}finally{b=[e,f],c=0}}return this},resolve:function(){e.resolveWith(this,arguments);return this},isResolved:function(){return!!c||!!b},cancel:function(){d=1,a=[];return this}};return e},Deferred:function(a){var b=f._Deferred(),c=f._Deferred(),d;f.extend(b,{then:function(a,c){b.done(a).fail(c);return this},always:function(){return b.done.apply(b,arguments).fail.apply(this,arguments)},fail:c.done,rejectWith:c.resolveWith,reject:c.resolve,isRejected:c.isResolved,pipe:function(a,c){return f.Deferred(function(d){f.each({done:[a,"resolve"],fail:[c,"reject"]},function(a,c){var e=c[0],g=c[1],h;f.isFunction(e)?b[a](function(){h=e.apply(this,arguments),h&&f.isFunction(h.promise)?h.promise().then(d.resolve,d.reject):d[g+"With"](this===b?d:this,[h])}):b[a](d[g])})}).promise()},promise:function(a){if(a==null){if(d)return d;d=a={}}var c=g.length;while(c--)a[g[c]]=b[g[c]];return a}}),b.done(c.cancel).fail(b.cancel),delete b.cancel,a&&a.call(b,b);return b},when:function(a){function i(a){return function(c){b[a]=arguments.length>1?h.call(arguments,0):c,--e||g.resolveWith(g,h.call(b,0))}}var b=arguments,c=0,d=b.length,e=d,g=d<=1&&a&&f.isFunction(a.promise)?a:f.Deferred();if(d>1){for(;c<d;c++)b[c]&&f.isFunction(b[c].promise)?b[c].promise().then(i(c),g.reject):--e;e||g.resolveWith(g,b)}else g!==a&&g.resolveWith(g,d?[a]:[]);return g.promise()}}),f.support=function(){var a=c.createElement("div"),b=c.documentElement,d,e,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u;a.setAttribute("className","t"),a.innerHTML="   <link/><table></table><a href='/a' style='top:1px;float:left;opacity:.55;'>a</a><input type='checkbox'/>",d=a.getElementsByTagName("*"),e=a.getElementsByTagName("a")[0];if(!d||!d.length||!e)return{};g=c.createElement("select"),h=g.appendChild(c.createElement("option")),i=a.getElementsByTagName("input")[0],k={leadingWhitespace:a.firstChild.nodeType===3,tbody:!a.getElementsByTagName("tbody").length,htmlSerialize:!!a.getElementsByTagName("link").length,style:/top/.test(e.getAttribute("style")),hrefNormalized:e.getAttribute("href")==="/a",opacity:/^0.55$/.test(e.style.opacity),cssFloat:!!e.style.cssFloat,checkOn:i.value==="on",optSelected:h.selected,getSetAttribute:a.className!=="t",submitBubbles:!0,changeBubbles:!0,focusinBubbles:!1,deleteExpando:!0,noCloneEvent:!0,inlineBlockNeedsLayout:!1,shrinkWrapBlocks:!1,reliableMarginRight:!0},i.checked=!0,k.noCloneChecked=i.cloneNode(!0).checked,g.disabled=!0,k.optDisabled=!h.disabled;try{delete a.test}catch(v){k.deleteExpando=!1}!a.addEventListener&&a.attachEvent&&a.fireEvent&&(a.attachEvent("onclick",function(){k.noCloneEvent=!1}),a.cloneNode(!0).fireEvent("onclick")),i=c.createElement("input"),i.value="t",i.setAttribute("type","radio"),k.radioValue=i.value==="t",i.setAttribute("checked","checked"),a.appendChild(i),l=c.createDocumentFragment(),l.appendChild(a.firstChild),k.checkClone=l.cloneNode(!0).cloneNode(!0).lastChild.checked,a.innerHTML="",a.style.width=a.style.paddingLeft="1px",m=c.getElementsByTagName("body")[0],o=c.createElement(m?"div":"body"),p={visibility:"hidden",width:0,height:0,border:0,margin:0,background:"none"},m&&f.extend(p,{position:"absolute",left:"-1000px",top:"-1000px"});for(t in p)o.style[t]=p[t];o.appendChild(a),n=m||b,n.insertBefore(o,n.firstChild),k.appendChecked=i.checked,k.boxModel=a.offsetWidth===2,"zoom"in a.style&&(a.style.display="inline",a.style.zoom=1,k.inlineBlockNeedsLayout=a.offsetWidth===2,a.style.display="",a.innerHTML="<div style='width:4px;'></div>",k.shrinkWrapBlocks=a.offsetWidth!==2),a.innerHTML="<table><tr><td style='padding:0;border:0;display:none'></td><td>t</td></tr></table>",q=a.getElementsByTagName("td"),u=q[0].offsetHeight===0,q[0].style.display="",q[1].style.display="none",k.reliableHiddenOffsets=u&&q[0].offsetHeight===0,a.innerHTML="",c.defaultView&&c.defaultView.getComputedStyle&&(j=c.createElement("div"),j.style.width="0",j.style.marginRight="0",a.appendChild(j),k.reliableMarginRight=(parseInt((c.defaultView.getComputedStyle(j,null)||{marginRight:0}).marginRight,10)||0)===0),o.innerHTML="",n.removeChild(o);if(a.attachEvent)for(t in{submit:1,change:1,focusin:1})s="on"+t,u=s in a,u||(a.setAttribute(s,"return;"),u=typeof a[s]=="function"),k[t+"Bubbles"]=u;o=l=g=h=m=j=a=i=null;return k}(),f.boxModel=f.support.boxModel;var i=/^(?:\{.*\}|\[.*\])$/,j=/([A-Z])/g;f.extend({cache:{},uuid:0,expando:"jQuery"+(f.fn.jquery+Math.random()).replace(/\D/g,""),noData:{embed:!0,object:"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000",applet:!0},hasData:function(a){a=a.nodeType?f.cache[a[f.expando]]:a[f.expando];return!!a&&!l(a)},data:function(a,c,d,e){if(!!f.acceptData(a)){var g,h,i=f.expando,j=typeof c=="string",k=a.nodeType,l=k?f.cache:a,m=k?a[f.expando]:a[f.expando]&&f.expando;if((!m||e&&m&&l[m]&&!l[m][i])&&j&&d===b)return;m||(k?a[f.expando]=m=++f.uuid:m=f.expando),l[m]||(l[m]={},k||(l[m].toJSON=f.noop));if(typeof c=="object"||typeof c=="function")e?l[m][i]=f.extend(l[m][i],c):l[m]=f.extend(l[m],c);g=l[m],e&&(g[i]||(g[i]={}),g=g[i]),d!==b&&(g[f.camelCase(c)]=d);if(c==="events"&&!g[c])return g[i]&&g[i].events;j?(h=g[c],h==null&&(h=g[f.camelCase(c)])):h=g;return h}},removeData:function(a,b,c){if(!!f.acceptData(a)){var d,e=f.expando,g=a.nodeType,h=g?f.cache:a,i=g?a[f.expando]:f.expando;if(!h[i])return;if(b){d=c?h[i][e]:h[i];if(d){d[b]||(b=f.camelCase(b)),delete d[b];if(!l(d))return}}if(c){delete h[i][e];if(!l(h[i]))return}var j=h[i][e];f.support.deleteExpando||!h.setInterval?delete h[i]:h[i]=null,j?(h[i]={},g||(h[i].toJSON=f.noop),h[i][e]=j):g&&(f.support.deleteExpando?delete a[f.expando]:a.removeAttribute?a.removeAttribute(f.expando):a[f.expando]=null)}},_data:function(a,b,c){return f.data(a,b,c,!0)},acceptData:function(a){if(a.nodeName){var b=f.noData[a.nodeName.toLowerCase()];if(b)return b!==!0&&a.getAttribute("classid")===b}return!0}}),f.fn.extend({data:function(a,c){var d=null;if(typeof a=="undefined"){if(this.length){d=f.data(this[0]);if(this[0].nodeType===1){var e=this[0].attributes,g;for(var h=0,i=e.length;h<i;h++)g=e[h].name,g.indexOf("data-")===0&&(g=f.camelCase(g.substring(5)),k(this[0],g,d[g]))}}return d}if(typeof a=="object")return this.each(function(){f.data(this,a)});var j=a.split(".");j[1]=j[1]?"."+j[1]:"";if(c===b){d=this.triggerHandler("getData"+j[1]+"!",[j[0]]),d===b&&this.length&&(d=f.data(this[0],a),d=k(this[0],a,d));return d===b&&j[1]?this.data(j[0]):d}return this.each(function(){var b=f(this),d=[j[0],c];b.triggerHandler("setData"+j[1]+"!",d),f.data(this,a,c),b.triggerHandler("changeData"+j[1]+"!",d)})},removeData:function(a){return this.each(function(){f.removeData(this,a)})}}),f.extend({_mark:function(a,c){a&&(c=(c||"fx")+"mark",f.data(a,c,(f.data(a,c,b,!0)||0)+1,!0))},_unmark:function(a,c,d){a!==!0&&(d=c,c=a,a=!1);if(c){d=d||"fx";var e=d+"mark",g=a?0:(f.data(c,e,b,!0)||1)-1;g?f.data(c,e,g,!0):(f.removeData(c,e,!0),m(c,d,"mark"))}},queue:function(a,c,d){if(a){c=(c||"fx")+"queue";var e=f.data(a,c,b,!0);d&&(!e||f.isArray(d)?e=f.data(a,c,f.makeArray(d),!0):e.push(d));return e||[]}},dequeue:function(a,b){b=b||"fx";var c=f.queue(a,b),d=c.shift(),e;d==="inprogress"&&(d=c.shift()),d&&(b==="fx"&&c.unshift("inprogress"),d.call(a,function(){f.dequeue(a,b)})),c.length||(f.removeData(a,b+"queue",!0),m(a,b,"queue"))}}),f.fn.extend({queue:function(a,c){typeof a!="string"&&(c=a,a="fx");if(c===b)return f.queue(this[0],a);return this.each(function(){var b=f.queue(this,a,c);a==="fx"&&b[0]!=="inprogress"&&f.dequeue(this,a)})},dequeue:function(a){return this.each(function(){f.dequeue(this,a)})},delay:function(a,b){a=f.fx?f.fx.speeds[a]||a:a,b=b||"fx";return this.queue(b,function(){var c=this;setTimeout(function(){f.dequeue(c,b)},a)})},clearQueue:function(a){return this.queue(a||"fx",[])},promise:function(a,c){function m(){--h||d.resolveWith(e,[e])}typeof a!="string"&&(c=a,a=b),a=a||"fx";var d=f.Deferred(),e=this,g=e.length,h=1,i=a+"defer",j=a+"queue",k=a+"mark",l;while(g--)if(l=f.data(e[g],i,b,!0)||(f.data(e[g],j,b,!0)||f.data(e[g],k,b,!0))&&f.data(e[g],i,f._Deferred(),!0))h++,l.done(m);m();return d.promise()}});var n=/[\n\t\r]/g,o=/\s+/,p=/\r/g,q=/^(?:button|input)$/i,r=/^(?:button|input|object|select|textarea)$/i,s=/^a(?:rea)?$/i,t=/^(?:autofocus|autoplay|async|checked|controls|defer|disabled|hidden|loop|multiple|open|readonly|required|scoped|selected)$/i,u,v;f.fn.extend({attr:function(a,b){return f.access(this,a,b,!0,f.attr)},removeAttr:function(a){return this.each(function(){f.removeAttr(this,a)})},prop:function(a,b){return f.access(this,a,b,!0,f.prop)},removeProp:function(a){a=f.propFix[a]||a;return this.each(function(){try{this[a]=b,delete this[a]}catch(c){}})},addClass:function(a){var b,c,d,e,g,h,i;if(f.isFunction(a))return this.each(function(b){f(this).addClass(a.call(this,b,this.className))});if(a&&typeof a=="string"){b=a.split(o);for(c=0,d=this.length;c<d;c++){e=this[c];if(e.nodeType===1)if(!e.className&&b.length===1)e.className=a;else{g=" "+e.className+" ";for(h=0,i=b.length;h<i;h++)~g.indexOf(" "+b[h]+" ")||(g+=b[h]+" ");e.className=f.trim(g)}}}return this},removeClass:function(a){var c,d,e,g,h,i,j;if(f.isFunction(a))return this.each(function(b){f(this).removeClass(a.call(this,b,this.className))});if(a&&typeof a=="string"||a===b){c=(a||"").split(o);for(d=0,e=this.length;d<e;d++){g=this[d];if(g.nodeType===1&&g.className)if(a){h=(" "+g.className+" ").replace(n," ");for(i=0,j=c.length;i<j;i++)h=h.replace(" "+c[i]+" "," ");g.className=f.trim(h)}else g.className=""}}return this},toggleClass:function(a,b){var c=typeof a,d=typeof b=="boolean";if(f.isFunction(a))return this.each(function(c){f(this).toggleClass(a.call(this,c,this.className,b),b)});return this.each(function(){if(c==="string"){var e,g=0,h=f(this),i=b,j=a.split(o);while(e=j[g++])i=d?i:!h.hasClass(e),h[i?"addClass":"removeClass"](e)}else if(c==="undefined"||c==="boolean")this.className&&f._data(this,"__className__",this.className),this.className=this.className||a===!1?"":f._data(this,"__className__")||""})},hasClass:function(a){var b=" "+a+" ";for(var c=0,d=this.length;c<d;c++)if(this[c].nodeType===1&&(" "+this[c].className+" ").replace(n," ").indexOf(b)>-1)return!0;return!1},val:function(a){var c,d,e=this[0];if(!arguments.length){if(e){c=f.valHooks[e.nodeName.toLowerCase()]||f.valHooks[e.type];if(c&&"get"in c&&(d=c.get(e,"value"))!==b)return d;d=e.value;return typeof d=="string"?d.replace(p,""):d==null?"":d}return b}var g=f.isFunction(a);return this.each(function(d){var e=f(this),h;if(this.nodeType===1){g?h=a.call(this,d,e.val()):h=a,h==null?h="":typeof h=="number"?h+="":f.isArray(h)&&(h=f.map(h,function(a){return a==null?"":a+""})),c=f.valHooks[this.nodeName.toLowerCase()]||f.valHooks[this.type];if(!c||!("set"in c)||c.set(this,h,"value")===b)this.value=h}})}}),f.extend({valHooks:{option:{get:function(a){var b=a.attributes.value;return!b||b.specified?a.value:a.text}},select:{get:function(a){var b,c=a.selectedIndex,d=[],e=a.options,g=a.type==="select-one";if(c<0)return null;for(var h=g?c:0,i=g?c+1:e.length;h<i;h++){var j=e[h];if(j.selected&&(f.support.optDisabled?!j.disabled:j.getAttribute("disabled")===null)&&(!j.parentNode.disabled||!f.nodeName(j.parentNode,"optgroup"))){b=f(j).val();if(g)return b;d.push(b)}}if(g&&!d.length&&e.length)return f(e[c]).val();return d},set:function(a,b){var c=f.makeArray(b);f(a).find("option").each(function(){this.selected=f.inArray(f(this).val(),c)>=0}),c.length||(a.selectedIndex=-1);return c}}},attrFn:{val:!0,css:!0,html:!0,text:!0,data:!0,width:!0,height:!0,offset:!0},attrFix:{tabindex:"tabIndex"},attr:function(a,c,d,e){var g=a.nodeType;if(!a||g===3||g===8||g===2)return b;if(e&&c in f.attrFn)return f(a)[c](d);if(!("getAttribute"in a))return f.prop(a,c,d);var h,i,j=g!==1||!f.isXMLDoc(a);j&&(c=f.attrFix[c]||c,i=f.attrHooks[c],i||(t.test(c)?i=v:u&&(i=u)));if(d!==b){if(d===null){f.removeAttr(a,c);return b}if(i&&"set"in i&&j&&(h=i.set(a,d,c))!==b)return h;a.setAttribute(c,""+d);return d}if(i&&"get"in i&&j&&(h=i.get(a,c))!==null)return h;h=a.getAttribute(c);return h===null?b:h},removeAttr:function(a,b){var c;a.nodeType===1&&(b=f.attrFix[b]||b,f.attr(a,b,""),a.removeAttribute(b),t.test(b)&&(c=f.propFix[b]||b)in a&&(a[c]=!1))},attrHooks:{type:{set:function(a,b){if(q.test(a.nodeName)&&a.parentNode)f.error("type property can't be changed");else if(!f.support.radioValue&&b==="radio"&&f.nodeName(a,"input")){var c=a.value;a.setAttribute("type",b),c&&(a.value=c);return b}}},value:{get:function(a,b){if(u&&f.nodeName(a,"button"))return u.get(a,b);return b in a?a.value:null},set:function(a,b,c){if(u&&f.nodeName(a,"button"))return u.set(a,b,c);a.value=b}}},propFix:{tabindex:"tabIndex",readonly:"readOnly","for":"htmlFor","class":"className",maxlength:"maxLength",cellspacing:"cellSpacing",cellpadding:"cellPadding",rowspan:"rowSpan",colspan:"colSpan",usemap:"useMap",frameborder:"frameBorder",contenteditable:"contentEditable"},prop:function(a,c,d){var e=a.nodeType;if(!a||e===3||e===8||e===2)return b;var g,h,i=e!==1||!f.isXMLDoc(a);i&&(c=f.propFix[c]||c,h=f.propHooks[c]);return d!==b?h&&"set"in h&&(g=h.set(a,d,c))!==b?g:a[c]=d:h&&"get"in h&&(g=h.get(a,c))!==null?g:a[c]},propHooks:{tabIndex:{get:function(a){var c=a.getAttributeNode("tabindex");return c&&c.specified?parseInt(c.value,10):r.test(a.nodeName)||s.test(a.nodeName)&&a.href?0:b}}}}),f.attrHooks.tabIndex=f.propHooks.tabIndex,v={get:function(a,c){var d;return f.prop(a,c)===!0||(d=a.getAttributeNode(c))&&d.nodeValue!==!1?c.toLowerCase():b},set:function(a,b,c){var d;b===!1?f.removeAttr(a,c):(d=f.propFix[c]||c,d in a&&(a[d]=!0),a.setAttribute(c,c.toLowerCase()));return c}},f.support.getSetAttribute||(u=f.valHooks.button={get:function(a,c){var d;d=a.getAttributeNode(c);return d&&d.nodeValue!==""?d.nodeValue:b},set:function(a,b,d){var e=a.getAttributeNode(d);e||(e=c.createAttribute(d),a.setAttributeNode(e));return e.nodeValue=b+""}},f.each(["width","height"],function(a,b){f.attrHooks[b]=f.extend(f.attrHooks[b],{set:function(a,c){if(c===""){a.setAttribute(b,"auto");return c}}})})),f.support.hrefNormalized||f.each(["href","src","width","height"],function(a,c){f.attrHooks[c]=f.extend(f.attrHooks[c],{get:function(a){var d=a.getAttribute(c,2);return d===null?b:d}})}),f.support.style||(f.attrHooks.style={get:function(a){return a.style.cssText.toLowerCase()||b},set:function(a,b){return a.style.cssText=""+b}}),f.support.optSelected||(f.propHooks.selected=f.extend(f.propHooks.selected,{get:function(a){var b=a.parentNode;b&&(b.selectedIndex,b.parentNode&&b.parentNode.selectedIndex);return null}})),f.support.checkOn||f.each(["radio","checkbox"],function(){f.valHooks[this]={get:function(a){return a.getAttribute("value")===null?"on":a.value}}}),f.each(["radio","checkbox"],function(){f.valHooks[this]=f.extend(f.valHooks[this],{set:function(a,b){if(f.isArray(b))return a.checked=f.inArray(f(a).val(),b)>=0}})});var w=/\.(.*)$/,x=/^(?:textarea|input|select)$/i,y=/\./g,z=/ /g,A=/[^\w\s.|`]/g,B=function(a){return a.replace(A,"\\$&")};f.event={add:function(a,c,d,e){if(a.nodeType!==3&&a.nodeType!==8){if(d===!1)d=C;else if(!d)return;var g,h;d.handler&&(g=d,d=g.handler),d.guid||(d.guid=f.guid++);var i=f._data(a);if(!i)return;var j=i.events,k=i.handle;j||(i.events=j={}),k||(i.handle=k=function(a){return typeof f!="undefined"&&(!a||f.event.triggered!==a.type)?f.event.handle.apply(k.elem,arguments):b}),k.elem=a,c=c.split(" ");var l,m=0,n;while(l=c[m++]){h=g?f.extend({},g):{handler:d,data:e},l.indexOf(".")>-1?(n=l.split("."),l=n.shift(),h.namespace=n.slice(0).sort().join(".")):(n=[],h.namespace=""),h.type=l,h.guid||(h.guid=d.guid);var o=j[l],p=f.event.special[l]||{};if(!o){o=j[l]=[];if(!p.setup||p.setup.call(a,e,n,k)===!1)a.addEventListener?a.addEventListener(l,k,!1):a.attachEvent&&a.attachEvent("on"+l,k)}p.add&&(p.add.call(a,h),h.handler.guid||(h.handler.guid=d.guid)),o.push(h),f.event.global[l]=!0}a=null}},global:{},remove:function(a,c,d,e){if(a.nodeType!==3&&a.nodeType!==8){d===!1&&(d=C);var g,h,i,j,k=0,l,m,n,o,p,q,r,s=f.hasData(a)&&f._data(a),t=s&&s.events;if(!s||!t)return;c&&c.type&&(d=c.handler,c=c.type);if(!c||typeof c=="string"&&c.charAt(0)==="."){c=c||"";for(h in t)f.event.remove(a,h+c);return}c=c.split(" ");while(h=c[k++]){r=h,q=null,l=h.indexOf(".")<0,m=[],l||(m=h.split("."),h=m.shift(),n=new RegExp("(^|\\.)"+f.map(m.slice(0).sort(),B).join("\\.(?:.*\\.)?")+"(\\.|$)")),p=t[h];if(!p)continue;if(!d){for(j=0;j<p.length;j++){q=p[j];if(l||n.test(q.namespace))f.event.remove(a,r,q.handler,j),p.splice(j--,1)}continue}o=f.event.special[h]||{};for(j=e||0;j<p.length;j++){q=p[j];if(d.guid===q.guid){if(l||n.test(q.namespace))e==null&&p.splice(j--,1),o.remove&&o.remove.call(a,q);if(e!=null)break}}if(p.length===0||e!=null&&p.length===1)(!o.teardown||o.teardown.call(a,m)===!1)&&f.removeEvent(a,h,s.handle),g=null,delete 
@@ -1570,6 +2518,13 @@ if(typeof window != "undefined") {
 		return f(msg,[url + ":" + line]);
 	};
 }
+haxe.Serializer.USE_CACHE = false;
+haxe.Serializer.USE_ENUM_INDEX = false;
+haxe.Serializer.BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%:";
+haxe.Unserializer.DEFAULT_RESOLVER = Type;
+haxe.Unserializer.BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%:";
+haxe.Unserializer.CODES = null;
+js.Lib.onerror = null;
 org.jinjor.haxemine.client.Menu.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <label><!--{{projectRoot}}-->Haxemine</label>\r\n    ");
 org.jinjor.haxemine.client.Menu.templateDisConnected = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <label class=\"disconnected\">Disconnected</label>\r\n    ");
 org.jinjor.haxemine.client.view.CompileErrorPanel.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <ul>\r\n            {{#errors}}\r\n            <li><a data-filePath=\"{{path}}\">{{originalMessage}}</a></li>\r\n            {{/errors}}\r\n        </ul>\r\n    ");

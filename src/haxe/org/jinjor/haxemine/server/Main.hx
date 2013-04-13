@@ -46,8 +46,8 @@ class Main {
             rli.on('line', function(cmd) {
                 if(cmd == 'y'){
                     Service.getAllHxmlFiles(projectRoot, function(err, files : Array<String>){
-                        if(err){
-                            untyped console.log(err);
+                        if(err != null){
+                            Console.print(err);
                             throw(err);
                         }
                         files.sort(function(f1 : String, f2 : String){
@@ -148,7 +148,7 @@ class Main {
             var taskProgressM = new TaskProgressM(socket);
             
             Console.print("connection");
-            Service.getAllHaxeFiles(projectRoot, function(err, files : Dynamic<SourceFile>){
+            Service.getAllHaxeFiles(projectRoot, function(err, files){
                 if(err != null){
                     trace(err);
                     throw err;
@@ -157,6 +157,7 @@ class Main {
             });
             
             saveM.sub(function(saveFileDto){
+                trace(saveFileDto);
                 if(saveFileDto.fileName == null){
                   trace(saveFileDto);
                   throw "bad request.";

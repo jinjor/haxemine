@@ -27,9 +27,9 @@ class Service {
     public static function save(projectRoot : String, data, allHaxeFilesM : AllHaxeFilesM, socket:Dynamic){
         var _path = projectRoot + '/'+ data.fileName;
         var isNew = !path.existsSync(_path);
-        Service.saveToSrc(fs, _path, data.text);
+        saveToSrc(fs, _path, data.text);
         if(isNew){
-            Service.getAllHaxeFiles(projectRoot, function(err, files : Dynamic<SourceFile>){
+            getAllHaxeFiles(projectRoot, function(err, files){
                 if(err != null){
                     trace(err);
                     throw err;
@@ -44,7 +44,7 @@ class Service {
         var tasks = conf.hxml.filter(function(hxml){
             return hxml.path == taskName;
         }).map(function(hxml){
-            var task = Service.createCompileHaxeTask(socket, taskProgressM, projectRoot, hxml.path);
+            var task = createCompileHaxeTask(socket, taskProgressM, projectRoot, hxml.path);
             return task;
         }).array();
         async.series(tasks, function(){});
@@ -54,7 +54,7 @@ class Service {
         var tasks = conf.hxml.filter(function(hxml){
             return hxml.auto != null && hxml.auto;
         }).map(function(hxml){
-            var task = Service.createCompileHaxeTask(socket, taskProgressM, projectRoot, hxml.path);
+            var task = createCompileHaxeTask(socket, taskProgressM, projectRoot, hxml.path);
             return task;
         }).array();
         async.series(tasks, function(){});
@@ -84,7 +84,7 @@ class Service {
     }
     
     public static function findFromSrc(fileName) : FileDetail {
-      untyped console.log(fileName);
+      //untyped console.log(fileName);
       return new FileDetail(fs.readFileSync(fileName, "utf8"), 'haxe');
     }
     public static function saveToSrc(fs, fileName, text){
@@ -156,17 +156,17 @@ class Service {
       });
     }
     
-    public static function getAllHaxeFiles(projectRoot : String, _callback : Dynamic -> Dynamic<SourceFile> -> Void){
+    public static function getAllHaxeFiles(projectRoot : String, _callback : Dynamic -> Hash<SourceFile> -> Void){
         var filter = function(item : String){
             return item.endsWith('.hx');
         };
         getAllMatchedFiles(projectRoot, filter, function(err, filePaths){
-            if(err){
+            if(err != null){
                 _callback(err, null);
             }else{
-                var files : Dynamic<SourceFile> = {};
+                var files = new Hash<SourceFile>();
                 filePaths.foreach(function(f){
-                    untyped {files[f] = new SourceFile(f);}
+                    files.set(f, new SourceFile(f));
                     return true;
                 });
                 _callback(null, files);

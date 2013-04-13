@@ -7,10 +7,12 @@ class SocketMessage<T> {
     
     public function new(socket : Dynamic, key : String) {
         this.pub = function(data : T){
-            socket.emit(key, data);//TODO Serialize
+            socket.emit(key, haxe.Serializer.run(data));
         };
         this.sub = function(f : T -> Void){
-            socket.on(key, f);
+            socket.on(key, function(data){
+                f(haxe.Unserializer.run(data));
+            });
         };
     }
 

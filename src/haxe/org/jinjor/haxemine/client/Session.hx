@@ -51,12 +51,12 @@ class Session {
                 trace(msg);//View
             }
         });
-        allHaxeFilesM.sub(function(files : Dynamic<SourceFile>) {
-            setAllFiles(Util.dynamicToHash(files));
+        allHaxeFilesM.sub(function(files) {
+            setAllFiles(files);
         });
         initialInfoM.sub(function(initialInfo) {
             onInitialInfoReceived.pub(initialInfo);
-            setAllFiles(Util.dynamicToHash(initialInfo.allFiles));
+            setAllFiles(initialInfo.allFiles);
         });
         taskProgressM.sub(function(taskProgress) {//TODO ここじゃない
             that.lastTaskProgress = taskProgress;

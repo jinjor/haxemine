@@ -8,7 +8,7 @@ class Main{
   
   public static function main() {
       
-    trace('Hello.');//TODO
+    trace('Hello.');
     sub();
     new Util3();
   }
