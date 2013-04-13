@@ -19,6 +19,23 @@ ul {
 li {
   list-style-type: none;
 }
+input[type="text"] {
+  height: 20px;
+}
+input[type="text"]:focus {
+  outline: solid 1px #aac;
+}
+input[type="submit"] {
+  border: solid 1px #999;
+  height: 20px;
+  color: #778;
+  background-color: #ddd;
+}
+input[type="submit"]:hover {
+  color: #556;
+  background-color: #fff;
+}
+
 #menu {
   font-weight:bold;
   color:#ccd;
@@ -57,6 +74,11 @@ li {
   position: relative;
   height: 25%;
 }
+#viewPanel form{
+  margin-top:1px;
+  margin-bottom:1px;
+}
+
 #tabsContainer {
   position: relative;
   border-bottom: solid 1px #999;
@@ -72,14 +94,20 @@ li {
   color: #dde;
   background-color: #778;
 }
+#panelsContainer {
+  font-size:small;
+  font-family: arial,sans-serif;
+  margin-left:4px;
+}
 
 #task-list-view {
   margin-top:1px;
   height: 16px;
 }
+
+
 .task-view {
     cursor:default;
-    font-size:small;
     border: 1px solid #aaa;
     margin-left:5px;
     color: #999;
@@ -108,11 +136,6 @@ li {
     background-color: #eee;
 }
 
-#compile-errors {
-  
-    font-size:small;
-    font-family: arial,sans-serif;
-}
 .file_selector_dir {
   color: #aaa;
   cursor: pointer;

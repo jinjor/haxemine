@@ -30,7 +30,6 @@ class TaskListView {
                 container.append(c);
                 return true;
             });
-            
         });
         this.container = JQ('<div id="task-list-view"/>');
     }

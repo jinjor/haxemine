@@ -25,10 +25,11 @@ class SearchPanel {
         socket.on('search-result', function(results : Array<SearchResult>){
             resultsContainer.empty();
             for(result in results){
-                var resultElm = JQ('<a/>').text(result.message).click(function(){
+                var link = JQ('<a/>').text(result.message).click(function(){
                     var file = session.getAllFiles().get(result.fileName);
                     session.selectNextFile(file);
                 });
+                var resultElm = JQ('<div/>').append(link);
                 resultsContainer.append(resultElm);
             }
             form.removeAttr("disabled");

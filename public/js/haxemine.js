@@ -833,6 +833,7 @@ org.jinjor.haxemine.client.Session = function(socket,editingFiles) {
 	this.onLastTaskProgressChanged = new org.jinjor.util.Event();
 	this.onEditingFileChanged = new org.jinjor.util.Event();
 	this.onSave = new org.jinjor.util.Event();
+	this.onSelectView = new org.jinjor.util.Event();
 	this.onSocketConnected.sub(function(_) {
 		_g.doAllAutoTasks();
 	});
@@ -1120,12 +1121,13 @@ org.jinjor.haxemine.client.view.SearchPanel = function(socket,session) {
 		while(_g < results.length) {
 			var result = [results[_g]];
 			++_g;
-			var resultElm = $("<a/>").text(result[0].message).click((function(result) {
+			var link = $("<a/>").text(result[0].message).click((function(result) {
 				return function() {
 					var file = session.getAllFiles().get(result[0].fileName);
 					session.selectNextFile(file);
 				};
 			})(result));
+			var resultElm = $("<div/>").append(link);
 			resultsContainer.append(resultElm);
 		}
 		form.removeAttr("disabled");
@@ -1236,34 +1238,39 @@ org.jinjor.haxemine.client.view.View.prototype = {
 org.jinjor.haxemine.client.view.ViewPanel = function(socket,session) {
 	var container = $("<div id=\"viewPanel\"/>");
 	var tabsContainer = $("<div id=\"tabsContainer\"/>");
-	var panelsContainer = $("<div/>");
+	var panelsContainer = $("<div id=\"panelsContainer\"/>");
+	var selectView = new Hash();
 	session.onInitialInfoReceived.sub(function(info) {
 		var compileErrorPanel = new org.jinjor.haxemine.client.view.CompileErrorPanel(socket,session);
 		var searchPanel = new org.jinjor.haxemine.client.view.SearchPanel(socket,session);
-		var selected = "Tasks";
 		var defs = [{ name : "Tasks", container : compileErrorPanel.container}];
 		if(info.searchEnabled) defs.push({ name : "Search", container : searchPanel.container});
 		var _g = 0;
 		while(_g < defs.length) {
-			var def = defs[_g];
+			var def = [defs[_g]];
 			++_g;
-			var panel = [$("<div/>").html(def.container)];
-			var tab = $("<span class=\"view-tab\"/>").text(def.name).click((function(panel) {
+			var panel = [$("<div/>").html(def[0].container).hide()];
+			var tab = [$("<span class=\"view-tab\"/>").text(def[0].name).click((function(def) {
 				return function() {
-					$(this).addClass("selected").siblings().removeClass("selected");
+					session.onSelectView.pub(def[0].name);
+				};
+			})(def))];
+			selectView.set(def[0].name,(function(tab,panel) {
+				return function() {
+					tab[0].addClass("selected").siblings().removeClass("selected");
 					panel[0].show().siblings().hide();
 				};
-			})(panel));
-			if(def.name == selected) {
-				tab.addClass("selected");
-				panel[0].show();
-			} else {
-				tab.removeClass("selected");
-				panel[0].hide();
-			}
-			tabsContainer.append(tab);
+			})(tab,panel));
+			tabsContainer.append(tab[0]);
 			panelsContainer.append(panel[0]);
 		}
+		session.onSelectView.pub("Tasks");
+	});
+	session.onSelectView.sub(function(viewName) {
+		(selectView.get(viewName))();
+	});
+	session.onLastTaskProgressChanged.sub(function(_) {
+		session.onSelectView.pub("Tasks");
 	});
 	this.container = container.append(tabsContainer).append(panelsContainer);
 };

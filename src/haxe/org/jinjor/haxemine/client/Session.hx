@@ -29,6 +29,7 @@ class Session {
     public var onLastTaskProgressChanged : Event<Void>;
     public var onEditingFileChanged : Event<FileDetail>;
     public var onSave : Event<Void>;
+    public var onSelectView : Event<String>;
     
     public function new(socket, editingFiles){
         var that = this;
@@ -67,6 +68,7 @@ class Session {
         this.onLastTaskProgressChanged = new Event();
         this.onEditingFileChanged = new Event();
         this.onSave = new Event();
+        this.onSelectView = new Event();
         
         this.onSocketConnected.sub(function(_){
             doAllAutoTasks();//TODO ここじゃないきがする

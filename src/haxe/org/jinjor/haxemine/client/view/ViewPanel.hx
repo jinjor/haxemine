@@ -16,12 +16,13 @@ class ViewPanel {
     public function new(socket : Dynamic, session : Session) {
         var container = JQ('<div id="viewPanel"/>');
         var tabsContainer = JQ('<div id="tabsContainer"/>');
-        var panelsContainer = JQ('<div/>');
+        var panelsContainer = JQ('<div id="panelsContainer"/>');
+        
+        var selectView = new Hash<Void -> Void>();
         
         session.onInitialInfoReceived.sub(function(info){
             var compileErrorPanel = new CompileErrorPanel(socket, session);
             var searchPanel = new SearchPanel(socket, session);
-            var selected = 'Tasks';
             var defs : Array<ViewPanelDef> = [
                 {name:'Tasks', container:compileErrorPanel.container}
             ];
@@ -29,21 +30,26 @@ class ViewPanel {
                 defs.push({name:'Search', container:searchPanel.container});
             }
             for(def in defs) {
-            var panel : JQuery = JQ('<div/>').html(def.container);
-            var tab = JQ('<span class="view-tab"/>').text(def.name).click(function(){
-                    JQuery.cur.addClass('selected').siblings().removeClass('selected');
+                var panel : JQuery = JQ('<div/>').html(def.container).hide();
+                var tab = JQ('<span class="view-tab"/>').text(def.name).click(function(){
+                    session.onSelectView.pub(def.name);
+                });
+                selectView.set(def.name, function(){
+                    tab.addClass('selected').siblings().removeClass('selected');
                     panel.show().siblings().hide();
                 });
-                if(def.name == selected){
-                    tab.addClass('selected');
-                    panel.show();
-                }else{
-                    tab.removeClass('selected');
-                    panel.hide();
-                }
                 tabsContainer.append(tab);
                 panelsContainer.append(panel);
             }
+            
+            session.onSelectView.pub('Tasks');
+        });
+        
+        session.onSelectView.sub(function(viewName : String){
+            selectView.get(viewName)();
+        });
+        session.onLastTaskProgressChanged.sub(function(_){
+            session.onSelectView.pub('Tasks');
         });
 
         this.container = container.append(tabsContainer).append(panelsContainer);
