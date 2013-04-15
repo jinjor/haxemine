@@ -3,6 +3,7 @@ package org.jinjor.haxemine.client.view;
 import js.JQuery;
 import org.jinjor.haxemine.messages.SaveFileDto;
 import org.jinjor.haxemine.messages.SaveM;
+import org.jinjor.haxemine.messages.FileDetail;
 
 using Lambda;
 
@@ -10,10 +11,12 @@ class AceEditorView {
     
     public function new(editor : Dynamic, socket : Dynamic, session : Session){
         var saveM = new SaveM(socket); 
-        session.onEditingFileChanged.sub(function(detail){
-            editor.getSession().setValue(detail.text);
-            editor.getSession().setMode("ace/mode/" + detail.mode);
-            annotateCompileError(editor, session);
+        session.editingFiles.onChange.sub(function(file){
+            new FileDetailDao().getFile(file.pathFromProjectRoot, function(detail: FileDetail){
+                editor.getSession().setValue(detail.text);
+                editor.getSession().setMode("ace/mode/" + detail.mode);
+                annotateCompileError(editor, session);
+            });
         });
     
         session.onLastTaskProgressChanged.sub(function(_){
@@ -30,7 +33,7 @@ class AceEditorView {
                 saveFile(saveM, session, editor.getSession().getValue());
             }
         },{//TODO Ctrl-Click
-            Name : "savefile",
+            Name : "jumpToClass",
             bindKey: {
                 win : "Ctrl-Q",
                 mac : "Command-Q"

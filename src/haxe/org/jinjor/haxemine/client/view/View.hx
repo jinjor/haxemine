@@ -31,7 +31,15 @@ class View {
         container
         .append(menuContainer)
         .append(fileSelectorContainer)
-        .append(rightPanel);
+        .append(rightPanel).keyup(function(e){
+            if(e.altKey && e.keyCode == 37){
+                session.editingFiles.cursorToOlder();
+            }else if(e.altKey && e.keyCode == 39){
+                session.editingFiles.cursorToNewer();
+            }
+            return false;
+        });
+        
         
         var editor = ace.edit("editor");
         new AceEditorView(editor, socket, session);//ACEだけは後

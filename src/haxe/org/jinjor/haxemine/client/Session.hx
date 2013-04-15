@@ -24,7 +24,7 @@ class Session {
 
     var socket : Dynamic;
     
-    var editingFiles : HistoryArray<SourceFile>;
+    public var editingFiles : HistoryArray<SourceFile>;
     var allFiles : Hash<SourceFile>;
     var fileToLoad : SourceFile;
     var lastTaskProgress : TaskProgress;
@@ -34,7 +34,6 @@ class Session {
     public var onInitialInfoReceived : Event<InitialInfoDto>;
     public var onAllFilesChanged : Event<Void>;
     public var onLastTaskProgressChanged : Event<Void>;
-    public var onEditingFileChanged : Event<FileDetail>;
     public var onSave : Event<Void>;
     public var onSelectView : Event<String>;
     
@@ -78,7 +77,6 @@ class Session {
         this.onInitialInfoReceived = new Event();
         this.onAllFilesChanged = new Event();
         this.onLastTaskProgressChanged = new Event();
-        this.onEditingFileChanged = new Event();
         this.onSave = new Event();
         this.onSelectView = new Event();
         
@@ -101,9 +99,9 @@ class Session {
         return allFiles;
     }
     
-    //-> Backbone#add/set/onAdd
+
     public function getCurrentFile() : SourceFile {
-        return editingFiles.array[0];
+        return editingFiles.getCursored();
     }
     public function selectNextFile(file: SourceFile) {
         var that = this;
@@ -111,9 +109,6 @@ class Session {
             return;
         }
         editingFiles.add(file);
-        new FileDetailDao().getFile(getCurrentFile().pathFromProjectRoot, function(detail: FileDetail){
-            that.onEditingFileChanged.pub(detail);
-        });
     }
 
     public function getCompileErrorsByFile(file : SourceFile) : List<CompileError> {

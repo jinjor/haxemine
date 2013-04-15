@@ -1734,7 +1734,6 @@ org.jinjor.haxemine.client.Session = $hxClasses["org.jinjor.haxemine.client.Sess
 	this.onInitialInfoReceived = new org.jinjor.util.Event();
 	this.onAllFilesChanged = new org.jinjor.util.Event();
 	this.onLastTaskProgressChanged = new org.jinjor.util.Event();
-	this.onEditingFileChanged = new org.jinjor.util.Event();
 	this.onSave = new org.jinjor.util.Event();
 	this.onSelectView = new org.jinjor.util.Event();
 	this.onSocketConnected.sub(function(_) {
@@ -1753,12 +1752,9 @@ org.jinjor.haxemine.client.Session.prototype = {
 		var that = this;
 		if(file == null) return;
 		this.editingFiles.add(file);
-		new org.jinjor.haxemine.client.FileDetailDao().getFile(this.getCurrentFile().pathFromProjectRoot,function(detail) {
-			that.onEditingFileChanged.pub(detail);
-		});
 	}
 	,getCurrentFile: function() {
-		return this.editingFiles.array[0];
+		return this.editingFiles.getCursored();
 	}
 	,getAllFiles: function() {
 		return this.allFiles;
@@ -1772,7 +1768,6 @@ org.jinjor.haxemine.client.Session.prototype = {
 	}
 	,onSelectView: null
 	,onSave: null
-	,onEditingFileChanged: null
 	,onLastTaskProgressChanged: null
 	,onAllFilesChanged: null
 	,onInitialInfoReceived: null
@@ -1831,17 +1826,19 @@ org.jinjor.haxemine.client.TaskModelState.WAITING.__enum__ = org.jinjor.haxemine
 if(!org.jinjor.haxemine.client.view) org.jinjor.haxemine.client.view = {}
 org.jinjor.haxemine.client.view.AceEditorView = $hxClasses["org.jinjor.haxemine.client.view.AceEditorView"] = function(editor,socket,session) {
 	var saveM = new org.jinjor.haxemine.messages.SaveM(socket);
-	session.onEditingFileChanged.sub(function(detail) {
-		editor.getSession().setValue(detail.text);
-		editor.getSession().setMode("ace/mode/" + detail.mode);
-		org.jinjor.haxemine.client.view.AceEditorView.annotateCompileError(editor,session);
+	session.editingFiles.onChange.sub(function(file) {
+		new org.jinjor.haxemine.client.FileDetailDao().getFile(file.pathFromProjectRoot,function(detail) {
+			editor.getSession().setValue(detail.text);
+			editor.getSession().setMode("ace/mode/" + detail.mode);
+			org.jinjor.haxemine.client.view.AceEditorView.annotateCompileError(editor,session);
+		});
 	});
 	session.onLastTaskProgressChanged.sub(function(_) {
 		org.jinjor.haxemine.client.view.AceEditorView.annotateCompileError(editor,session);
 	});
 	editor.commands.addCommands([{ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor1) {
 		org.jinjor.haxemine.client.view.AceEditorView.saveFile(saveM,session,editor1.getSession().getValue());
-	}},{ Name : "savefile", bindKey : { win : "Ctrl-Q", mac : "Command-Q"}, exec : function(editor1) {
+	}},{ Name : "jumpToClass", bindKey : { win : "Ctrl-Q", mac : "Command-Q"}, exec : function(editor1) {
 		var pos = editor1.getCursorPosition();
 		var value = editor1.getSession().getTokenAt(pos.row,pos.column).value;
 		var charCode = HxOverrides.cca(value,0);
@@ -2157,11 +2154,15 @@ org.jinjor.haxemine.client.view.View.JQ = function(s) {
 }
 org.jinjor.haxemine.client.view.View.prototype = {
 	render: function(container) {
+		var _g = this;
 		var viewPanel = new org.jinjor.haxemine.client.view.ViewPanel(this.socket,this.session);
 		var menuContainer = new org.jinjor.haxemine.client.Menu(this.session).container;
 		var fileSelectorContainer = new org.jinjor.haxemine.client.view.FileSelector(this.socket,this.session).container;
 		var rightPanel = $("<div id=\"right\"/>").append($("<div id=\"editor\"/>")).append($("<hr/>")).append(viewPanel.container);
-		container.append(menuContainer).append(fileSelectorContainer).append(rightPanel);
+		container.append(menuContainer).append(fileSelectorContainer).append(rightPanel).keyup(function(e) {
+			if(e.altKey && e.keyCode == 37) _g.session.editingFiles.cursorToOlder(); else if(e.altKey && e.keyCode == 39) _g.session.editingFiles.cursorToNewer();
+			return false;
+		});
 		var editor = this.ace.edit("editor");
 		new org.jinjor.haxemine.client.view.AceEditorView(editor,this.socket,this.session);
 	}
@@ -2292,10 +2293,15 @@ org.jinjor.haxemine.messages.HistoryArray = $hxClasses["org.jinjor.haxemine.mess
 	this.array = [];
 	this.max = max;
 	this.equals = equals;
+	this.onChange = new org.jinjor.util.Event();
+	this.cursor = 0;
 };
 org.jinjor.haxemine.messages.HistoryArray.__name__ = ["org","jinjor","haxemine","messages","HistoryArray"];
 org.jinjor.haxemine.messages.HistoryArray.prototype = {
-	add: function(elm) {
+	getCursored: function() {
+		return this.array.length <= 0?null:this.array[this.cursor];
+	}
+	,add: function(elm) {
 		var i = 0;
 		while(i < this.array.length) {
 			if(this.equals(this.array[i],elm)) {
@@ -2307,7 +2313,31 @@ org.jinjor.haxemine.messages.HistoryArray.prototype = {
 		this.array.unshift(elm);
 		i = this.array.length - 1;
 		while(i > this.max) this.array.pop();
+		this.cursor = 0;
+		this.onChange.pub(elm);
+		try {
+			console.log("");
+			console.log(this.array[0].shortName);
+			console.log(this.array[1].shortName);
+			console.log(this.array[2].shortName);
+			console.log(this.array[3].shortName);
+		} catch( e ) {
+		}
 	}
+	,cursorToNewer: function() {
+		if(0 < this.cursor) {
+			this.cursor = this.cursor - 1;
+			this.onChange.pub(this.getCursored());
+		}
+	}
+	,cursorToOlder: function() {
+		if(this.cursor < this.array.length - 1 && this.cursor < this.max - 1) {
+			this.cursor = this.cursor + 1;
+			this.onChange.pub(this.getCursored());
+		}
+	}
+	,cursor: null
+	,onChange: null
 	,equals: null
 	,max: null
 	,array: null
