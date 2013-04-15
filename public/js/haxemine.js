@@ -1851,6 +1851,10 @@ org.jinjor.haxemine.client.view.AceEditorView = $hxClasses["org.jinjor.haxemine.
 		}));
 		if(filtered.length == 1) session.selectNextFile(filtered[0]); else if(filtered.length > 1) {
 		}
+	}},{ Name : "toOlder", bindKey : { win : "Alt-Left"}, exec : function(editor1) {
+		session.editingFiles.cursorToOlder();
+	}},{ Name : "toNewer", bindKey : { win : "Alt-Right"}, exec : function(editor1) {
+		session.editingFiles.cursorToNewer();
 	}}]);
 	this.render(editor,"ace/theme/eclipse");
 };
@@ -2159,9 +2163,14 @@ org.jinjor.haxemine.client.view.View.prototype = {
 		var menuContainer = new org.jinjor.haxemine.client.Menu(this.session).container;
 		var fileSelectorContainer = new org.jinjor.haxemine.client.view.FileSelector(this.socket,this.session).container;
 		var rightPanel = $("<div id=\"right\"/>").append($("<div id=\"editor\"/>")).append($("<hr/>")).append(viewPanel.container);
-		container.append(menuContainer).append(fileSelectorContainer).append(rightPanel).keyup(function(e) {
-			if(e.altKey && e.keyCode == 37) _g.session.editingFiles.cursorToOlder(); else if(e.altKey && e.keyCode == 39) _g.session.editingFiles.cursorToNewer();
-			return false;
+		container.append(menuContainer).append(fileSelectorContainer).append(rightPanel).keydown(function(e) {
+			if(e.altKey && e.keyCode == 37) {
+				_g.session.editingFiles.cursorToOlder();
+				return false;
+			} else if(e.altKey && e.keyCode == 39) {
+				_g.session.editingFiles.cursorToNewer();
+				return false;
+			} else return true;
 		});
 		var editor = this.ace.edit("editor");
 		new org.jinjor.haxemine.client.view.AceEditorView(editor,this.socket,this.session);

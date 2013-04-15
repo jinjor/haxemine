@@ -57,6 +57,22 @@ class AceEditorView {
                     //TODO
                 }
             }
+        },{
+            Name : "toOlder",
+            bindKey: {
+                win : "Alt-Left"
+            },
+            exec: function(editor) {
+                session.editingFiles.cursorToOlder();
+            }
+        },{
+            Name : "toNewer",
+            bindKey: {
+                win : "Alt-Right"
+            },
+            exec: function(editor) {
+                session.editingFiles.cursorToNewer();
+            }
         }]);
         /*
         editor.getSession().getSelection().on('changeCursor', function(){

@@ -31,13 +31,16 @@ class View {
         container
         .append(menuContainer)
         .append(fileSelectorContainer)
-        .append(rightPanel).keyup(function(e){
+        .append(rightPanel).keydown(function(e){
             if(e.altKey && e.keyCode == 37){
                 session.editingFiles.cursorToOlder();
+                return false;
             }else if(e.altKey && e.keyCode == 39){
                 session.editingFiles.cursorToNewer();
+                return false;
+            }else{
+                return true;
             }
-            return false;
         });
         
         
