@@ -19,12 +19,14 @@ class SearchPanel {
         var input = JQ('<input type="text"/>');
         var button = JQ('<input type="submit">').val('Search');
         var form = JQ('<form/>').append(input).append(button);
+        var resultsContainer = JQ('<div/>');
+        this.container = JQ('<div/>').append(form).append(resultsContainer);
+        
         form.fixedSubmit(function(_){
             var word = input.val();
             searchM.pub(word);
             form.attr("disabled", "disabled");
         });
-        var resultsContainer = JQ('<div/>');
         
         searchResultM.sub(function(results : Array<SearchResult>){
             resultsContainer.empty();
@@ -38,7 +40,7 @@ class SearchPanel {
             }
             form.removeAttr("disabled");
         });
-        this.container = JQ('<div/>').append(form).append(resultsContainer);
+        
     }
 
 }

@@ -2037,12 +2037,13 @@ org.jinjor.haxemine.client.view.SearchPanel = $hxClasses["org.jinjor.haxemine.cl
 	var input = $("<input type=\"text\"/>");
 	var button = $("<input type=\"submit\">").val("Search");
 	var form = $("<form/>").append(input).append(button);
+	var resultsContainer = $("<div/>");
+	this.container = $("<div/>").append(form).append(resultsContainer);
 	org.jinjor.util.ClientUtil.fixedSubmit(form,function(_) {
 		var word = input.val();
 		searchM.pub(word);
 		form.attr("disabled","disabled");
 	});
-	var resultsContainer = $("<div/>");
 	searchResultM.sub(function(results) {
 		resultsContainer.empty();
 		var _g = 0;
@@ -2060,7 +2061,6 @@ org.jinjor.haxemine.client.view.SearchPanel = $hxClasses["org.jinjor.haxemine.cl
 		}
 		form.removeAttr("disabled");
 	});
-	this.container = $("<div/>").append(form).append(resultsContainer);
 };
 org.jinjor.haxemine.client.view.SearchPanel.__name__ = ["org","jinjor","haxemine","client","view","SearchPanel"];
 org.jinjor.haxemine.client.view.SearchPanel.JQ = function(s) {
