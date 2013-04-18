@@ -11,7 +11,7 @@ class TaskModel {
     public var name : String;
     public var content : String;
     public var auto : Bool;
-    public var state : TaskModelState;
+    public var state(default, null) : TaskModelState;
     public var onUpdate : Event<Void>;
     
     public function new(name : String, content : String, auto : Bool, socket : Dynamic) {
@@ -34,6 +34,11 @@ class TaskModel {
         this.auto = auto;
         onUpdate = new Event();
         reset();
+    }
+    
+    public function setState(newState) {
+        this.state = newState;
+        onUpdate.pub(null);
     }
     
     public function reset() {

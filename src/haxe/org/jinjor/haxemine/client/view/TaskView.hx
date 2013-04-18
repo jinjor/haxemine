@@ -20,7 +20,7 @@ class TaskView {
         });
         this.container = JQ('<a class="task-view"/>').attr('title', task.content).click(function(){
             if(task.state == TaskModelState.READY){
-                task.state = TaskModelState.WAITING;
+                task.setState(TaskModelState.WAITING);
                 doTaskM.pub(task.name);
             }
         });

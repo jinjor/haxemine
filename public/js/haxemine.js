@@ -1800,6 +1800,10 @@ org.jinjor.haxemine.client.TaskModel.prototype = {
 	reset: function() {
 		this.state = this.auto?org.jinjor.haxemine.client.TaskModelState.NONE:org.jinjor.haxemine.client.TaskModelState.READY;
 	}
+	,setState: function(newState) {
+		this.state = newState;
+		this.onUpdate.pub(null);
+	}
 	,onUpdate: null
 	,state: null
 	,auto: null
@@ -2110,7 +2114,7 @@ org.jinjor.haxemine.client.view.TaskView = $hxClasses["org.jinjor.haxemine.clien
 	});
 	this.container = $("<a class=\"task-view\"/>").attr("title",task.content).click(function() {
 		if(task.state == org.jinjor.haxemine.client.TaskModelState.READY) {
-			task.state = org.jinjor.haxemine.client.TaskModelState.WAITING;
+			task.setState(org.jinjor.haxemine.client.TaskModelState.WAITING);
 			doTaskM.pub(task.name);
 		}
 	});
