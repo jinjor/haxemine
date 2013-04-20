@@ -29,6 +29,8 @@ class ViewPanel {
             if(info.searchEnabled){
                 defs.push({name:'Search', container:searchPanel.container});
             }
+            tabsContainer.empty();
+            panelsContainer.empty();
             for(def in defs) {
                 var panel : JQuery = JQ('<div/>').html(def.container).hide();
                 var tab = JQ('<span class="view-tab"/>').text(def.name).click(function(){

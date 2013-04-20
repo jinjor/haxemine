@@ -21,8 +21,6 @@ using org.jinjor.util.Util;
 
 class Main {
     
-    static inline var CONF_FILE = 'haxemine.json';
-    
     static var express : Dynamic = Node.require('express');
     static var fs  : Dynamic    = Node.require('fs');
     static var sys     = Node.require('sys');
@@ -36,59 +34,31 @@ class Main {
     public static function main(){
         
         var projectRoot = '.';
-        var confPath = projectRoot + '/' + CONF_FILE;
-        if(!path.existsSync(confPath)){
-            Console.print(CONF_FILE + 'is required in current directory.');
-            Console.print('create ' + CONF_FILE + ' here? [y/n]');
-            
-            var rli = readline.createInterface(untyped process.stdin, untyped process.stdout);
-    
-            rli.on('line', function(cmd) {
-                if(cmd == 'y'){
-                    Service.getAllHxmlFiles(projectRoot, function(err, files : Array<String>){
-                        if(err != null){
-                            Console.print(err);
-                            throw(err);
-                        }
-                        files.sort(function(f1 : String, f2 : String){
-                            return if(f1.startsWith('build') && f2.startsWith('compile')){
-                                1;
-                            }else{
-                                -1;
-                            }
-                        });
-                        var xhml = files.map(function(file){
-                            return {path: file, auto: true};
-                        }).array();
-                        var conf = new HaxemineConfig(8765, xhml);
-                        var confJson = untyped JSON.stringify(conf, null, " ");
-                        fs.writeFileSync(confPath, confJson, "utf8");
-                        Console.print('created haxemine.conf\n' + confJson);
-                        Console.print('modify haxemine.conf and restart haxemine.');
-                        untyped process.exit(0);
-                    });
-                }else if(cmd == 'n'){
-                    untyped process.stdin.destroy();
-                }
-                rli.prompt();
-            }).on('close', function () {
-                untyped process.stdin.destroy();
+        
+        var confDao = new HaxemineConfigDao();
+        var conf = confDao.get(projectRoot);
+
+        if(conf == null){
+            var _process = untyped process;
+            confDao.create(_process, projectRoot, function(){
+                _process.exit(0);
+            },function(){
+                _process.exit(0);
             });
-            rli.prompt();
         }else{
-            startApp(projectRoot);
+            startApp(projectRoot, conf);
         }
     }
     
-    static function startApp(projectRoot : String){
-        var conf : HaxemineConfig = Json.parse(fs.readFileSync(projectRoot + '/' + CONF_FILE, 'utf8'));
-        var port = conf.port.or(8765);
+    static function startApp(projectRoot : String, conf : HaxemineConfig){
+        
         Console.print('projectRoot:' + projectRoot);
-        Console.print('port:' + port);
+        Console.print('port:' + conf.port);
         
         var taskInfos = conf.hxml.map(function(hxml){
             var name = hxml.path;
             var content = fs.readFileSync(projectRoot + '/' + hxml.path, 'utf8');
+            
             return new TaskInfo(name, content, if(hxml.auto == null) true else hxml.auto);
         }).array();
         
@@ -99,7 +69,7 @@ class Main {
         untyped console.log(untyped __dirname + '/public/favicon.ico');
         
         app.configure(function(){
-          app.set('port', port);
+          app.set('port', conf.port);
           app.use(express.favicon(untyped __dirname + '/public/favicon.ico'));
           app.use(express.logger('dev'));
           app.use(express.bodyParser());

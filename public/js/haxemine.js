@@ -2194,6 +2194,8 @@ org.jinjor.haxemine.client.view.ViewPanel = $hxClasses["org.jinjor.haxemine.clie
 		var searchPanel = new org.jinjor.haxemine.client.view.SearchPanel(socket,session);
 		var defs = [{ name : "Tasks", container : compileErrorPanel.container}];
 		if(info.searchEnabled) defs.push({ name : "Search", container : searchPanel.container});
+		tabsContainer.empty();
+		panelsContainer.empty();
 		var _g = 0;
 		while(_g < defs.length) {
 			var def = [defs[_g]];
