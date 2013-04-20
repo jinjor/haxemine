@@ -10,7 +10,7 @@ class CompileErrorPanel {
     private static var template = new HoganTemplate<Dynamic>('
         <ul>
             {{#errors}}
-            <li><a data-filePath="{{path}}">{{originalMessage}}</a></li>
+            <li><a data-filePath="{{path}}", data-row="{{row}}">{{originalMessage}}</a></li>
             {{/errors}}
         </ul>
     ');
@@ -22,7 +22,8 @@ class CompileErrorPanel {
         this.container = JQ('<div id="compile-error-panel"/>');
         this.errorContainer = JQ('<div id="compile-errors"/>').on('click', 'a', function(){
             var file = session.getAllFiles().get(JQuery.cur.attr('data-filePath'));
-            session.selectNextFile(file);
+            var row = Std.parseInt(JQuery.cur.attr('data-row'));
+            session.selectNextFile(file, row);
         });
         var taskListViewContainer = new TaskListView(socket, session).container;
         

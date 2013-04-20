@@ -33,7 +33,7 @@ class SearchPanel {
             for(result in results){
                 var link = JQ('<a/>').text(result.message).click(function(){
                     var file = session.getAllFiles().get(result.fileName);
-                    session.selectNextFile(file);
+                    session.selectNextFile(file, null);//TODO 行が分かるなら渡したい
                 });
                 var resultElm = JQ('<div/>').append(link);
                 resultsContainer.append(resultElm);

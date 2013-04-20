@@ -41,7 +41,7 @@ class {{_class}} {
         var saveM = new SaveM(socket);
         this.container = JQ('<div id="all-haxe-files"/>').on('click', 'a', function(){
             var file = session.getAllFiles().get(JQuery.cur.attr('data-filePath'));
-            session.selectNextFile(file);
+            session.selectNextFile(file, null);
         }).on('click', '.file_selector_dir', function(){
             var path = JQuery.cur.text();
             var guessedPackage = path.replace('/', '.');

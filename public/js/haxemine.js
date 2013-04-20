@@ -1736,6 +1736,7 @@ org.jinjor.haxemine.client.Session = $hxClasses["org.jinjor.haxemine.client.Sess
 	this.onLastTaskProgressChanged = new org.jinjor.util.Event();
 	this.onSave = new org.jinjor.util.Event();
 	this.onSelectView = new org.jinjor.util.Event();
+	this.onEditingFileChange = new org.jinjor.util.Event2();
 	this.onSocketConnected.sub(function(_) {
 		doTasksM.pub(null);
 	});
@@ -1748,10 +1749,11 @@ org.jinjor.haxemine.client.Session.prototype = {
 			return error.originalMessage.indexOf(file.pathFromProjectRoot) == 0 || error.originalMessage.indexOf("./" + file.pathFromProjectRoot) == 0;
 		});
 	}
-	,selectNextFile: function(file) {
+	,selectNextFile: function(file,optLine) {
 		var that = this;
 		if(file == null) return;
 		this.editingFiles.add(file);
+		this.onEditingFileChange.pub(file,optLine);
 	}
 	,getCurrentFile: function() {
 		return this.editingFiles.getCursored();
@@ -1766,6 +1768,7 @@ org.jinjor.haxemine.client.Session.prototype = {
 	,getCompileErrors: function() {
 		return this.lastTaskProgress != null?this.lastTaskProgress.compileErrors:[];
 	}
+	,onEditingFileChange: null
 	,onSelectView: null
 	,onSave: null
 	,onLastTaskProgressChanged: null
@@ -1830,11 +1833,12 @@ org.jinjor.haxemine.client.TaskModelState.WAITING.__enum__ = org.jinjor.haxemine
 if(!org.jinjor.haxemine.client.view) org.jinjor.haxemine.client.view = {}
 org.jinjor.haxemine.client.view.AceEditorView = $hxClasses["org.jinjor.haxemine.client.view.AceEditorView"] = function(editor,socket,session) {
 	var saveM = new org.jinjor.haxemine.messages.SaveM(socket);
-	session.editingFiles.onChange.sub(function(file) {
+	session.onEditingFileChange.sub(function(file,line) {
 		new org.jinjor.haxemine.client.FileDetailDao().getFile(file.pathFromProjectRoot,function(detail) {
 			editor.getSession().setValue(detail.text);
 			editor.getSession().setMode("ace/mode/" + detail.mode);
 			org.jinjor.haxemine.client.view.AceEditorView.annotateCompileError(editor,session);
+			if(line != null) editor.gotoLine(100);
 		});
 	});
 	session.onLastTaskProgressChanged.sub(function(_) {
@@ -1853,7 +1857,7 @@ org.jinjor.haxemine.client.view.AceEditorView = $hxClasses["org.jinjor.haxemine.
 			var splitted = name.split(".hx");
 			return splitted[0] == value;
 		}));
-		if(filtered.length == 1) session.selectNextFile(filtered[0]); else if(filtered.length > 1) {
+		if(filtered.length == 1) session.selectNextFile(filtered[0],null); else if(filtered.length > 1) {
 		}
 	}},{ Name : "toOlder", bindKey : { win : "Alt-Left"}, exec : function(editor1) {
 		session.editingFiles.cursorToOlder();
@@ -1884,7 +1888,8 @@ org.jinjor.haxemine.client.view.CompileErrorPanel = $hxClasses["org.jinjor.haxem
 	this.container = $("<div id=\"compile-error-panel\"/>");
 	this.errorContainer = $("<div id=\"compile-errors\"/>").on("click","a",function() {
 		var file = session.getAllFiles().get($(this).attr("data-filePath"));
-		session.selectNextFile(file);
+		var row = Std.parseInt($(this).attr("data-row"));
+		session.selectNextFile(file,row);
 	});
 	var taskListViewContainer = new org.jinjor.haxemine.client.view.TaskListView(socket,session).container;
 	this.container.append(taskListViewContainer).append(this.errorContainer);
@@ -1909,7 +1914,7 @@ org.jinjor.haxemine.client.view.FileSelector = $hxClasses["org.jinjor.haxemine.c
 	var saveM = new org.jinjor.haxemine.messages.SaveM(socket);
 	this.container = $("<div id=\"all-haxe-files\"/>").on("click","a",function() {
 		var file = session.getAllFiles().get($(this).attr("data-filePath"));
-		session.selectNextFile(file);
+		session.selectNextFile(file,null);
 	}).on("click",".file_selector_dir",function() {
 		var path = $(this).text();
 		var guessedPackage = StringTools.replace(path,"/",".");
@@ -2058,7 +2063,7 @@ org.jinjor.haxemine.client.view.SearchPanel = $hxClasses["org.jinjor.haxemine.cl
 			var link = $("<a/>").text(result[0].message).click((function(result) {
 				return function() {
 					var file = session.getAllFiles().get(result[0].fileName);
-					session.selectNextFile(file);
+					session.selectNextFile(file,null);
 				};
 			})(result));
 			var resultElm = $("<div/>").append(link);
@@ -2308,7 +2313,6 @@ org.jinjor.haxemine.messages.HistoryArray = $hxClasses["org.jinjor.haxemine.mess
 	this.array = [];
 	this.max = max;
 	this.equals = equals;
-	this.onChange = new org.jinjor.util.Event();
 	this.cursor = 0;
 };
 org.jinjor.haxemine.messages.HistoryArray.__name__ = ["org","jinjor","haxemine","messages","HistoryArray"];
@@ -2329,7 +2333,6 @@ org.jinjor.haxemine.messages.HistoryArray.prototype = {
 		i = this.array.length - 1;
 		while(i > this.max) this.array.pop();
 		this.cursor = 0;
-		this.onChange.pub(elm);
 		try {
 			console.log("");
 			console.log(this.array[0].shortName);
@@ -2340,19 +2343,12 @@ org.jinjor.haxemine.messages.HistoryArray.prototype = {
 		}
 	}
 	,cursorToNewer: function() {
-		if(0 < this.cursor) {
-			this.cursor = this.cursor - 1;
-			this.onChange.pub(this.getCursored());
-		}
+		if(0 < this.cursor) this.cursor = this.cursor - 1;
 	}
 	,cursorToOlder: function() {
-		if(this.cursor < this.array.length - 1 && this.cursor < this.max - 1) {
-			this.cursor = this.cursor + 1;
-			this.onChange.pub(this.getCursored());
-		}
+		if(this.cursor < this.array.length - 1 && this.cursor < this.max - 1) this.cursor = this.cursor + 1;
 	}
 	,cursor: null
-	,onChange: null
 	,equals: null
 	,max: null
 	,array: null
@@ -2493,6 +2489,23 @@ org.jinjor.util.Event.prototype = {
 	,events: null
 	,__class__: org.jinjor.util.Event
 }
+org.jinjor.util.Event2 = $hxClasses["org.jinjor.util.Event2"] = function() {
+	this.events = [];
+};
+org.jinjor.util.Event2.__name__ = ["org","jinjor","util","Event2"];
+org.jinjor.util.Event2.prototype = {
+	pub: function(a,b) {
+		Lambda.foreach(this.events,function(f) {
+			f(a,b);
+			return true;
+		});
+	}
+	,sub: function(f) {
+		this.events.push(f);
+	}
+	,events: null
+	,__class__: org.jinjor.util.Event2
+}
 org.jinjor.util.Util = $hxClasses["org.jinjor.util.Util"] = function() { }
 org.jinjor.util.Util.__name__ = ["org","jinjor","util","Util"];
 org.jinjor.util.Util.or = function(a,b) {
@@ -2572,7 +2585,7 @@ haxe.Unserializer.CODES = null;
 js.Lib.onerror = null;
 org.jinjor.haxemine.client.Menu.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <label><!--{{projectRoot}}-->Haxemine</label>\r\n    ");
 org.jinjor.haxemine.client.Menu.templateDisConnected = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <label class=\"disconnected\">Disconnected</label>\r\n    ");
-org.jinjor.haxemine.client.view.CompileErrorPanel.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <ul>\r\n            {{#errors}}\r\n            <li><a data-filePath=\"{{path}}\">{{originalMessage}}</a></li>\r\n            {{/errors}}\r\n        </ul>\r\n    ");
+org.jinjor.haxemine.client.view.CompileErrorPanel.template = new org.jinjor.haxemine.client.HoganTemplate("\r\n        <ul>\r\n            {{#errors}}\r\n            <li><a data-filePath=\"{{path}}\", data-row=\"{{row}}\">{{originalMessage}}</a></li>\r\n            {{/errors}}\r\n        </ul>\r\n    ");
 org.jinjor.haxemine.client.view.FileSelector.classTemplate = new org.jinjor.haxemine.client.HoganTemplate("package {{_package}};\r\n\r\nclass {{_class}} {\r\n\r\n    public function new() {\r\n        \r\n    }\r\n\r\n}");
 org.jinjor.haxemine.client.view.FileSelector.dirTemplate = new org.jinjor.haxemine.client.HoganTemplate("<label class=\"file_selector_dir\">{{name}}</label>");
 org.jinjor.haxemine.client.view.FileSelector.filesTemplate = new org.jinjor.haxemine.client.HoganTemplate("<ul>\r\n            {{#files}}\r\n            <li><a data-filePath=\"{{pathFromProjectRoot}}\">{{shortName}}</a></li>\r\n            {{/files}}\r\n        </ul>");

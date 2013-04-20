@@ -11,11 +11,15 @@ class AceEditorView {
     
     public function new(editor : Dynamic, socket : Dynamic, session : Session){
         var saveM = new SaveM(socket); 
-        session.editingFiles.onChange.sub(function(file){
+        session.onEditingFileChange.sub(function(file, line){
             new FileDetailDao().getFile(file.pathFromProjectRoot, function(detail: FileDetail){
                 editor.getSession().setValue(detail.text);
                 editor.getSession().setMode("ace/mode/" + detail.mode);
                 annotateCompileError(editor, session);
+                if(line != null){
+                    editor.gotoLine(100);
+                }
+                
             });
         });
     
@@ -52,7 +56,7 @@ class AceEditorView {
                     return splitted[0] == value;
                 }).array();
                 if(filtered.length == 1){
-                    session.selectNextFile(filtered[0]);
+                    session.selectNextFile(filtered[0], null);
                 }else if(filtered.length > 1){
                     //TODO
                 }

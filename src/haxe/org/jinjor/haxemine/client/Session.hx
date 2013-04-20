@@ -18,7 +18,8 @@ import org.jinjor.haxemine.messages.TaskProgressM;
 
 using Lambda;
 using org.jinjor.util.Util;
-using org.jinjor.util.Event;
+import org.jinjor.util.Event;
+import org.jinjor.util.Event2;
 
 class Session {
 
@@ -36,6 +37,7 @@ class Session {
     public var onLastTaskProgressChanged : Event<Void>;
     public var onSave : Event<Void>;
     public var onSelectView : Event<String>;
+    public var onEditingFileChange : Event2<SourceFile, Int>;
     
     public function new(socket, editingFiles){
         var that = this;
@@ -79,6 +81,7 @@ class Session {
         this.onLastTaskProgressChanged = new Event();
         this.onSave = new Event();
         this.onSelectView = new Event();
+        this.onEditingFileChange = new Event2();
         
         this.onSocketConnected.sub(function(_){
             doTasksM.pub(null);
@@ -103,12 +106,13 @@ class Session {
     public function getCurrentFile() : SourceFile {
         return editingFiles.getCursored();
     }
-    public function selectNextFile(file: SourceFile) {
+    public function selectNextFile(file: SourceFile, optLine : Int) {
         var that = this;
         if(file == null){
             return;
         }
         editingFiles.add(file);
+        onEditingFileChange.pub(file, optLine);
     }
 
     public function getCompileErrorsByFile(file : SourceFile) : List<CompileError> {
