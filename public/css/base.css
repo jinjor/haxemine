@@ -110,12 +110,14 @@ input[type="submit"]:hover {
     cursor:default;
     border: 1px solid #aaa;
     margin-left:5px;
+    padding-left:15px;
+    padding-right:10px;
     color: #999;
     background-color: #ddd;
     border-radius: 7px;
     font-family: arial,sans-serif;
     text-align: center;
-    width:170px;
+    min-width:120px;
     height: 14px;
     float:left;
 }
