@@ -1,6 +1,7 @@
 package org.jinjor.haxemine.client.view;
 
 import js.JQuery;
+import org.jinjor.haxemine.messages.AllMessages;
 
 typedef ViewPanelDef = {
     name : String,
@@ -13,15 +14,15 @@ class ViewPanel {
     
     public var container : JQuery;
 
-    public function new(socket : Dynamic, session : Session) {
+    public function new(session : Session, allMessages : AllMessages) {
         var container = JQ('<div id="viewPanel"/>');
         var tabsContainer = JQ('<div id="tabsContainer"/>');
         var panelsContainer = JQ('<div id="panelsContainer"/>');
         
         var selectView = new Hash<Void -> Void>();
         
-        var compileErrorPanel = new CompileErrorPanel(socket, session);
-        var searchPanel = new SearchPanel(socket, session);
+        var compileErrorPanel = new CompileErrorPanel(session, allMessages.doTaskM, allMessages.taskProgressM);
+        var searchPanel = new SearchPanel(session, allMessages.searchM, allMessages.searchResultM);
         
         session.onInitialInfoReceived.sub('ViewPanel.new', function(info){
             

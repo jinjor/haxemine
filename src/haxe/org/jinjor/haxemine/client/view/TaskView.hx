@@ -13,7 +13,7 @@ class TaskView {
         
         task.onUpdate.sub('TaskView.new.' + task.name, function(_) {
             render(task);
-            //js.Lib.alert('onUpdate');
+            js.Lib.alert('onUpdate');
         });
         session.onSave.sub('TaskView.new.' + task.name, function(_) {
             task.reset();

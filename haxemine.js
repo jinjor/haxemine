@@ -2019,19 +2019,25 @@ org.jinjor = {}
 org.jinjor.haxemine = {}
 org.jinjor.haxemine.messages = {}
 org.jinjor.haxemine.messages.SocketMessage = function(socket,key) {
+	var _g = this;
+	this.funcs = new Hash();
 	this.pub = function(data) {
 		socket.emit(key,haxe.Serializer.run(data));
 	};
-	this.sub = function(f) {
-		socket.on(key,function(data) {
-			f(haxe.Unserializer.run(data));
-		});
+	this.sub = function(subKey,f) {
+		if(!_g.funcs.exists(subKey)) {
+			_g.funcs.set(subKey,f);
+			socket.on(key,function(data) {
+				f(haxe.Unserializer.run(data));
+			});
+		}
 	};
 };
 $hxClasses["org.jinjor.haxemine.messages.SocketMessage"] = org.jinjor.haxemine.messages.SocketMessage;
 org.jinjor.haxemine.messages.SocketMessage.__name__ = ["org","jinjor","haxemine","messages","SocketMessage"];
 org.jinjor.haxemine.messages.SocketMessage.prototype = {
-	sub: null
+	funcs: null
+	,sub: null
 	,pub: null
 	,__class__: org.jinjor.haxemine.messages.SocketMessage
 }
@@ -2417,7 +2423,7 @@ org.jinjor.haxemine.server.Main.startApp = function(projectRoot,conf) {
 			}
 			initialInfoM.pub(new org.jinjor.haxemine.messages.InitialInfoDto(projectRoot,files,taskInfos,org.jinjor.haxemine.server.OS.isWin()));
 		});
-		saveM.sub(function(saveFileDto) {
+		saveM.sub("Main.startApp",function(saveFileDto) {
 			if(saveFileDto.fileName == null) {
 				console.log(saveFileDto);
 				throw "bad request.";
@@ -2425,16 +2431,16 @@ org.jinjor.haxemine.server.Main.startApp = function(projectRoot,conf) {
 			org.jinjor.haxemine.server.Service.save(projectRoot,saveFileDto,allHaxeFilesM,socket);
 			org.jinjor.haxemine.server.Service.doAutoTasks(conf,projectRoot,socket,taskProgressM);
 		});
-		doTaskM.sub(function(taskName) {
+		doTaskM.sub("Main.startApp",function(taskName) {
 			org.jinjor.haxemine.server.Service.doTask(conf,projectRoot,socket,taskProgressM,taskName);
 		});
-		doTasksM.sub(function(_) {
+		doTasksM.sub("Main.startApp",function(_) {
 			org.jinjor.haxemine.server.Service.doAutoTasks(conf,projectRoot,socket,taskProgressM);
 		});
 		socket.on("disconnect",function() {
 			org.jinjor.haxemine.server.Console.print("disconnect");
 		});
-		searchM.sub(function(word) {
+		searchM.sub("Main.startApp",function(word) {
 			org.jinjor.haxemine.server.Service.searchWord(word,function(err,result) {
 				searchResultM.pub(result);
 			});

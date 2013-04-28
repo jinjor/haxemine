@@ -14,10 +14,9 @@ class TaskModel {
     public var state(default, null) : TaskModelState;
     public var onUpdate : Event<Void>;
     
-    public function new(name : String, content : String, auto : Bool, socket : Dynamic) {
-        var taskProgressM = new TaskProgressM(socket);
+    public function new(name : String, content : String, auto : Bool, taskProgressM : TaskProgressM) {
         var that = this;
-        taskProgressM.sub(function(progress) {
+        taskProgressM.sub('TaskModel.new', function(progress) {
             if(name != progress.taskName){
                 return;
             }

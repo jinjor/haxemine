@@ -1,6 +1,8 @@
 package org.jinjor.haxemine.client.view;
 
 import js.JQuery;
+import org.jinjor.haxemine.messages.AllMessages;
+
 using Lambda;
 
 class View {
@@ -19,7 +21,7 @@ class View {
     
     public function render(container : JQuery) {
         
-        var viewPanel = new ViewPanel(socket, session);
+        var viewPanel = new ViewPanel(session, new AllMessages(socket));
         
         var menuContainer = new Menu(session).container;
         var fileSelectorContainer = new FileSelector(socket, session).container;

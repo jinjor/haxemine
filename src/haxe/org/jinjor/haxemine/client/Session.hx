@@ -52,14 +52,14 @@ class Session {
                 trace(msg);//View
             }
         });
-        allHaxeFilesM.sub(function(files) {
+        allHaxeFilesM.sub('Session.new', function(files) {
             setAllFiles(files);
         });
-        initialInfoM.sub(function(initialInfo) {
+        initialInfoM.sub('Session.new', function(initialInfo) {
             onInitialInfoReceived.pub(initialInfo);
             setAllFiles(initialInfo.allFiles);
         });
-        taskProgressM.sub(function(taskProgress) {//TODO ここじゃない
+        taskProgressM.sub('Session.new', function(taskProgress) {//TODO ここじゃない
             that.lastTaskProgress = taskProgress;
             onLastTaskProgressChanged.pub(null);
         });

@@ -1,6 +1,8 @@
 package org.jinjor.haxemine.client.view;
 
 import js.JQuery;
+import org.jinjor.haxemine.messages.DoTaskM;
+import org.jinjor.haxemine.messages.TaskProgressM;
 using Lambda;
 
 class CompileErrorPanel {
@@ -18,14 +20,15 @@ class CompileErrorPanel {
     public var container: JQuery;
     private var errorContainer: JQuery;
     
-    public function new(socket : Dynamic, session : Session){
+    public function new(session : Session, doTaskM : DoTaskM, taskProgressM : TaskProgressM){
+        
         this.container = JQ('<div id="compile-error-panel"/>');
         this.errorContainer = JQ('<div id="compile-errors"/>').on('click', 'a', function(){
             var file = session.getAllFiles().get(JQuery.cur.attr('data-filePath'));
             var row = Std.parseInt(JQuery.cur.attr('data-row'));
             session.selectNextFile(file, row);
         });
-        var taskListViewContainer = new TaskListView(socket, session).container;
+        var taskListViewContainer = new TaskListView(session, doTaskM, taskProgressM).container;
         
         this.container
             .append(taskListViewContainer)

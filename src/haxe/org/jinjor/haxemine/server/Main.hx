@@ -129,7 +129,7 @@ class Main {
                 initialInfoM.pub(new InitialInfoDto(projectRoot, files, taskInfos, OS.isWin()));
             });
             
-            saveM.sub(function(saveFileDto){
+            saveM.sub('Main.startApp', function(saveFileDto){
                 if(saveFileDto.fileName == null){
                   trace(saveFileDto);
                   throw "bad request.";
@@ -137,17 +137,17 @@ class Main {
                 Service.save(projectRoot, saveFileDto, allHaxeFilesM, socket);
                 Service.doAutoTasks(conf, projectRoot, socket, taskProgressM);
             });
-            doTaskM.sub(function(taskName) {
+            doTaskM.sub('Main.startApp', function(taskName) {
                 Service.doTask(conf, projectRoot, socket, taskProgressM, taskName);
             });
-            doTasksM.sub(function(_) {
+            doTasksM.sub('Main.startApp', function(_) {
                 Service.doAutoTasks(conf, projectRoot, socket, taskProgressM);
             });
             socket.on('disconnect', function(){
                 Console.print("disconnect");
             });
             
-            searchM.sub(function(word){
+            searchM.sub('Main.startApp', function(word){
                 Service.searchWord(word, function(err, result){
                     searchResultM.pub(result);
                 });

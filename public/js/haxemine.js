@@ -1708,14 +1708,14 @@ org.jinjor.haxemine.client.Session = $hxClasses["org.jinjor.haxemine.client.Sess
 	socket.on("stdout",function(msg) {
 		if(msg != "") console.log(msg);
 	});
-	allHaxeFilesM.sub(function(files) {
+	allHaxeFilesM.sub("Session.new",function(files) {
 		_g.setAllFiles(files);
 	});
-	initialInfoM.sub(function(initialInfo) {
+	initialInfoM.sub("Session.new",function(initialInfo) {
 		_g.onInitialInfoReceived.pub(initialInfo);
 		_g.setAllFiles(initialInfo.allFiles);
 	});
-	taskProgressM.sub(function(taskProgress) {
+	taskProgressM.sub("Session.new",function(taskProgress) {
 		that.lastTaskProgress = taskProgress;
 		_g.onLastTaskProgressChanged.pub(null);
 	});
@@ -1788,11 +1788,10 @@ org.jinjor.haxemine.client.Session.prototype = {
 	,socket: null
 	,__class__: org.jinjor.haxemine.client.Session
 }
-org.jinjor.haxemine.client.TaskModel = $hxClasses["org.jinjor.haxemine.client.TaskModel"] = function(name,content,auto,socket) {
+org.jinjor.haxemine.client.TaskModel = $hxClasses["org.jinjor.haxemine.client.TaskModel"] = function(name,content,auto,taskProgressM) {
 	var _g = this;
-	var taskProgressM = new org.jinjor.haxemine.messages.TaskProgressM(socket);
 	var that = this;
-	taskProgressM.sub(function(progress) {
+	taskProgressM.sub("TaskModel.new",function(progress) {
 		if(name != progress.taskName) return;
 		that.state = progress.compileErrors.length <= 0?org.jinjor.haxemine.client.TaskModelState.SUCCESS:org.jinjor.haxemine.client.TaskModelState.FAILED;
 		_g.onUpdate.pub(null);
@@ -1888,7 +1887,7 @@ org.jinjor.haxemine.client.view.AceEditorView.prototype = {
 	}
 	,__class__: org.jinjor.haxemine.client.view.AceEditorView
 }
-org.jinjor.haxemine.client.view.CompileErrorPanel = $hxClasses["org.jinjor.haxemine.client.view.CompileErrorPanel"] = function(socket,session) {
+org.jinjor.haxemine.client.view.CompileErrorPanel = $hxClasses["org.jinjor.haxemine.client.view.CompileErrorPanel"] = function(session,doTaskM,taskProgressM) {
 	var _g = this;
 	this.container = $("<div id=\"compile-error-panel\"/>");
 	this.errorContainer = $("<div id=\"compile-errors\"/>").on("click","a",function() {
@@ -1896,7 +1895,7 @@ org.jinjor.haxemine.client.view.CompileErrorPanel = $hxClasses["org.jinjor.haxem
 		var row = Std.parseInt($(this).attr("data-row"));
 		session.selectNextFile(file,row);
 	});
-	var taskListViewContainer = new org.jinjor.haxemine.client.view.TaskListView(socket,session).container;
+	var taskListViewContainer = new org.jinjor.haxemine.client.view.TaskListView(session,doTaskM,taskProgressM).container;
 	this.container.append(taskListViewContainer).append(this.errorContainer);
 	session.onLastTaskProgressChanged.sub("CompileErrorPanel.new",function(_) {
 		_g.render(session);
@@ -2046,9 +2045,7 @@ org.jinjor.haxemine.client.view.Folder.prototype = {
 	,container: null
 	,__class__: org.jinjor.haxemine.client.view.Folder
 }
-org.jinjor.haxemine.client.view.SearchPanel = $hxClasses["org.jinjor.haxemine.client.view.SearchPanel"] = function(socket,session) {
-	var searchM = new org.jinjor.haxemine.messages.SearchM(socket);
-	var searchResultM = new org.jinjor.haxemine.messages.SearchResultM(socket);
+org.jinjor.haxemine.client.view.SearchPanel = $hxClasses["org.jinjor.haxemine.client.view.SearchPanel"] = function(session,searchM,searchResultM) {
 	var input = $("<input type=\"text\"/>");
 	var button = $("<input type=\"submit\">").val("Search");
 	var form = $("<form/>").append(input).append(button);
@@ -2059,7 +2056,7 @@ org.jinjor.haxemine.client.view.SearchPanel = $hxClasses["org.jinjor.haxemine.cl
 		searchM.pub(word);
 		form.attr("disabled","disabled");
 	});
-	searchResultM.sub(function(results) {
+	searchResultM.sub("SearchPanel.new",function(results) {
 		resultsContainer.empty();
 		var _g = 0;
 		while(_g < results.length) {
@@ -2085,12 +2082,11 @@ org.jinjor.haxemine.client.view.SearchPanel.prototype = {
 	container: null
 	,__class__: org.jinjor.haxemine.client.view.SearchPanel
 }
-org.jinjor.haxemine.client.view.TaskListView = $hxClasses["org.jinjor.haxemine.client.view.TaskListView"] = function(socket,session) {
+org.jinjor.haxemine.client.view.TaskListView = $hxClasses["org.jinjor.haxemine.client.view.TaskListView"] = function(session,doTaskM,taskProgressM) {
 	var _g = this;
-	var doTaskM = new org.jinjor.haxemine.messages.DoTaskM(socket);
 	session.onInitialInfoReceived.sub("TaskListView.new",function(info) {
 		var tasks = Lambda.map(info.taskInfos,function(taskInfo) {
-			return new org.jinjor.haxemine.client.TaskModel(taskInfo.taskName,taskInfo.content,taskInfo.auto,socket);
+			return new org.jinjor.haxemine.client.TaskModel(taskInfo.taskName,taskInfo.content,taskInfo.auto,taskProgressM);
 		});
 		var taskViewContainers = tasks.map(function(task) {
 			return new org.jinjor.haxemine.client.view.TaskView(doTaskM,session,task);
@@ -2117,6 +2113,7 @@ org.jinjor.haxemine.client.view.TaskView = $hxClasses["org.jinjor.haxemine.clien
 	var _g = this;
 	task.onUpdate.sub("TaskView.new." + task.name,function(_) {
 		_g.render(task);
+		js.Lib.alert("onUpdate");
 	});
 	session.onSave.sub("TaskView.new." + task.name,function(_) {
 		task.reset();
@@ -2173,7 +2170,7 @@ org.jinjor.haxemine.client.view.View.JQ = function(s) {
 org.jinjor.haxemine.client.view.View.prototype = {
 	render: function(container) {
 		var _g = this;
-		var viewPanel = new org.jinjor.haxemine.client.view.ViewPanel(this.socket,this.session);
+		var viewPanel = new org.jinjor.haxemine.client.view.ViewPanel(this.session,new org.jinjor.haxemine.messages.AllMessages(this.socket));
 		var menuContainer = new org.jinjor.haxemine.client.Menu(this.session).container;
 		var fileSelectorContainer = new org.jinjor.haxemine.client.view.FileSelector(this.socket,this.session).container;
 		var rightPanel = $("<div id=\"right\"/>").append($("<div id=\"editor\"/>")).append($("<hr/>")).append(viewPanel.container);
@@ -2194,13 +2191,13 @@ org.jinjor.haxemine.client.view.View.prototype = {
 	,ace: null
 	,__class__: org.jinjor.haxemine.client.view.View
 }
-org.jinjor.haxemine.client.view.ViewPanel = $hxClasses["org.jinjor.haxemine.client.view.ViewPanel"] = function(socket,session) {
+org.jinjor.haxemine.client.view.ViewPanel = $hxClasses["org.jinjor.haxemine.client.view.ViewPanel"] = function(session,allMessages) {
 	var container = $("<div id=\"viewPanel\"/>");
 	var tabsContainer = $("<div id=\"tabsContainer\"/>");
 	var panelsContainer = $("<div id=\"panelsContainer\"/>");
 	var selectView = new Hash();
-	var compileErrorPanel = new org.jinjor.haxemine.client.view.CompileErrorPanel(socket,session);
-	var searchPanel = new org.jinjor.haxemine.client.view.SearchPanel(socket,session);
+	var compileErrorPanel = new org.jinjor.haxemine.client.view.CompileErrorPanel(session,allMessages.doTaskM,allMessages.taskProgressM);
+	var searchPanel = new org.jinjor.haxemine.client.view.SearchPanel(session,allMessages.searchM,allMessages.searchResultM);
 	session.onInitialInfoReceived.sub("ViewPanel.new",function(info) {
 		var defs = [{ name : "Tasks", container : compileErrorPanel.container}];
 		if(info.searchEnabled) defs.push({ name : "Search", container : searchPanel.container});
@@ -2245,18 +2242,24 @@ org.jinjor.haxemine.client.view.ViewPanel.prototype = {
 }
 if(!org.jinjor.haxemine.messages) org.jinjor.haxemine.messages = {}
 org.jinjor.haxemine.messages.SocketMessage = $hxClasses["org.jinjor.haxemine.messages.SocketMessage"] = function(socket,key) {
+	var _g = this;
+	this.funcs = new Hash();
 	this.pub = function(data) {
 		socket.emit(key,haxe.Serializer.run(data));
 	};
-	this.sub = function(f) {
-		socket.on(key,function(data) {
-			f(haxe.Unserializer.run(data));
-		});
+	this.sub = function(subKey,f) {
+		if(!_g.funcs.exists(subKey)) {
+			_g.funcs.set(subKey,f);
+			socket.on(key,function(data) {
+				f(haxe.Unserializer.run(data));
+			});
+		}
 	};
 };
 org.jinjor.haxemine.messages.SocketMessage.__name__ = ["org","jinjor","haxemine","messages","SocketMessage"];
 org.jinjor.haxemine.messages.SocketMessage.prototype = {
-	sub: null
+	funcs: null
+	,sub: null
 	,pub: null
 	,__class__: org.jinjor.haxemine.messages.SocketMessage
 }
@@ -2268,6 +2271,20 @@ org.jinjor.haxemine.messages.AllHaxeFilesM.__super__ = org.jinjor.haxemine.messa
 org.jinjor.haxemine.messages.AllHaxeFilesM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
 	__class__: org.jinjor.haxemine.messages.AllHaxeFilesM
 });
+org.jinjor.haxemine.messages.AllMessages = $hxClasses["org.jinjor.haxemine.messages.AllMessages"] = function(socket) {
+	this.doTaskM = new org.jinjor.haxemine.messages.DoTaskM(socket);
+	this.taskProgressM = new org.jinjor.haxemine.messages.TaskProgressM(socket);
+	this.searchM = new org.jinjor.haxemine.messages.SearchM(socket);
+	this.searchResultM = new org.jinjor.haxemine.messages.SearchResultM(socket);
+};
+org.jinjor.haxemine.messages.AllMessages.__name__ = ["org","jinjor","haxemine","messages","AllMessages"];
+org.jinjor.haxemine.messages.AllMessages.prototype = {
+	searchResultM: null
+	,searchM: null
+	,taskProgressM: null
+	,doTaskM: null
+	,__class__: org.jinjor.haxemine.messages.AllMessages
+}
 org.jinjor.haxemine.messages.CompileError = $hxClasses["org.jinjor.haxemine.messages.CompileError"] = function(originalMessage) {
 	this.originalMessage = originalMessage;
 	var parsed = org.jinjor.haxemine.messages.CompileError.parseCompileErrorMessage(originalMessage);

@@ -12,9 +12,7 @@ class SearchPanel {
     private static inline function JQ(s: String) : JQuery { return untyped $(s);}
     public var container : JQuery;
 
-    public function new(socket : Dynamic, session : Session) {
-        var searchM = new SearchM(socket);
-        var searchResultM = new SearchResultM(socket);
+    public function new(session : Session, searchM : SearchM, searchResultM : SearchResultM) {
         
         var input = JQ('<input type="text"/>');
         var button = JQ('<input type="submit">').val('Search');
@@ -28,7 +26,7 @@ class SearchPanel {
             form.attr("disabled", "disabled");
         });
         
-        searchResultM.sub(function(results : Array<SearchResult>){
+        searchResultM.sub('SearchPanel.new', function(results : Array<SearchResult>){
             resultsContainer.empty();
             for(result in results){
                 var link = JQ('<a/>').text(result.message).click(function(){
