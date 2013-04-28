@@ -244,7 +244,9 @@ org.jinjor.haxeminesample.Main.__name__ = true;
 org.jinjor.haxeminesample.Main.main = function() {
 	console.log("Hello.");
 	org.jinjor.haxeminesample.Main.sub();
+  console.log("Hello2.");
 	new org.jinjor.haxeminesample.util.Util3();
+  console.log("Hello3.");
 }
 org.jinjor.haxeminesample.Main.sub = function() {
 }
