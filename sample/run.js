@@ -1,6 +1,13 @@
 var system = require('system');
 var page = require('webpage').create();
 
+var getSources = function(){
+    return ['out/js/sample.js'];
+};
+var getSpecs = function(){
+    return ['test/spec/PathUtilTest.js'];
+};
+
 page.onConsoleMessage = function(msg) {
     console.log('phantom > ' + msg);
 };
@@ -14,8 +21,6 @@ page.open('local.html', function(){
   
   page.injectJs('jasmine-1.3.1/jasmine.js');
   //page.injectJs('jasmine-1.3.1/jasmine-html.js');
-
-
   page.evaluate(function() {
       if (! jasmine) {
           throw new Exception("jasmine library does not exist in global namespace!");
@@ -73,59 +78,14 @@ page.open('local.html', function(){
               console.log('jasmine > ' + str);
           }
       };
-
-      function suiteResults(suite) {
-          var results = suite.results();
-          startGroup(results, suite.description);
-          var specs = suite.specs();
-          for (var i in specs) {
-              if (specs.hasOwnProperty(i)) {
-                  specResults(specs[i]);
-              }
-          }
-          var suites = suite.suites();
-          for (var j in suites) {
-              if (suites.hasOwnProperty(j)) {
-                  suiteResults(suites[j]);
-              }
-          }
-          console.groupEnd();
-      }
-
-      function specResults(spec) {
-          var results = spec.results();
-          startGroup(results, spec.description);
-          var items = results.getItems();
-          for (var k in items) {
-              if (items.hasOwnProperty(k)) {
-                  itemResults(items[k]);
-              }
-          }
-          console.groupEnd();
-      }
-
-      function itemResults(item) {
-          if (item.passed && !item.passed()) {
-              console.warn({actual:item.actual,expected: item.expected});
-              item.trace.message = item.matcherName;
-              console.error(item.trace);
-          } else {
-              console.info('Passed');
-          }
-      }
-
-      function startGroup(results, description) {
-          var consoleFunc = (results.passed() && console.groupCollapsed) ? 'groupCollapsed' : 'group';
-          console[consoleFunc](description + ' (' + results.passedCount + '/' + results.totalCount + ' passed, ' + results.failedCount + ' failures)');
-      }
-
+      
       // export public
       jasmine.ConsoleReporter = ConsoleReporter;
   });
   //console.log(page.offlineStoragePath);
-  page.injectJs('out/js/sample.js');
-  page.injectJs('test/spec/PathUtilTest.js');
-
+  getSources().concat(getSpecs()).forEach(function(path){
+    page.injectJs(path);
+  });
   page.evaluate(function() {
     var jasmineEnv = jasmine.getEnv();
     jasmineEnv.updateInterval = 1000;
