@@ -67,7 +67,6 @@ class Main {
         var _path = path;
         var _express = express;
         var app : Dynamic = express();
-        trace('hoge-');
         
         untyped console.log(untyped __dirname + '/public/favicon.ico');
         

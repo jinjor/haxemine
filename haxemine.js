@@ -2372,7 +2372,6 @@ org.jinjor.haxemine.server.Main.startApp = function(projectRoot,conf) {
 	var _path = org.jinjor.haxemine.server.Main.path;
 	var _express = org.jinjor.haxemine.server.Main.express;
 	var app = org.jinjor.haxemine.server.Main.express();
-	console.log("hoge-");
 	console.log(__dirname + "/public/favicon.ico");
 	app.configure(function() {
 		app.set("port",conf.port);
