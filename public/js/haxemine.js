@@ -1749,8 +1749,13 @@ org.jinjor.haxemine.client.Session.prototype = {
 			return error.originalMessage.indexOf(file.pathFromProjectRoot) == 0 || error.originalMessage.indexOf("./" + file.pathFromProjectRoot) == 0;
 		});
 	}
+	,selectNewerFile: function() {
+		if(this.editingFiles.cursorToNewer()) this.onEditingFileChange.pub(this.editingFiles.getCursored(),null);
+	}
+	,selectOlderFile: function() {
+		if(this.editingFiles.cursorToOlder()) this.onEditingFileChange.pub(this.editingFiles.getCursored(),null);
+	}
 	,selectNextFile: function(file,optLine) {
-		var that = this;
 		if(file == null) return;
 		this.editingFiles.add(file);
 		this.onEditingFileChange.pub(file,optLine);
@@ -1860,9 +1865,9 @@ org.jinjor.haxemine.client.view.AceEditorView = $hxClasses["org.jinjor.haxemine.
 		if(filtered.length == 1) session.selectNextFile(filtered[0],null); else if(filtered.length > 1) {
 		}
 	}},{ Name : "toOlder", bindKey : { win : "Alt-Left"}, exec : function(editor1) {
-		session.editingFiles.cursorToOlder();
+		session.selectOlderFile();
 	}},{ Name : "toNewer", bindKey : { win : "Alt-Right"}, exec : function(editor1) {
-		session.editingFiles.cursorToNewer();
+		session.selectNewerFile();
 	}}]);
 	this.render(editor,"ace/theme/eclipse");
 };
@@ -2343,10 +2348,18 @@ org.jinjor.haxemine.messages.HistoryArray.prototype = {
 		}
 	}
 	,cursorToNewer: function() {
-		if(0 < this.cursor) this.cursor = this.cursor - 1;
+		if(0 < this.cursor) {
+			this.cursor = this.cursor - 1;
+			return true;
+		}
+		return false;
 	}
 	,cursorToOlder: function() {
-		if(this.cursor < this.array.length - 1 && this.cursor < this.max - 1) this.cursor = this.cursor + 1;
+		if(this.cursor < this.array.length - 1 && this.cursor < this.max - 1) {
+			this.cursor = this.cursor + 1;
+			return true;
+		}
+		return false;
 	}
 	,cursor: null
 	,equals: null

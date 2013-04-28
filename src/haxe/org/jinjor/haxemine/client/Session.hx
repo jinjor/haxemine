@@ -107,13 +107,24 @@ class Session {
         return editingFiles.getCursored();
     }
     public function selectNextFile(file: SourceFile, optLine : Int) {
-        var that = this;
         if(file == null){
             return;
         }
         editingFiles.add(file);
         onEditingFileChange.pub(file, optLine);
     }
+    public function selectOlderFile() {
+        if(editingFiles.cursorToOlder()){
+            onEditingFileChange.pub(editingFiles.getCursored(), null);
+        }
+    }
+    public function selectNewerFile() {
+        if(editingFiles.cursorToNewer()){
+            onEditingFileChange.pub(editingFiles.getCursored(), null);
+        }
+    }
+    
+    
 
     public function getCompileErrorsByFile(file : SourceFile) : List<CompileError> {
         if(file == null){

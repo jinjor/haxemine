@@ -67,7 +67,7 @@ class AceEditorView {
                 win : "Alt-Left"
             },
             exec: function(editor) {
-                session.editingFiles.cursorToOlder();
+                session.selectOlderFile();
             }
         },{
             Name : "toNewer",
@@ -75,7 +75,7 @@ class AceEditorView {
                 win : "Alt-Right"
             },
             exec: function(editor) {
-                session.editingFiles.cursorToNewer();
+                session.selectNewerFile();
             }
         }]);
         /*
