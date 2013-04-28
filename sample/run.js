@@ -58,6 +58,8 @@ page.open('local.html', function(){
 
           reportSpecStarting: function(spec) {
               this.executed_specs++;
+              this.log(spec);
+              this.log(spec.suite);
               this.log(spec.suite.description + ' : ' + spec.description + ' ... ');
           },
 
@@ -128,7 +130,7 @@ page.open('local.html', function(){
     var jasmineEnv = jasmine.getEnv();
     jasmineEnv.updateInterval = 1000;
     jasmineEnv.addReporter(new jasmine.ConsoleReporter());
-    jasmineEnv.execJasmine();
+    jasmineEnv.execute();
   });
   
   
