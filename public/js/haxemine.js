@@ -2113,7 +2113,6 @@ org.jinjor.haxemine.client.view.TaskView = $hxClasses["org.jinjor.haxemine.clien
 	var _g = this;
 	task.onUpdate.sub("TaskView.new." + task.name,function(_) {
 		_g.render(task);
-		js.Lib.alert("onUpdate");
 	});
 	session.onSave.sub("TaskView.new." + task.name,function(_) {
 		task.reset();
