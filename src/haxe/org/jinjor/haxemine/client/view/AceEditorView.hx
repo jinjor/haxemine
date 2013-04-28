@@ -23,7 +23,7 @@ class AceEditorView {
             });
         });
     
-        session.onLastTaskProgressChanged.sub(function(_){
+        session.onLastTaskProgressChanged.sub('AceEditorView.new', function(_){
             annotateCompileError(editor, session);
         });
 

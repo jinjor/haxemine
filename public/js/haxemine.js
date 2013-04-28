@@ -1669,14 +1669,14 @@ org.jinjor.haxemine.client.Main.main = function() {
 org.jinjor.haxemine.client.Menu = $hxClasses["org.jinjor.haxemine.client.Menu"] = function(session) {
 	var _g = this;
 	this.container = $("<nav id=\"menu\"/>");
-	session.onInitialInfoReceived.sub(function(initialInfoDto) {
+	session.onInitialInfoReceived.sub("Menu.new",function(initialInfoDto) {
 		_g.initialInfoDto = initialInfoDto;
 		_g.render();
 	});
-	session.onSocketConnected.sub(function(_) {
+	session.onSocketConnected.sub("Menu.new",function(_) {
 		_g.render();
 	});
-	session.onSocketDisconnected.sub(function(_) {
+	session.onSocketDisconnected.sub("Menu.new",function(_) {
 		_g.renderDisconnected();
 	});
 };
@@ -1737,7 +1737,7 @@ org.jinjor.haxemine.client.Session = $hxClasses["org.jinjor.haxemine.client.Sess
 	this.onSave = new org.jinjor.util.Event();
 	this.onSelectView = new org.jinjor.util.Event();
 	this.onEditingFileChange = new org.jinjor.util.Event2();
-	this.onSocketConnected.sub(function(_) {
+	this.onSocketConnected.sub("Session.new",function(_) {
 		doTasksM.pub(null);
 	});
 };
@@ -1846,7 +1846,7 @@ org.jinjor.haxemine.client.view.AceEditorView = $hxClasses["org.jinjor.haxemine.
 			if(line != null) editor.gotoLine(100);
 		});
 	});
-	session.onLastTaskProgressChanged.sub(function(_) {
+	session.onLastTaskProgressChanged.sub("AceEditorView.new",function(_) {
 		org.jinjor.haxemine.client.view.AceEditorView.annotateCompileError(editor,session);
 	});
 	editor.commands.addCommands([{ Name : "savefile", bindKey : { win : "Ctrl-S", mac : "Command-S"}, exec : function(editor1) {
@@ -1898,7 +1898,7 @@ org.jinjor.haxemine.client.view.CompileErrorPanel = $hxClasses["org.jinjor.haxem
 	});
 	var taskListViewContainer = new org.jinjor.haxemine.client.view.TaskListView(socket,session).container;
 	this.container.append(taskListViewContainer).append(this.errorContainer);
-	session.onLastTaskProgressChanged.sub(function(_) {
+	session.onLastTaskProgressChanged.sub("CompileErrorPanel.new",function(_) {
 		_g.render(session);
 	});
 };
@@ -1933,7 +1933,7 @@ org.jinjor.haxemine.client.view.FileSelector = $hxClasses["org.jinjor.haxemine.c
 			}
 		}
 	});
-	session.onAllFilesChanged.sub(function(_) {
+	session.onAllFilesChanged.sub("FileSelector.new",function(_) {
 		that.render(session);
 	});
 };
@@ -2088,7 +2088,7 @@ org.jinjor.haxemine.client.view.SearchPanel.prototype = {
 org.jinjor.haxemine.client.view.TaskListView = $hxClasses["org.jinjor.haxemine.client.view.TaskListView"] = function(socket,session) {
 	var _g = this;
 	var doTaskM = new org.jinjor.haxemine.messages.DoTaskM(socket);
-	session.onInitialInfoReceived.sub(function(info) {
+	session.onInitialInfoReceived.sub("TaskListView.new",function(info) {
 		var tasks = Lambda.map(info.taskInfos,function(taskInfo) {
 			return new org.jinjor.haxemine.client.TaskModel(taskInfo.taskName,taskInfo.content,taskInfo.auto,socket);
 		});
@@ -2115,10 +2115,10 @@ org.jinjor.haxemine.client.view.TaskListView.prototype = {
 }
 org.jinjor.haxemine.client.view.TaskView = $hxClasses["org.jinjor.haxemine.client.view.TaskView"] = function(doTaskM,session,task) {
 	var _g = this;
-	task.onUpdate.sub(function(_) {
+	task.onUpdate.sub("TaskView.new." + task.name,function(_) {
 		_g.render(task);
 	});
-	session.onSave.sub(function(_) {
+	session.onSave.sub("TaskView.new." + task.name,function(_) {
 		task.reset();
 		_g.render(task);
 	});
@@ -2199,9 +2199,9 @@ org.jinjor.haxemine.client.view.ViewPanel = $hxClasses["org.jinjor.haxemine.clie
 	var tabsContainer = $("<div id=\"tabsContainer\"/>");
 	var panelsContainer = $("<div id=\"panelsContainer\"/>");
 	var selectView = new Hash();
-	session.onInitialInfoReceived.sub(function(info) {
-		var compileErrorPanel = new org.jinjor.haxemine.client.view.CompileErrorPanel(socket,session);
-		var searchPanel = new org.jinjor.haxemine.client.view.SearchPanel(socket,session);
+	var compileErrorPanel = new org.jinjor.haxemine.client.view.CompileErrorPanel(socket,session);
+	var searchPanel = new org.jinjor.haxemine.client.view.SearchPanel(socket,session);
+	session.onInitialInfoReceived.sub("ViewPanel.new",function(info) {
 		var defs = [{ name : "Tasks", container : compileErrorPanel.container}];
 		if(info.searchEnabled) defs.push({ name : "Search", container : searchPanel.container});
 		tabsContainer.empty();
@@ -2227,10 +2227,10 @@ org.jinjor.haxemine.client.view.ViewPanel = $hxClasses["org.jinjor.haxemine.clie
 		}
 		session.onSelectView.pub("Tasks");
 	});
-	session.onSelectView.sub(function(viewName) {
+	session.onSelectView.sub("ViewPanel.new",function(viewName) {
 		(selectView.get(viewName))();
 	});
-	session.onLastTaskProgressChanged.sub(function(_) {
+	session.onLastTaskProgressChanged.sub("ViewPanel.new",function(_) {
 		session.onSelectView.pub("Tasks");
 	});
 	this.container = container.append(tabsContainer).append(panelsContainer);
@@ -2486,18 +2486,19 @@ org.jinjor.util.ClientUtil.fixedSubmit = function(jquery,f) {
 	return jquery;
 }
 org.jinjor.util.Event = $hxClasses["org.jinjor.util.Event"] = function() {
-	this.events = [];
+	this.events = new Hash();
 };
 org.jinjor.util.Event.__name__ = ["org","jinjor","util","Event"];
 org.jinjor.util.Event.prototype = {
 	pub: function(arg) {
-		Lambda.foreach(this.events,function(f) {
-			f(arg);
-			return true;
-		});
+		var $it0 = this.events.keys();
+		while( $it0.hasNext() ) {
+			var key = $it0.next();
+			(this.events.get(key))(arg);
+		}
 	}
-	,sub: function(f) {
-		this.events.push(f);
+	,sub: function(key,f) {
+		this.events.set(key,f);
 	}
 	,events: null
 	,__class__: org.jinjor.util.Event

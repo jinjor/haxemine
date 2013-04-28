@@ -17,11 +17,11 @@ class TaskListView {
         
         var doTaskM = new DoTaskM(socket);
         
-        session.onInitialInfoReceived.sub(function(info : InitialInfoDto) {
-            
+        session.onInitialInfoReceived.sub('TaskListView.new', function(info : InitialInfoDto) {
             var tasks = info.taskInfos.map(function(taskInfo) {
                 return new TaskModel(taskInfo.taskName, taskInfo.content, taskInfo.auto, socket);
             });
+            
             var taskViewContainers = tasks.map(function(task){
                 return new TaskView(doTaskM, session, task);
             }).map(function(view){

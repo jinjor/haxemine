@@ -20,9 +20,11 @@ class ViewPanel {
         
         var selectView = new Hash<Void -> Void>();
         
-        session.onInitialInfoReceived.sub(function(info){
-            var compileErrorPanel = new CompileErrorPanel(socket, session);
-            var searchPanel = new SearchPanel(socket, session);
+        var compileErrorPanel = new CompileErrorPanel(socket, session);
+        var searchPanel = new SearchPanel(socket, session);
+        
+        session.onInitialInfoReceived.sub('ViewPanel.new', function(info){
+            
             var defs : Array<ViewPanelDef> = [
                 {name:'Tasks', container:compileErrorPanel.container}
             ];
@@ -47,10 +49,10 @@ class ViewPanel {
             session.onSelectView.pub('Tasks');
         });
         
-        session.onSelectView.sub(function(viewName : String){
+        session.onSelectView.sub('ViewPanel.new', function(viewName : String){
             selectView.get(viewName)();
         });
-        session.onLastTaskProgressChanged.sub(function(_){
+        session.onLastTaskProgressChanged.sub('ViewPanel.new', function(_){
             session.onSelectView.pub('Tasks');
         });
 

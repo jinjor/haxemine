@@ -83,7 +83,7 @@ class Session {
         this.onSelectView = new Event();
         this.onEditingFileChange = new Event2();
         
-        this.onSocketConnected.sub(function(_){
+        this.onSocketConnected.sub('Session.new', function(_){
             doTasksM.pub(null);
         });
     }

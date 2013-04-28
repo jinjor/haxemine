@@ -31,7 +31,7 @@ class CompileErrorPanel {
             .append(taskListViewContainer)
             .append(errorContainer);
         
-        session.onLastTaskProgressChanged.sub(function(_){
+        session.onLastTaskProgressChanged.sub('CompileErrorPanel.new', function(_){
             render(session);
         });
     }

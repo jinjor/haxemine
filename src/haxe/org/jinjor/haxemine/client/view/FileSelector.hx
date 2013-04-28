@@ -62,7 +62,7 @@ class {{_class}} {
             
         });
         
-        session.onAllFilesChanged.sub(function(_){
+        session.onAllFilesChanged.sub('FileSelector.new', function(_){
             that.render(session);
         });  
     }

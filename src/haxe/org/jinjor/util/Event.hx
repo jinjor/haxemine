@@ -4,21 +4,20 @@ using Lambda;
 
 class Event<T> {
     
-    var events : Array<T -> Void>;
+    var events : Hash<T -> Void>;
 
     public function new() {
-        events = [];
+        events = new Hash();
     }
     
-    public function sub(f: T -> Void){
-        events.push(f);
+    public function sub(key : String, f: T -> Void){
+        events.set(key, f);
     }
     
     public function pub(arg: T){
-        events.foreach(function(f){
-            f(arg);
-            return true;
-        });
+        for(key in events.keys()){
+            events.get(key)(arg);
+        }
     }
 
 }
