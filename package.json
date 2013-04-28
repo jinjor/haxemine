@@ -16,6 +16,6 @@
   },
   "subdomain": "jinjor.haxemine",
   "bin" : {
-    "haxemine" : "./haxemine"
+    "haxemine" : "./bin/haxemine"
   }
 }
