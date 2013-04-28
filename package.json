@@ -14,10 +14,7 @@
     "log4js": "*"
   },
   "subdomain": "jinjor.haxemine",
-  "scripts": {
-    "start": "app.js"
-  },
   "bin" : {
-    "haxemine" : "./haxemine"
+    "haxemine" : "./bin/haxemine"
   }
 }
