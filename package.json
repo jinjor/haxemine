@@ -11,10 +11,11 @@
     "ejs": "*",
     "socket.io": "0.9.13",
     "async": "*",
-    "log4js": "*"
+    "log4js": "*",
+    "source-map-support": "*"
   },
   "subdomain": "jinjor.haxemine",
   "bin" : {
-    "haxemine" : "./bin/haxemine"
+    "haxemine" : "./haxemine"
   }
 }
