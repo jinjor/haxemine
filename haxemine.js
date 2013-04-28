@@ -2342,6 +2342,7 @@ org.jinjor.haxemine.server.Main = function() { }
 $hxClasses["org.jinjor.haxemine.server.Main"] = org.jinjor.haxemine.server.Main;
 org.jinjor.haxemine.server.Main.__name__ = ["org","jinjor","haxemine","server","Main"];
 org.jinjor.haxemine.server.Main.main = function() {
+	org.jinjor.haxemine.server.Main.sourcemap.install();
 	var projectRoot = ".";
 	var confDao = new org.jinjor.haxemine.server.HaxemineConfigDao();
 	var conf = confDao.get(projectRoot);
@@ -2365,7 +2366,7 @@ org.jinjor.haxemine.server.Main.startApp = function(projectRoot,conf) {
 	var _path = org.jinjor.haxemine.server.Main.path;
 	var _express = org.jinjor.haxemine.server.Main.express;
 	var app = org.jinjor.haxemine.server.Main.express();
-	throw "";
+	console.log("hoge-");
 	console.log(__dirname + "/public/favicon.ico");
 	app.configure(function() {
 		app.set("port",conf.port);
@@ -2703,6 +2704,7 @@ org.jinjor.haxemine.server.Main.readline = js.Node.require("readline");
 org.jinjor.haxemine.server.Main.socketio = js.Node.require("socket.io");
 org.jinjor.haxemine.server.Main.childProcess = js.Node.require("child_process");
 org.jinjor.haxemine.server.Main.async = js.Node.require("async");
+org.jinjor.haxemine.server.Main.sourcemap = js.Node.require("source-map-support");
 org.jinjor.haxemine.server.OS.os = js.Node.require("os");
 org.jinjor.haxemine.server.Service.fs = js.Node.require("fs");
 org.jinjor.haxemine.server.Service.childProcess = js.Node.require("child_process");

@@ -30,9 +30,10 @@ class Main {
     static var socketio = Node.require('socket.io');
     static var childProcess : Dynamic = Node.require('child_process');
     static var async : Dynamic = Node.require('async');
-    //static var sourcemap : Dynamic = Node.require('source-map-support');
+    static var sourcemap : Dynamic = Node.require('source-map-support');
     
     public static function main(){
+        sourcemap.install();
         
         var projectRoot = '.';
         
@@ -66,7 +67,7 @@ class Main {
         var _path = path;
         var _express = express;
         var app : Dynamic = express();
-        throw "";
+        trace('hoge-');
         
         untyped console.log(untyped __dirname + '/public/favicon.ico');
         
