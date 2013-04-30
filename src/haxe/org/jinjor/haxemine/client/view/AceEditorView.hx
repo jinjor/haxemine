@@ -17,7 +17,7 @@ class AceEditorView {
                 editor.getSession().setMode("ace/mode/" + detail.mode);
                 annotateCompileError(editor, session);
                 if(line != null){
-                    editor.gotoLine(100);
+                    editor.gotoLine(line);
                 }
                 
             });

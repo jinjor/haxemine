@@ -1842,7 +1842,7 @@ org.jinjor.haxemine.client.view.AceEditorView = $hxClasses["org.jinjor.haxemine.
 			editor.getSession().setValue(detail.text);
 			editor.getSession().setMode("ace/mode/" + detail.mode);
 			org.jinjor.haxemine.client.view.AceEditorView.annotateCompileError(editor,session);
-			if(line != null) editor.gotoLine(100);
+			if(line != null) editor.gotoLine(line);
 		});
 	});
 	session.onLastTaskProgressChanged.sub("AceEditorView.new",function(_) {

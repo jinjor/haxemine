@@ -244,9 +244,7 @@ org.jinjor.haxeminesample.Main.__name__ = true;
 org.jinjor.haxeminesample.Main.main = function() {
 	console.log("Hello.");
 	org.jinjor.haxeminesample.Main.sub();
-  console.log("Hello2.");
 	new org.jinjor.haxeminesample.util.Util3();
-  console.log("Hello3.");
 }
 org.jinjor.haxeminesample.Main.sub = function() {
 }
@@ -299,4 +297,5 @@ var Class = { __name__ : ["Class"]};
 var Enum = { };
 var Void = { __ename__ : ["Void"]};
 org.jinjor.haxeminesample.Main.main();
+
 //@ sourceMappingURL=sample.js.map

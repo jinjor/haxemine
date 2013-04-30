@@ -121,7 +121,7 @@ class Main {
             
             Console.print("connection");
             Service.getAllHaxeFiles(projectRoot, function(err, files){
-                if(err != null){
+                if(err != null) {
                     trace(err);
                     throw err;
                 }

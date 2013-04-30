@@ -26,6 +26,7 @@ class CompileErrorPanel {
         this.errorContainer = JQ('<div id="compile-errors"/>').on('click', 'a', function(){
             var file = session.getAllFiles().get(JQuery.cur.attr('data-filePath'));
             var row = Std.parseInt(JQuery.cur.attr('data-row'));
+            //js.Lib.alert(row);
             session.selectNextFile(file, row);
         });
         var taskListViewContainer = new TaskListView(session, doTaskM, taskProgressM).container;

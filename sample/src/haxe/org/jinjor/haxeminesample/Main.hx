@@ -97,14 +97,6 @@ class Main{
 
 
 
-umomomomomo;
-
-
-
-
-
-
-
 
 
 }
