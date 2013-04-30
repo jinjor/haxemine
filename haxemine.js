@@ -2153,14 +2153,16 @@ org.jinjor.haxemine.messages.SearchM.__super__ = org.jinjor.haxemine.messages.So
 org.jinjor.haxemine.messages.SearchM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
 	__class__: org.jinjor.haxemine.messages.SearchM
 });
-org.jinjor.haxemine.messages.SearchResult = function(fileName,message) {
+org.jinjor.haxemine.messages.SearchResult = function(fileName,row,message) {
 	this.fileName = fileName;
+	this.row = row;
 	this.message = message;
 };
 $hxClasses["org.jinjor.haxemine.messages.SearchResult"] = org.jinjor.haxemine.messages.SearchResult;
 org.jinjor.haxemine.messages.SearchResult.__name__ = ["org","jinjor","haxemine","messages","SearchResult"];
 org.jinjor.haxemine.messages.SearchResult.prototype = {
 	message: null
+	,row: null
 	,fileName: null
 	,__class__: org.jinjor.haxemine.messages.SearchResult
 }
@@ -2493,8 +2495,8 @@ org.jinjor.haxemine.server.Service.doAutoTasks = function(conf,projectRoot,socke
 	});
 }
 org.jinjor.haxemine.server.Service.searchWord = function(word,cb) {
-	if(!org.jinjor.haxemine.server.OS.isWin()) throw "not supported search."; else {
-		var command = "findstr /S " + word + " *.hx";
+	if(!org.jinjor.haxemine.server.OS.isWin()) throw "search unsupported ."; else {
+		var command = "findstr /N /S " + word + " *.hx";
 		org.jinjor.haxemine.server.Console.print(command);
 		org.jinjor.haxemine.server.Service.childProcess.exec(command,function(err,stdout,stderr) {
 			if(err != null) cb(null,[]); else {
@@ -2502,8 +2504,10 @@ org.jinjor.haxemine.server.Service.searchWord = function(word,cb) {
 				var results = Lambda.array(Lambda.filter(messages,function(message) {
 					return message != "";
 				}).map(function(message) {
+					console.log(message);
 					var fileName = StringTools.replace(message.split(":")[0],"\\","/");
-					return new org.jinjor.haxemine.messages.SearchResult(fileName,message);
+					var row = Std.parseInt(message.split(":")[1]);
+					return new org.jinjor.haxemine.messages.SearchResult(fileName,row,message);
 				}));
 				cb(null,results);
 			}

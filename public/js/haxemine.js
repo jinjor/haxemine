@@ -2065,7 +2065,7 @@ org.jinjor.haxemine.client.view.SearchPanel = $hxClasses["org.jinjor.haxemine.cl
 			var link = $("<a/>").text(result[0].message).click((function(result) {
 				return function() {
 					var file = session.getAllFiles().get(result[0].fileName);
-					session.selectNextFile(file,null);
+					session.selectNextFile(file,result[0].row);
 				};
 			})(result));
 			var resultElm = $("<div/>").append(link);
@@ -2431,13 +2431,15 @@ org.jinjor.haxemine.messages.SearchM.__super__ = org.jinjor.haxemine.messages.So
 org.jinjor.haxemine.messages.SearchM.prototype = $extend(org.jinjor.haxemine.messages.SocketMessage.prototype,{
 	__class__: org.jinjor.haxemine.messages.SearchM
 });
-org.jinjor.haxemine.messages.SearchResult = $hxClasses["org.jinjor.haxemine.messages.SearchResult"] = function(fileName,message) {
+org.jinjor.haxemine.messages.SearchResult = $hxClasses["org.jinjor.haxemine.messages.SearchResult"] = function(fileName,row,message) {
 	this.fileName = fileName;
+	this.row = row;
 	this.message = message;
 };
 org.jinjor.haxemine.messages.SearchResult.__name__ = ["org","jinjor","haxemine","messages","SearchResult"];
 org.jinjor.haxemine.messages.SearchResult.prototype = {
 	message: null
+	,row: null
 	,fileName: null
 	,__class__: org.jinjor.haxemine.messages.SearchResult
 }

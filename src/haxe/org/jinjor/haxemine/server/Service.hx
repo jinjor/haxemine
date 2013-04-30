@@ -62,9 +62,9 @@ class Service {
     
     public static function searchWord(word : String, cb : Dynamic -> Array<SearchResult> -> Void) {
         if(!OS.isWin()){
-            throw 'not supported search.';
+            throw 'search unsupported .';
         }else{
-            var command = 'findstr /S ' + word + ' *.hx';
+            var command = 'findstr /N /S ' + word + ' *.hx';
             Console.print(command);
             childProcess.exec(command, function(err, stdout:String, stderr){
                 if(err != null){
@@ -74,8 +74,10 @@ class Service {
                     var results = messages.filter(function(message){
                         return message != '';
                     }).map(function(message){
+                        trace(message);
                         var fileName = message.split(':')[0].replace('\\', '/');
-                        return new SearchResult(fileName, message);
+                        var row = Std.parseInt(message.split(':')[1]);
+                        return new SearchResult(fileName, row, message);
                     }).array();
                     cb(null, results);
                 }
