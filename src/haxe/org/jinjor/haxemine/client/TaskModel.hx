@@ -16,7 +16,7 @@ class TaskModel {
     
     public function new(name : String, content : String, auto : Bool, taskProgressM : TaskProgressM) {
         var that = this;
-        taskProgressM.sub('TaskModel.new', function(progress) {
+        taskProgressM.sub('TaskModel.new.' + name, function(progress) {
             if(name != progress.taskName){
                 return;
             }

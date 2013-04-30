@@ -1791,7 +1791,7 @@ org.jinjor.haxemine.client.Session.prototype = {
 org.jinjor.haxemine.client.TaskModel = $hxClasses["org.jinjor.haxemine.client.TaskModel"] = function(name,content,auto,taskProgressM) {
 	var _g = this;
 	var that = this;
-	taskProgressM.sub("TaskModel.new",function(progress) {
+	taskProgressM.sub("TaskModel.new." + name,function(progress) {
 		if(name != progress.taskName) return;
 		that.state = progress.compileErrors.length <= 0?org.jinjor.haxemine.client.TaskModelState.SUCCESS:org.jinjor.haxemine.client.TaskModelState.FAILED;
 		_g.onUpdate.pub(null);
