@@ -1068,7 +1068,7 @@ org.jinjor.haxemine.client.Main.JQ = function(s) {
 org.jinjor.haxemine.client.Main.main = function() {
 	var socket = io.connect("/");
 	var session = new org.jinjor.haxemine.client.Session(socket,new org.jinjor.haxemine.messages.HistoryArray(10,org.jinjor.haxemine.messages.SourceFile.equals));
-	var ace = js.Lib.window.ace;
+	var ace = js.Browser.window.ace;
 	var view = new org.jinjor.haxemine.client.view.View(ace,socket,session);
 	new js.JQuery(js.Browser.document).ready(function(e) {
 		view.render($("body"));

@@ -16,7 +16,7 @@ class Main {
         
         var socket = untyped io.connect('/');
         var session = new Session(socket, new HistoryArray<SourceFile>(10, SourceFile.equals));
-        var ace = untyped js.Lib.window.ace;
+        var ace = untyped js.Browser.window.ace;
         
         var view = new View(ace, socket, session);
         new JQuery(untyped js.Browser.document).ready(function(e){

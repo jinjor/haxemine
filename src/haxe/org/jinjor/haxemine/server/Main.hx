@@ -103,7 +103,7 @@ class Main {
         
         var server : Dynamic = http.createServer(app);
         server.listen(app.get('port'), function(){
-          Console.print("haxemine listening on port " + app.get('port'));
+          Console.print('haxemine listening on port ${app.get("port")}');
         });
         
         
