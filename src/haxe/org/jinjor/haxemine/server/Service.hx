@@ -25,7 +25,7 @@ class Service {
     }
     
     public static function save(projectRoot : String, data, allHaxeFilesM : AllHaxeFilesM, socket:Dynamic){
-        var _path = projectRoot + '/'+ data.fileName;
+        var _path = '$projectRoot/${data.fileName}';
         var isNew = !path.existsSync(_path);
         saveToSrc(fs, _path, data.text);
         if(isNew){
@@ -64,7 +64,7 @@ class Service {
         if(!OS.isWin()){
             throw 'search unsupported .';
         }else{
-            var command = 'findstr /N /S ' + word + ' *.hx';
+            var command = 'findstr /N /S $word *.hx';
             Console.print(command);
             childProcess.exec(command, function(err, stdout:String, stderr){
                 if(err != null){
@@ -100,7 +100,7 @@ class Service {
     }
     
     public static function compileHaxe(socket, taskProgressM : TaskProgressM, projectRoot : String, hxmlPath, callBack){
-      childProcess.exec('haxe ' + hxmlPath, {
+      childProcess.exec('haxe $hxmlPath', {
         cwd: projectRoot
       },function(err, stdout, stderr){
           if(err != null){
@@ -135,7 +135,7 @@ class Service {
 
     
     
-    public static function getAllHaxeFiles(projectRoot : String, _callback : Dynamic -> Hash<SourceFile> -> Void){
+    public static function getAllHaxeFiles(projectRoot : String, _callback : Dynamic -> Map<String, SourceFile> -> Void){
         var filter = function(item : String){
             return item.endsWith('.hx');
         };
@@ -143,7 +143,7 @@ class Service {
             if(err != null){
                 _callback(err, null);
             }else{
-                var files = new Hash<SourceFile>();
+                var files = new Map<String, SourceFile>();
                 filePaths.foreach(function(f){
                     files.set(f, new SourceFile(f));
                     return true;

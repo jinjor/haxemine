@@ -11,10 +11,10 @@ class TaskView {
     
     public function new(doTaskM: DoTaskM, session : Session, task : TaskModel) {
         
-        task.onUpdate.sub('TaskView.new.' + task.name, function(_) {
+        task.onUpdate.sub('TaskView.new.${task.name}', function(_) {
             render(task);
         });
-        session.onSave.sub('TaskView.new.' + task.name, function(_) {
+        session.onSave.sub('TaskView.new.${task.name}', function(_) {
             task.reset();
             render(task);
         });

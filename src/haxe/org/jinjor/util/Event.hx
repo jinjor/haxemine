@@ -4,10 +4,10 @@ using Lambda;
 
 class Event<T> {
     
-    var events : Hash<T -> Void>;
+    var events : Map<String, T -> Void>;
 
     public function new() {
-        events = new Hash();
+        events = new Map();
     }
     
     public function sub(key : String, f: T -> Void){

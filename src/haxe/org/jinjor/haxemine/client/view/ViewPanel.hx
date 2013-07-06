@@ -19,7 +19,7 @@ class ViewPanel {
         var tabsContainer = JQ('<div id="tabsContainer"/>');
         var panelsContainer = JQ('<div id="panelsContainer"/>');
         
-        var selectView = new Hash<Void -> Void>();
+        var selectView = new Map<String, Void -> Void>();
         
         var compileErrorPanel = new CompileErrorPanel(session, allMessages.doTaskM, allMessages.taskProgressM);
         var searchPanel = new SearchPanel(session, allMessages.searchM, allMessages.searchResultM);

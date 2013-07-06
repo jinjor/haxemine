@@ -4,10 +4,10 @@ class SocketMessage<T> {
     
     public var pub : T -> Void;
     public var sub : String -> (T -> Void) -> Void;
-    var funcs : Hash<T -> Void>;
+    var funcs : Map<String, T -> Void>;
     
     public function new(socket : Dynamic, key : String) {
-        this.funcs = new Hash();
+        this.funcs = new Map();
         this.pub = function(data : T){
             socket.emit(key, haxe.Serializer.run(data));
         };

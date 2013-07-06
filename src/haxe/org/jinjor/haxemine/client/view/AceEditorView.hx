@@ -27,7 +27,7 @@ class AceEditorView {
             annotateCompileError(editor, session);
         });
 
-        editor.commands.addCommands([{
+        untyped editor.commands.addCommands([{
             Name : "savefile",
             bindKey: {
                 win : "Ctrl-S",

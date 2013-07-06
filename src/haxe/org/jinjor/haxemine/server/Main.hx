@@ -54,12 +54,12 @@ class Main {
     
     static function startApp(projectRoot : String, conf : HaxemineConfig){
         
-        Console.print('projectRoot:' + projectRoot);
-        Console.print('port:' + conf.port);
+        Console.print('projectRoot:$projectRoot');
+        Console.print('port:${conf.port}');
         
         var taskInfos = conf.hxml.map(function(hxml){
             var name = hxml.path;
-            var content = fs.readFileSync(projectRoot + '/' + hxml.path, 'utf8');
+            var content = fs.readFileSync('$projectRoot/${hxml.path}', 'utf8');
             
             return new TaskInfo(name, content, if(hxml.auto == null) true else hxml.auto);
         }).array();
@@ -97,7 +97,7 @@ class Main {
           }else{
             res.contentType('application/json');
             trace(req.query.fileName);
-            res.send(Json.stringify(Service.findFromSrc(projectRoot + '/' + fileName)));
+            res.send(Json.stringify(Service.findFromSrc('$projectRoot/$fileName')));
           }
         });
         

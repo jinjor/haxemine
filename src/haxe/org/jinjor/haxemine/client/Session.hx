@@ -26,16 +26,16 @@ class Session {
     var socket : Dynamic;
     
     public var editingFiles : HistoryArray<SourceFile>;
-    var allFiles : Hash<SourceFile>;
+    var allFiles : Map<String, SourceFile>;
     var fileToLoad : SourceFile;
     var lastTaskProgress : TaskProgress;
     
-    public var onSocketConnected : Event<Void>;
-    public var onSocketDisconnected : Event<Void>;
+    public var onSocketConnected : Event<Dynamic>;
+    public var onSocketDisconnected : Event<Dynamic>;
     public var onInitialInfoReceived : Event<InitialInfoDto>;
-    public var onAllFilesChanged : Event<Void>;
-    public var onLastTaskProgressChanged : Event<Void>;
-    public var onSave : Event<Void>;
+    public var onAllFilesChanged : Event<Dynamic>;
+    public var onLastTaskProgressChanged : Event<Dynamic>;
+    public var onSave : Event<Dynamic>;
     public var onSelectView : Event<String>;
     public var onEditingFileChange : Event2<SourceFile, Int>;
     
@@ -72,7 +72,7 @@ class Session {
             onSocketDisconnected.pub(null);
         });
         this.editingFiles = editingFiles;
-        this.allFiles = new Hash();
+        this.allFiles = new Map();
         
         this.onSocketConnected = new Event();
         this.onSocketDisconnected = new Event();
@@ -94,11 +94,11 @@ class Session {
     }
     
 
-    private function setAllFiles(allFiles : Hash<SourceFile>){
+    private function setAllFiles(allFiles : Map<String, SourceFile>){
         this.allFiles = allFiles;
         this.onAllFilesChanged.pub(null);
     }
-    public function getAllFiles() : Hash<SourceFile>{
+    public function getAllFiles() : Map<String, SourceFile>{
         return allFiles;
     }
     
@@ -130,10 +130,10 @@ class Session {
         if(file == null){
             return new List();
         }
-        return getCompileErrors().filter(function(error){
+        return Lambda.list(getCompileErrors().filter(function(error){
             return error.originalMessage.indexOf(file.pathFromProjectRoot) == 0
-            || error.originalMessage.indexOf('./' + file.pathFromProjectRoot) == 0;
-        });
+            || error.originalMessage.indexOf('./${file.pathFromProjectRoot}') == 0;
+        }));
     }
     
 }

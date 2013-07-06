@@ -45,7 +45,7 @@ class {{_class}} {
         }).on('click', '.file_selector_dir', function(){
             var path = JQuery.cur.text();
             var guessedPackage = path.replace('/', '.');
-            var classPath = js.Lib.window.prompt("create new class", guessedPackage + '.');
+            var classPath = js.Browser.window.prompt("create new class", guessedPackage + '.');
             if(classPath != null){
                 var splittedClass = classPath.split('.');
                 var className = splittedClass[splittedClass.length-1];
@@ -95,7 +95,7 @@ class {{_class}} {
     }
     
     public function render(session : Session){
-        var dirsHash = new Hash<Dir>();
+        var dirsHash = new Map<String, Dir>();
         var all = session.getAllFiles();
 
         for(name in all.keys()){

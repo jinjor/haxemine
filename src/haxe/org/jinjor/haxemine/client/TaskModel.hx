@@ -12,7 +12,7 @@ class TaskModel {
     public var content : String;
     public var auto : Bool;
     public var state(default, null) : TaskModelState;
-    public var onUpdate : Event<Void>;
+    public var onUpdate : Event<Dynamic>;
     
     public function new(name : String, content : String, auto : Bool, taskProgressM : TaskProgressM) {
         var that = this;

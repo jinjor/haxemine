@@ -16,7 +16,7 @@ class HaxemineConfigDao {
     static var readline = Node.require('readline');
     
     private static function makeConfpath(projectRoot : String){
-        return projectRoot + '/' + CONF_FILE;
+        return '$projectRoot/$CONF_FILE';
     }
 
     public function new() { 
@@ -39,8 +39,8 @@ class HaxemineConfigDao {
     public function create(process : Dynamic, projectRoot : String, onCreate : Void -> Void, onCancel : Void -> Void){
         var confPath = makeConfpath(projectRoot);
         
-        Console.print(CONF_FILE + 'is required in current directory.');
-        Console.print('create ' + CONF_FILE + ' here? [y/n]');
+        Console.print('$CONF_FILE is required in current directory.');
+        Console.print('create $CONF_FILE here? [y/n]');
         
         var rli = readline.createInterface(process.stdin, process.stdout);
 
@@ -64,7 +64,7 @@ class HaxemineConfigDao {
                     var conf = new HaxemineConfig(8765, xhml);
                     var confJson = untyped JSON.stringify(conf, null, " ");
                     fs.writeFileSync(confPath, confJson, "utf8");
-                    Console.print('created haxemine.conf\n' + confJson);
+                    Console.print('created haxemine.conf\n$confJson');
                     Console.print('modify haxemine.conf and restart haxemine.');
                     onCreate();
                     untyped process.exit(0);

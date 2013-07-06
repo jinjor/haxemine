@@ -19,7 +19,7 @@ class Main {
         var ace = untyped js.Lib.window.ace;
         
         var view = new View(ace, socket, session);
-        new JQuery(js.Lib.document).ready(function(e){
+        new JQuery(untyped js.Browser.document).ready(function(e){
             view.render(JQ('body'));
         });
         

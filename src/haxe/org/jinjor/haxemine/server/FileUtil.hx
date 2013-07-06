@@ -18,7 +18,7 @@ class FileUtil {
           var all = [];
           async.map(results, function(item : String, cb) {
             if(filter(item)){
-              cb(null, item.split(root + '/')[1]);
+              cb(null, item.split('$root/')[1]);
             }else{
               cb(null, null);
             }
@@ -42,7 +42,7 @@ class FileUtil {
         var pending : Int = list.length;
         if (pending == 0) return done(null, results);
         list.forEach(function(file) {
-          file = dir + '/' + file;
+          file = '$dir/$file';
           fs.stat(file, function(err, stat) {
             if (stat != null && stat.isDirectory()) {
               walk(file, function(err, res) {
